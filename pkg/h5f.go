@@ -67,6 +67,12 @@ func (f *File) h5f_finalizer() {
 	}
 }
 
+func new_file(id C.hid_t) *File {
+	f := &File{id:id}
+	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	return f
+}
+
 // Creates an HDF5 file.
 // hid_t H5Fcreate( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id ) 
 func CreateFile(name string, flags int) (f *File, err os.Error) {
@@ -77,13 +83,12 @@ func CreateFile(name string, flags int) (f *File, err os.Error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	// FIXME: file props
-	hid := C.H5Fcreate(c_name, C.uint(flags), C.hid_t(P_DEFAULT), C.hid_t(P_DEFAULT))
+	hid := C.H5Fcreate(c_name, C.uint(flags), P_DEFAULT.id, P_DEFAULT.id)
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return
 	}
-	f = &File{id:hid}
-	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	f = new_file(hid)
 	return
 }
 
@@ -97,13 +102,12 @@ func OpenFile(name string, flags int) (f *File, err os.Error) {
 	defer C.free(unsafe.Pointer(c_name))
 	
 	// FIXME: file props
-	hid := C.H5Fopen(c_name, C.uint(flags), C.hid_t(P_DEFAULT))
+	hid := C.H5Fopen(c_name, C.uint(flags), P_DEFAULT.id)
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return
 	}
-	f = &File{id:hid}
-	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	f = new_file(hid)
 	return
 }
 
@@ -117,8 +121,7 @@ func (self *File) ReOpen() (f *File, err os.Error) {
 	if err != nil {
 		return
 	}
-	f = &File{id:hid}
-	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	f = new_file(hid)
 	return
 }
 
@@ -136,7 +139,12 @@ func IsHdf5(name string) bool {
 
 // Terminates access to an HDF5 file.
 func (f *File) Close() os.Error {
-	return togo_err(C.H5Fclose(f.id))
+	var err os.Error = nil
+	if f.id > 0 {
+		err = togo_err(C.H5Fclose(f.id))
+		f.id = 0
+	}
+	return err
 }
 
 // Flushes all buffers associated with a file to disk. 
@@ -163,7 +171,7 @@ func (self *File) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags 
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	
-	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), C.hid_t(P_DEFAULT))
+	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return
@@ -210,6 +218,35 @@ func (f *File) OpenDataType(name string, tapl_id int) (*DataType, os.Error) {
 	dt := &DataType{id:hid}
 	runtime.SetFinalizer(dt, (*DataType).h5t_finalizer)
 	return dt, err
+}
+
+// Creates a new dataset at this location.
+// hid_t H5Dcreate2( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id )
+func (f *File) CreateDataSet(name string, dtype *DataType, dspace *DataSpace, dcpl *PropList) (*DataSet, os.Error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	hid := C.H5Dcreate2(f.id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	dset := new_dataset(hid)
+	return dset, err
+}
+
+// Opens an existing dataset.
+// hid_t H5Dopen( hid_t loc_id, const char *name, hid_t dapl_id )
+func (f *File) OpenDataSet(name string) (*DataSet, os.Error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5Dopen2(f.id, c_name, P_DEFAULT.id)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	dset := new_dataset(hid)
+	return dset, err
 }
 
 // EOF

@@ -35,6 +35,12 @@ const (
     S_NULL SpaceClass = 2
 )
 
+func new_dataspace(id C.hid_t) *DataSpace {
+	ds := &DataSpace{id:id}
+	runtime.SetFinalizer(ds, (*DataSpace).h5s_finalizer)
+	return ds
+}
+
 // Creates a new dataspace of a specified type. 
 // hid_t H5Screate( H5S_class_t type ) 
 func CreateDataSpace(class SpaceClass) (*DataSpace, os.Error) {
@@ -43,8 +49,7 @@ func CreateDataSpace(class SpaceClass) (*DataSpace, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	ds := &DataSpace{id:hid}
-	runtime.SetFinalizer(ds, (*DataSpace).h5s_finalizer)
+	ds := new_dataspace(hid)
 	return ds,nil
 }
 
@@ -63,8 +68,7 @@ func (s *DataSpace) Copy() (*DataSpace, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	o := &DataSpace{id:hid}
-	runtime.SetFinalizer(o, (*DataSpace).h5s_finalizer)
+	o := new_dataspace(hid)
 	return o, err
 }
 
@@ -75,6 +79,10 @@ func (s *DataSpace) Close() os.Error {
 	return togo_err(err)
 }
 
+func (s *DataSpace) Id() int {
+	return int(s.id)
+}
+
 // FIXME: H5Sencode
 // FIXME: H5Sdecode
 
@@ -82,22 +90,32 @@ func (s *DataSpace) Close() os.Error {
 // hid_t H5Screate_simple( int rank, const hsize_t * current_dims, const hsize_t * maximum_dims ) 
 func CreateSimpleDataSpace(dims, maximum_dims []int) (*DataSpace, os.Error) {
 
-	rank := C.int(len(dims))
-	if len(dims) != len(maximum_dims) {
+	var c_dims *C.hsize_t = nil
+	var c_maxdims *C.hsize_t = nil
+
+	rank := C.int(0)
+	if dims != nil {
+		rank = C.int(len(dims))
+		// FIXME: size of C.hsize_t and go.int !!
+		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+		
+	}
+	if maximum_dims != nil {
+		rank = C.int(len(maximum_dims))
+		// FIXME: size of C.hsize_t and go.int !!
+		c_maxdims = (*C.hsize_t)(unsafe.Pointer(&maximum_dims[0]))
+
+	}
+	if len(dims) != len(maximum_dims) && (dims != nil && maximum_dims != nil) {
 		return nil, os.NewError("sizes of 'dims' and 'maximum_dims' dont match")
 	}
-
-	// FIXME: size of C.hsize_t and go.int !!
-	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
-	c_maxdims := (*C.hsize_t)(unsafe.Pointer(&maximum_dims[0]))
 
 	hid := C.H5Screate_simple(rank, c_dims, c_maxdims)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
-	ds := &DataSpace{id:hid}
-	runtime.SetFinalizer(ds, (*DataSpace).h5s_finalizer)
+	ds := new_dataspace(hid)
 	return ds, err
 }
 

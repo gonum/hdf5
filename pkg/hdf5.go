@@ -76,9 +76,5 @@ func GarbageCollect() os.Error {
 
 // constants
 
-const (
-	P_DEFAULT int = 0
-)
-
 
 // EOF

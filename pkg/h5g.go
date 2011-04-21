@@ -30,7 +30,7 @@ func (self *Group) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	
-	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), C.hid_t(P_DEFAULT))
+	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return
