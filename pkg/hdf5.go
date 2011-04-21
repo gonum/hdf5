@@ -3,6 +3,9 @@ package hdf5
 /*
  #cgo LDFLAGS: -lhdf5
  #include "hdf5.h"
+
+ #include <stdlib.h>
+ #include <string.h>
 */
 import "C"
 
@@ -26,6 +29,26 @@ func togo_err(herr C.herr_t) os.Error {
 	return &hdferror{code:int(herr)}
 }
 
+// initialize the hdf5 library
+func init() {
+	err := init_hdf5()
+	if err != nil {
+		err_str := fmt.Sprintf("pb calling H5open(): %s", err)
+		panic(err_str)
+	}
+}
+
+// Initializes the HDF5 library. 
+func init_hdf5() os.Error {
+	return togo_err(C.H5open())
+}
+
+// Flushes all data to disk, closes all open identifiers, and cleans up memory. 
+func close_hdf5() os.Error {
+	return togo_err(C.H5close())
+}
+
+// Returns the HDF library release number. 
 func GetLibVersion() (majnum, minnum, relnum uint, err os.Error) {
 	err = nil
 	majnum = 0
@@ -45,3 +68,17 @@ func GetLibVersion() (majnum, minnum, relnum uint, err os.Error) {
 	}
 	return
 }
+
+// Garbage collects on all free-lists of all types. 
+func GarbageCollect() os.Error {
+	return togo_err(C.H5garbage_collect())
+}
+
+// constants
+
+const (
+	P_DEFAULT int = 0
+)
+
+
+// EOF

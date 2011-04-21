@@ -1,0 +1,215 @@
+package hdf5
+
+/*
+ #cgo LDFLAGS: -lhdf5
+ #include "hdf5.h"
+
+ #include <stdlib.h>
+ #include <string.h>
+ */
+import "C"
+
+import (
+	"unsafe"
+	"os"
+	"runtime"
+	"fmt"
+)
+
+// -------- The H5F API for accessing HDF5 files. ---------
+
+// File constants
+const (
+
+	// absence of rdwr => rd-only
+	F_ACC_RDONLY int = 0x0000
+
+	// open for read and write
+	F_ACC_RDWR int = 0x0001
+
+	// Truncate file, if it already exists, erasing all data previously stored in the file. 
+	F_ACC_TRUNC int = 0x0002
+
+	// Fail if file already exists. 
+	F_ACC_EXCL int = 0x0004
+
+	// print debug info
+	F_ACC_DEBUG int = 0x0008
+
+	// create non-existing files
+	F_ACC_CREAT int = 0x0010
+
+	// value passed to set_elink_acc_flags to cause flags to be taken from the parent file
+	F_ACC_DEFAULT int = 0xffff
+)
+
+// The difference between a single file and a set of mounted files
+type Scope C.H5F_scope_t
+
+const (
+
+	// specified file handle only
+	F_SCOPE_LOCAL Scope = 0
+
+	// entire virtual file
+	F_SCOPE_GLOBAL Scope = 1
+	)
+
+// a HDF5 file
+type File struct {
+	id C.hid_t
+}
+
+func (f *File) h5f_finalizer() {
+	err := f.Close()
+	if err != nil {
+		panic(fmt.Sprintf("error closing file: %s",err))
+	}
+}
+
+// Creates an HDF5 file.
+// hid_t H5Fcreate( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id ) 
+func CreateFile(name string, flags int) (f *File, err os.Error) {
+	f = nil
+	err = nil
+
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	// FIXME: file props
+	hid := C.H5Fcreate(c_name, C.uint(flags), C.hid_t(P_DEFAULT), C.hid_t(P_DEFAULT))
+	err = togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return
+	}
+	f = &File{id:hid}
+	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	return
+}
+
+// Opens an existing HDF5 file.
+// hid_t H5Fopen( const char *name, unsigned flags, hid_t fapl_id )
+func OpenFile(name string, flags int) (f *File, err os.Error) {
+	f = nil
+	err = nil
+
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	
+	// FIXME: file props
+	hid := C.H5Fopen(c_name, C.uint(flags), C.hid_t(P_DEFAULT))
+	err = togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return
+	}
+	f = &File{id:hid}
+	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	return
+}
+
+// Returns a new identifier for a previously-opened HDF5 file. 
+func (self *File) ReOpen() (f *File, err os.Error) {
+	f = nil
+	err = nil
+
+	hid := C.H5Freopen(self.id)
+	err = togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return
+	}
+	f = &File{id:hid}
+	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	return
+}
+
+// Determines whether a file is in the HDF5 format.
+func IsHdf5(name string) bool {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	o := int(C.H5Fis_hdf5(c_name))
+	if o > 0 {
+		return true
+	}
+	return false
+}
+
+// Terminates access to an HDF5 file.
+func (f *File) Close() os.Error {
+	return togo_err(C.H5Fclose(f.id))
+}
+
+// Flushes all buffers associated with a file to disk. 
+// herr_t H5Fflush(hid_t object_id, H5F_scope_t scope ) 
+func (f *File) Flush(scope Scope) os.Error {
+	return togo_err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
+}
+
+// FIXME
+// Retrieves name of file to which object belongs. 
+// ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size ) 
+func (f *File) Name() string {
+	//sz := int(C.H5Fget_name(f.id, nil, 0)) + 1
+	//c_buf := C.malloc
+	return ""
+}
+
+// Creates a new empty group and links it to a location in the file. 
+// hid_t H5Gcreate2( hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id ) 
+func (self *File) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (g *Group, err os.Error) {
+	g = nil
+	err = nil
+
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	
+	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), C.hid_t(P_DEFAULT))
+	err = togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return
+	}
+	g = &Group{id:hid}
+	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
+	return
+}
+
+func (f *File) Id() int {
+	return int(f.id)
+}
+
+// Opens an existing group in a file.
+// hid_t H5Gopen( hid_t loc_id, const char * name, hid_t gapl_id ) 
+func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err os.Error) {
+	g = nil
+	err = nil
+
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5Gopen(f.id, c_name, C.hid_t(gapl_flag))
+	err = togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return
+	}
+	g = &Group{id:hid}
+	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
+	return
+}
+
+// Opens a named datatype.
+// hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id ) 
+func (f *File) OpenDataType(name string, tapl_id int) (*DataType, os.Error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5Topen2(f.id, c_name, C.hid_t(tapl_id))
+	err := togo_err(C.herr_t(hid))
+	if err != nil {
+		return nil, err
+	}
+	dt := &DataType{id:hid}
+	runtime.SetFinalizer(dt, (*DataType).h5t_finalizer)
+	return dt, err
+}
+
+// EOF

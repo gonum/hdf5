@@ -14,7 +14,13 @@ def build(ctx):
     ctx(
         features='cgopackage',
         name ='go-hdf5',
-        source='pkg/hdf5.go',
+        source='''\
+        pkg/hdf5.go
+        pkg/h5f.go
+        pkg/h5g.go
+        pkg/h5t.go
+        pkg/h5s.go
+        ''',
         target='hdf5',
         use = [
             'hdf5',
