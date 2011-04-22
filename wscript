@@ -22,10 +22,12 @@ def build(ctx):
         pkg/h5p.go
         pkg/h5s.go
         pkg/h5t.go
+        pkg/h5pt.go
         ''',
         target='hdf5',
         use = [
             'hdf5',
+            'hdf5_hl',
             ],
         )
 

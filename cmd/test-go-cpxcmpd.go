@@ -20,10 +20,7 @@ type s1_t struct {
 	a int
 	b float32
 	c float64
-}
-
-func (s *s1_t) String() string {
-	return fmt.Sprintf("s1{a:%d b:%f c:%f}", s.a, s.b, s.c)
+	d [3]int
 }
 
 type s2_t struct {
@@ -41,7 +38,13 @@ func main() {
 	// fmt.Printf(":: data: %v\n", s1)
 	s1 := [LENGTH]s1_t{}
 	for i:=0; i<LENGTH; i++ {
-	 s1[i] = s1_t{a:i, b:float32(i*i), c:1./(float64(i)+1)}
+		s1[i] = s1_t{
+		a:i, 
+		b:float32(i*i), 
+		c:1./(float64(i)+1), 
+		d:[...]int{i,i*2,i*3},
+		}
+		//s1[i].d = []float64{float64(i), float64(2*i), 3.*i}}
 	}
 	fmt.Printf(":: data: %v\n", s1)
 	

@@ -1,8 +1,9 @@
 package hdf5
 
 /*
- #cgo LDFLAGS: -lhdf5
+ #cgo LDFLAGS: -lhdf5 -lhdf5_hl
  #include "hdf5.h"
+ #include "hdf5_hl.h"
 
  #include <stdlib.h>
  #include <string.h>
@@ -90,6 +91,38 @@ func (g *Group) OpenDataType(name string, tapl_id int) (*DataType, os.Error) {
 	dt := &DataType{id:hid}
 	runtime.SetFinalizer(dt, (*DataType).h5t_finalizer)
 	return dt, err
+}
+
+// Creates a packet table to store fixed-length packets.
+// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
+func (g *Group) CreateTable(name string, dtype *DataType, chunk_size, compression int) (*Table, os.Error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	c_chunk := C.hsize_t(chunk_size)
+	c_compr := C.int(compression)
+	hid := C.H5PTcreate_fl(g.id, c_name, dtype.id, c_chunk, c_compr)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	table := new_packet_table(hid)
+	return table, err
+}
+
+// Opens an existing packet table.
+// hid_t H5PTopen( hid_t loc_id, const char *dset_name )
+func (g *Group) OpenTable(name string) (*Table, os.Error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5PTopen(g.id, c_name)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	table := new_packet_table(hid)
+	return table, err
 }
 
 // EOF

@@ -399,33 +399,113 @@ func (t *DataType) Size() int {
 	return int(C.H5Tget_size(t.id))
 }
 
+// ---------------------------------------------------------------------------
+
+// array data type
+type ArrayType struct {
+	DataType
+}
+
+func new_array_type(id C.hid_t) *ArrayType {
+	t := &ArrayType{DataType{id:id}}
+	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
+	return t
+}
+
+func NewArrayType(base_type *DataType, dims []int) (*ArrayType, os.Error) {
+	ndims := C.uint(len(dims))
+	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+	
+	hid := C.H5Tarray_create2(base_type.id, ndims, c_dims)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	t := new_array_type(hid)
+	return t, err
+}
+
+// Returns the rank of an array datatype.
+// int H5Tget_array_ndims( hid_t adtype_id )
+func (t *ArrayType) NDims() int {
+	return int(C.H5Tget_array_ndims(t.id))
+}
+
+// Retrieves sizes of array dimensions.
+// int H5Tget_array_dims2( hid_t adtype_id, hsize_t dims[] )
+func (t *ArrayType) ArrayDims() []int {
+	rank := t.NDims()
+	dims := make([]int, rank)
+	// fixme: int/hsize_t size!
+	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+	c_rank := int(C.H5Tget_array_dims(t.id, c_dims))
+	if c_rank == rank {
+		return dims
+	}
+	return nil
+}
+// ---------------------------------------------------------------------------
+
+// variable length array data type
+type VarLenType struct {
+	DataType
+}
+
+func NewVarLenType(base_type *DataType) (*VarLenType, os.Error) {
+	hid := C.H5Tvlen_create(base_type.id)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	dt := new_vltype(hid)
+	return dt, err
+}
+
+func new_vltype(id C.hid_t) *VarLenType {
+	t := &VarLenType{DataType{id:id}}
+	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
+	return t
+}
+
+// Determines whether datatype is a variable-length string.
+// htri_t H5Tis_variable_str( hid_t dtype_id )
+func (vl *VarLenType) IsVariableStr() bool {
+	o := int(C.H5Tis_variable_str(vl.id))
+	if o> 0 {
+		return true
+	} 
+	return false
+}
+
+// ---------------------------------------------------------------------------
+
 // compound data type
-type CompDataType struct {
+type CompType struct {
 	DataType
 }
 
 // Retrieves the number of elements in a compound or enumeration datatype. 
 // int H5Tget_nmembers( hid_t dtype_id ) 
-func (t *CompDataType) NMembers() int {
+func (t *CompType) NMembers() int {
 	return int(C.H5Tget_nmembers(t.id))
 }
 
 // Returns datatype class of compound datatype member. 
 // H5T_class_t H5Tget_member_class( hid_t cdtype_id, unsigned member_no ) 
-func (t *CompDataType) MemberClass(mbr_idx int) TypeClass {
+func (t *CompType) MemberClass(mbr_idx int) TypeClass {
 	return TypeClass(C.H5Tget_member_class(t.id, C.uint(mbr_idx)))
 }
 
 // Retrieves the name of a compound or enumeration datatype member. 
 // char * H5Tget_member_name( hid_t dtype_id, unsigned field_idx ) 
-func (t *CompDataType) MemberName(mbr_idx int) string {
+func (t *CompType) MemberName(mbr_idx int) string {
 	c_name := C.H5Tget_member_name(t.id, C.uint(mbr_idx))
 	return C.GoString(c_name)
 }
 
 // Retrieves the index of a compound or enumeration datatype member. 
 // int H5Tget_member_index( hid_t dtype_id, const char * field_name ) 
-func (t *CompDataType) MemberIndex(name string) int {
+func (t *CompType) MemberIndex(name string) int {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	return int(C.H5Tget_member_index(t.id, c_name))
@@ -433,13 +513,13 @@ func (t *CompDataType) MemberIndex(name string) int {
 
 // Retrieves the offset of a field of a compound datatype. 
 // size_t H5Tget_member_offset( hid_t dtype_id, unsigned memb_no ) 
-func (t *CompDataType) MemberOffset(mbr_idx int) int {
+func (t *CompType) MemberOffset(mbr_idx int) int {
 	return int(C.H5Tget_member_offset(t.id, C.uint(mbr_idx)))
 }
 
 // Returns the datatype of the specified member. 
 // hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx ) 
-func (t *CompDataType) MemberType(mbr_idx int) (*DataType, os.Error) {
+func (t *CompType) MemberType(mbr_idx int) (*DataType, os.Error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -451,7 +531,7 @@ func (t *CompDataType) MemberType(mbr_idx int) (*DataType, os.Error) {
 
 // Adds a new member to a compound datatype. 
 // herr_t H5Tinsert( hid_t dtype_id, const char * name, size_t offset, hid_t field_id ) 
-func (t *CompDataType) Insert(name string, offset int, field *DataType) os.Error {
+func (t *CompType) Insert(name string, offset int, field *DataType) os.Error {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	fmt.Printf("inserting [%s] at offset:%d...\n", name, offset)
@@ -461,7 +541,7 @@ func (t *CompDataType) Insert(name string, offset int, field *DataType) os.Error
 
 // Recursively removes padding from within a compound datatype. 
 // herr_t H5Tpack( hid_t dtype_id ) 
-func (t *CompDataType) Pack() os.Error {
+func (t *CompType) Pack() os.Error {
 	err := C.H5Tpack(t.id)
 	return togo_err(err)
 }
@@ -544,16 +624,40 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 	case reflect.String:
 		dt = T_C_S1
 
-	case reflect.Array, reflect.Slice:
-		panic("sorry, arrays and slices not yet supported")
+	case reflect.Array:
+		elem_type := new_dataTypeFromType(t.Elem())
+		n := t.Len()
+		dims := []int{n}
+		adt, err := NewArrayType(elem_type, dims)
+		if err != nil {
+			panic(err)
+		}
+		dt, err = adt.Copy()
+		if err != nil {
+			panic(err)
+		}
+		//panic("sorry, arrays not yet supported")
+
+	case  reflect.Slice:
+		elem_type := new_dataTypeFromType(t.Elem())
+		vlen_dt, err := NewVarLenType(elem_type)
+		if err != nil {
+			panic(err)
+		}
+		dt, err = vlen_dt.Copy()
+		if err != nil {
+			panic(err)
+		}
+		//panic("sorry, arrays and slices not yet supported")
 
 	case reflect.Struct:
 		sz := int(t.Size())
+		fmt.Printf("==> struct [%s] (sz: %d)...\n", t.Name(), sz)
 		hdf_dt, err := CreateDataType(T_COMPOUND, sz)
 		if err != nil {
 			panic(err)
 		}
-		cdt := &CompDataType{*hdf_dt}
+		cdt := &CompType{*hdf_dt}
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
@@ -571,6 +675,7 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		if err != nil {
 			panic(err)
 		}
+		fmt.Printf("==> struct [%s] (sz: %d)... [done]\n", t.Name(), sz)
 
 	case reflect.Ptr:
 		panic("sorry, pointers not yet supported")
