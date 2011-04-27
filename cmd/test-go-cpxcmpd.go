@@ -21,6 +21,7 @@ type s1_t struct {
 	b float32
 	c float64
 	d [3]int
+	e string
 }
 
 type s2_t struct {
@@ -43,6 +44,7 @@ func main() {
 		b:float32(i*i), 
 		c:1./(float64(i)+1), 
 		d:[...]int{i,i*2,i*3},
+		e:fmt.Sprintf("--%d--", i),
 		}
 		//s1[i].d = []float64{float64(i), float64(2*i), 3.*i}}
 	}

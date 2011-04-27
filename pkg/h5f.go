@@ -15,6 +15,7 @@ import (
 	"os"
 	"runtime"
 	"fmt"
+	"reflect"
 )
 
 // -------- The H5F API for accessing HDF5 files. ---------
@@ -158,9 +159,18 @@ func (f *File) Flush(scope Scope) os.Error {
 // Retrieves name of file to which object belongs. 
 // ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size ) 
 func (f *File) Name() string {
-	//sz := int(C.H5Fget_name(f.id, nil, 0)) + 1
-	//c_buf := C.malloc
-	return ""
+	sz := int(C.H5Fget_name(f.id, nil, 0)) + 1
+	if sz < 0 {
+		return ""
+	}
+	buf := string(make([]byte, sz))
+	c_buf := C.CString(buf)
+	defer C.free(unsafe.Pointer(c_buf))
+	sz = int(C.H5Fget_name(f.id, c_buf, C.size_t(sz)))
+	if sz < 0 {
+		return ""
+	}
+	return C.GoString(c_buf)
 }
 
 // Creates a new empty group and links it to a location in the file. 
@@ -263,8 +273,27 @@ func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid)
+	table := new_packet_table(hid, dtype.rt)
 	return table, err
+}
+
+// Creates a packet table to store fixed-length packets.
+// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
+func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, os.Error) {
+	switch dt := dtype.(type) {
+	case reflect.Type:
+		hdf_dtype := new_dataTypeFromType(dt)
+		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
+
+	case *DataType:
+		return f.CreateTable(name, dt, chunk_size, compression)
+	
+	default:
+		hdf_dtype := new_dataTypeFromType(reflect.Typeof(dtype))
+		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
+	}
+	panic("unreachable")
+	return nil, os.NewError("unreachable")
 }
 
 // Opens an existing packet table.
@@ -278,7 +307,12 @@ func (f *File) OpenTable(name string) (*Table, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid)
+	table := new_packet_table(hid, nil)
+	dtype, err := table.Type()
+	if err != nil {
+		return nil, err
+	}
+	table.t = dtype.rt
 	return table, err
 }
 

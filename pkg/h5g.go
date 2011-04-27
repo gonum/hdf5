@@ -15,6 +15,7 @@ import (
 	"os"
 	"runtime"
 	"fmt"
+	"reflect"
 )
 
 type Group struct {
@@ -106,8 +107,27 @@ func (g *Group) CreateTable(name string, dtype *DataType, chunk_size, compressio
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid)
+	table := new_packet_table(hid, dtype.rt)
 	return table, err
+}
+
+// Creates a packet table to store fixed-length packets.
+// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
+func (g *Group) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, os.Error) {
+	switch dt := dtype.(type) {
+	case reflect.Type:
+		hdf_dtype := new_dataTypeFromType(dt)
+		return g.CreateTable(name, hdf_dtype, chunk_size, compression)
+
+	case *DataType:
+		return g.CreateTable(name, dt, chunk_size, compression)
+	
+	default:
+		hdf_dtype := new_dataTypeFromType(reflect.Typeof(dtype))
+		return g.CreateTable(name, hdf_dtype, chunk_size, compression)
+	}
+	panic("unreachable")
+	return nil, os.NewError("unreachable")
 }
 
 // Opens an existing packet table.
@@ -121,7 +141,12 @@ func (g *Group) OpenTable(name string) (*Table, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid)
+	table := new_packet_table(hid, nil)
+	dtype, err := table.Type()
+	if err != nil {
+		return nil, err
+	}
+	table.t = dtype.rt
 	return table, err
 }
 

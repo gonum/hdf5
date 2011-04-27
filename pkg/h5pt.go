@@ -15,6 +15,7 @@ import (
 	"os"
 	"runtime"
 	"fmt"
+	"reflect"
 )
 
 // ---- HDF5 Packet Table ----
@@ -22,10 +23,11 @@ import (
 // a HDF5 packet table
 type Table struct {
 	id C.hid_t
+	t  reflect.Type
 }
 
-func new_packet_table(id C.hid_t) *Table {
-	t := &Table{id:id}
+func new_packet_table(id C.hid_t, rt reflect.Type) *Table {
+	t := &Table{id:id, t:rt}
 	runtime.SetFinalizer(t, (*Table).h5pt_finalizer)
 	return t
 }
@@ -62,13 +64,142 @@ func (t *Table) IsValid() bool {
 
 // Reads a number of packets from a packet table.
 // herr_t H5PTread_packets( hid_t table_id, hsize_t start, size_t nrecords, void* data)
-func (t *Table) ReadPackets(start, nrecords int) ([]interface{}, os.Error) {
-	data := make([]interface{}, nrecords)
-	c_data := unsafe.Pointer(&data[0])
+func (t *Table) ReadPackets(start, nrecords int, data interface{}) (os.Error) {
 	c_start := C.hsize_t(start)
 	c_nrecords := C.size_t(nrecords)
+	rt := reflect.Typeof(data)
+	rv := reflect.NewValue(data)
+	c_data := unsafe.Pointer(nil)
+	switch rt.Kind() {
+	case reflect.Array:
+		//fmt.Printf("--> array\n")
+		if rv.Cap() < nrecords {
+			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
+		}
+		c_data = unsafe.Pointer(rv.Index(0).UnsafeAddr())
+		//c_nrecords = C.size_t(rv.Cap())
+
+	case reflect.Slice:
+		//fmt.Printf("--> slice\n")
+		if rv.Cap() < nrecords {
+			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
+			// buf_slice := reflect.MakeSlice(rt, nrecords, nrecords)
+			// rv.Set(reflect.AppendSlice(rv, buf_slice))
+		}
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
+		c_data = unsafe.Pointer(slice.Data)
+		//c_nrecords = C.size_t(rv.Cap())
+				
+	default:
+		panic(fmt.Sprintf("unhandled kind (%s) need slice or array", rt.Kind()))
+	}
 	err := C.H5PTread_packets(t.id, c_start, c_nrecords, c_data)
-	return data, togo_err(err)
+	return togo_err(err)
+}
+
+// Appends packets to the end of a packet table.
+// herr_t H5PTappend( hid_t table_id, size_t nrecords, const void *data)
+func (t *Table) Append(data interface{}) os.Error {
+	rt := reflect.Typeof(data)
+	v := reflect.NewValue(data)
+	c_nrecords := C.size_t(0)
+	c_data := unsafe.Pointer(nil)
+
+	switch rt.Kind() {
+
+	case reflect.Array:
+		c_nrecords = C.size_t(v.Len())
+		c_data = unsafe.Pointer(v.UnsafeAddr())
+
+	case reflect.Slice:
+		c_nrecords = C.size_t(v.Len())
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		c_data = unsafe.Pointer(slice.Data)
+
+	case reflect.String:
+		c_nrecords = C.size_t(v.Len())
+		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		c_data = unsafe.Pointer(str.Data)
+
+	default:
+		c_nrecords = C.size_t(1)
+		c_data = unsafe.Pointer(v.UnsafeAddr())
+	}
+
+	//fmt.Printf(":: append(%d, %d)\n", c_nrecords, c_data)
+	err := C.H5PTappend(t.id, c_nrecords, c_data)
+	//fmt.Printf(":: append(%d, %d) -> %v\n", c_nrecords, c_data, err)
+	return togo_err(err)
+}
+
+// Reads packets from a packet table starting at the current index.
+// herr_t H5PTget_next( hid_t table_id, size_t nrecords, void *data)
+func (t *Table) Next(data interface{}) (os.Error) {
+	rt := reflect.Typeof(data)
+	rv := reflect.NewValue(data)
+	c_nrecords := C.size_t(0)
+	c_data := unsafe.Pointer(nil)
+	switch rt.Kind() {
+	case reflect.Array:
+		//fmt.Printf("--> array\n")
+		if rv.Cap() <= 0 {
+			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
+		}
+		c_data = unsafe.Pointer(rv.Index(0).UnsafeAddr())
+		c_nrecords = C.size_t(rv.Cap())
+
+	case reflect.Slice:
+		//fmt.Printf("--> slice\n")
+		if rv.Cap() <=0 {
+			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
+		}
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
+		c_data = unsafe.Pointer(slice.Data)
+		c_nrecords = C.size_t(rv.Cap())
+				
+	default:
+		panic(fmt.Sprintf("unhandled kind (%s) need slice or array", rt.Kind()))
+	}
+	//fmt.Printf("--data: %v...\n", data)
+	err := C.H5PTget_next(t.id, c_nrecords, c_data)
+	//fmt.Printf("--data: err [%v]\n", err)
+	//fmt.Printf("--data: %v... [%v]\n", data, err)
+	return togo_err(err)
+}
+
+// Returns the number of packets in a packet table.
+// herr_t H5PTget_num_packets( hid_t table_id, hsize_t * nrecords)
+func (t *Table) NumPackets() (int, os.Error) {
+	c_nrecords := C.hsize_t(0)
+	err := C.H5PTget_num_packets(t.id, &c_nrecords)
+	return int(c_nrecords), togo_err(err)
+}
+
+// Resets a packet table's index to the first packet.
+// herr_t H5PTcreate_index( hid_t table_id)
+func (t *Table) CreateIndex() os.Error {
+	err := C.H5PTcreate_index(t.id)
+	return togo_err(err)
+}
+
+// Sets a packet table's index.
+// herr_t H5PTset_index( hid_t table_id, hsize_t pt_index)
+func (t *Table) SetIndex(index int) os.Error {
+	c_idx := C.hsize_t(index)
+	err := C.H5PTset_index(t.id, c_idx)
+	return togo_err(err)
+}
+
+// Returns an identifier for a copy of the datatype for a dataset.
+// hid_t H5Dget_type(hid_t dataset_id )
+func (t *Table) Type() (*DataType, os.Error) {
+	hid := C.H5Dget_type(t.id)
+	err := togo_err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	dt := new_dtype(hid, nil)
+	return dt, err
 }
 
 // EOF

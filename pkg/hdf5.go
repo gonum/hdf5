@@ -12,7 +12,23 @@ import "C"
 import (
 	"os"
 	"fmt"
+	"runtime"
+	"unsafe"
 )
+
+type CString struct {
+	cstr *C.char
+}
+
+func NewCString(s string) *CString {
+	c_s := &CString{cstr:C.CString(s)}
+	runtime.SetFinalizer(c_s, (*CString).cstring_finalizer)
+	return c_s
+}
+
+func (s *CString) cstring_finalizer() {
+	C.free(unsafe.Pointer(s.cstr))
+}
 
 // utils
 type hdferror struct {

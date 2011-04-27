@@ -7,128 +7,7 @@ package hdf5
  #include <stdlib.h>
  #include <string.h>
 
- hid_t _go_hdf5_H5T_C_S1() { return H5T_C_S1; }
- hid_t _go_hdf5_H5T_FORTRAN_S1() { return H5T_FORTRAN_S1; }
-
- hid_t _go_hdf5_H5T_STD_I8BE() { return H5T_STD_I8BE; }
- hid_t _go_hdf5_H5T_STD_I8LE() { return H5T_STD_I8LE; }
- hid_t _go_hdf5_H5T_STD_I16BE() { return H5T_STD_I16BE; }
- hid_t _go_hdf5_H5T_STD_I16LE() { return H5T_STD_I16LE; }
- hid_t _go_hdf5_H5T_STD_I32BE() { return H5T_STD_I32BE; }
- hid_t _go_hdf5_H5T_STD_I32LE() { return H5T_STD_I32LE; }
- hid_t _go_hdf5_H5T_STD_I64BE() { return H5T_STD_I64BE; }
- hid_t _go_hdf5_H5T_STD_I64LE() { return H5T_STD_I64LE; }
- hid_t _go_hdf5_H5T_STD_U8BE() { return H5T_STD_U8BE; }
- hid_t _go_hdf5_H5T_STD_U8LE() { return H5T_STD_U8LE; }
- hid_t _go_hdf5_H5T_STD_U16BE() { return H5T_STD_U16BE; }
- hid_t _go_hdf5_H5T_STD_U16LE() { return H5T_STD_U16LE; }
- hid_t _go_hdf5_H5T_STD_U32BE() { return H5T_STD_U32BE; }
- hid_t _go_hdf5_H5T_STD_U32LE() { return H5T_STD_U32LE; }
- hid_t _go_hdf5_H5T_STD_U64BE() { return H5T_STD_U64BE; }
- hid_t _go_hdf5_H5T_STD_U64LE() { return H5T_STD_U64LE; }
- hid_t _go_hdf5_H5T_STD_B8BE() { return H5T_STD_B8BE; }
- hid_t _go_hdf5_H5T_STD_B8LE() { return H5T_STD_B8LE; }
-
- hid_t _go_hdf5_H5T_STD_B16BE() { return H5T_STD_B16BE; }
- hid_t _go_hdf5_H5T_STD_B16LE() { return H5T_STD_B16LE; }
- hid_t _go_hdf5_H5T_STD_B32BE() { return H5T_STD_B32BE; }
- hid_t _go_hdf5_H5T_STD_B32LE() { return H5T_STD_B32LE; }
- hid_t _go_hdf5_H5T_STD_B64BE() { return H5T_STD_B64BE; }
- hid_t _go_hdf5_H5T_STD_B64LE() { return H5T_STD_B64LE; }
- hid_t _go_hdf5_H5T_STD_REF_OBJ() { return H5T_STD_REF_OBJ; }
- hid_t _go_hdf5_H5T_STD_REF_DSETREG() { return H5T_STD_REF_DSETREG; }
-
- hid_t _go_hdf5_H5T_IEEE_F32BE() { return H5T_IEEE_F32BE; }
- hid_t _go_hdf5_H5T_IEEE_F32LE() { return H5T_IEEE_F32LE; }
- hid_t _go_hdf5_H5T_IEEE_F64BE() { return H5T_IEEE_F64BE; }
- hid_t _go_hdf5_H5T_IEEE_F64LE() { return H5T_IEEE_F64LE; }
-
- hid_t _go_hdf5_H5T_UNIX_D32BE() { return H5T_UNIX_D32BE; }
- hid_t _go_hdf5_H5T_UNIX_D32LE() { return H5T_UNIX_D32LE; }
- hid_t _go_hdf5_H5T_UNIX_D64BE() { return H5T_UNIX_D64BE; }
- hid_t _go_hdf5_H5T_UNIX_D64LE() { return H5T_UNIX_D64LE; }
-
- hid_t _go_hdf5_H5T_INTEL_I8() { return H5T_INTEL_I8; }
- hid_t _go_hdf5_H5T_INTEL_I16() { return H5T_INTEL_I16; }
- hid_t _go_hdf5_H5T_INTEL_I32() { return H5T_INTEL_I32; }
- hid_t _go_hdf5_H5T_INTEL_I64() { return H5T_INTEL_I64; }
- hid_t _go_hdf5_H5T_INTEL_U8() { return H5T_INTEL_U8; }
- hid_t _go_hdf5_H5T_INTEL_U16() { return H5T_INTEL_U16; }
- hid_t _go_hdf5_H5T_INTEL_U32() { return H5T_INTEL_U32; }
- hid_t _go_hdf5_H5T_INTEL_U64() { return H5T_INTEL_U64; }
- hid_t _go_hdf5_H5T_INTEL_B8() { return H5T_INTEL_B8; }
- hid_t _go_hdf5_H5T_INTEL_B16() { return H5T_INTEL_B16; }
- hid_t _go_hdf5_H5T_INTEL_B32() { return H5T_INTEL_B32; }
- hid_t _go_hdf5_H5T_INTEL_B64() { return H5T_INTEL_B64; }
- hid_t _go_hdf5_H5T_INTEL_F32() { return H5T_INTEL_F32; }
- hid_t _go_hdf5_H5T_INTEL_F64() { return H5T_INTEL_F64; }
-
- hid_t _go_hdf5_H5T_ALPHA_I8() { return H5T_ALPHA_I8; }
- hid_t _go_hdf5_H5T_ALPHA_I16() { return H5T_ALPHA_I16; }
- hid_t _go_hdf5_H5T_ALPHA_I32() { return H5T_ALPHA_I32; }
- hid_t _go_hdf5_H5T_ALPHA_I64() { return H5T_ALPHA_I64; }
- hid_t _go_hdf5_H5T_ALPHA_U8() { return H5T_ALPHA_U8; }
- hid_t _go_hdf5_H5T_ALPHA_U16() { return H5T_ALPHA_U16; }
- hid_t _go_hdf5_H5T_ALPHA_U32() { return H5T_ALPHA_U32; }
- hid_t _go_hdf5_H5T_ALPHA_U64() { return H5T_ALPHA_U64; }
- hid_t _go_hdf5_H5T_ALPHA_B8() { return H5T_ALPHA_B8; }
- hid_t _go_hdf5_H5T_ALPHA_B16() { return H5T_ALPHA_B16; }
- hid_t _go_hdf5_H5T_ALPHA_B32() { return H5T_ALPHA_B32; }
- hid_t _go_hdf5_H5T_ALPHA_B64() { return H5T_ALPHA_B64; }
- hid_t _go_hdf5_H5T_ALPHA_F32() { return H5T_ALPHA_F32; }
- hid_t _go_hdf5_H5T_ALPHA_F64() { return H5T_ALPHA_F64; }
-
- hid_t _go_hdf5_H5T_MIPS_I8() { return H5T_MIPS_I8; }
- hid_t _go_hdf5_H5T_MIPS_I16() { return H5T_MIPS_I16; }
- hid_t _go_hdf5_H5T_MIPS_I32() { return H5T_MIPS_I32; }
- hid_t _go_hdf5_H5T_MIPS_I64() { return H5T_MIPS_I64; }
- hid_t _go_hdf5_H5T_MIPS_U8() { return H5T_MIPS_U8; }
- hid_t _go_hdf5_H5T_MIPS_U16() { return H5T_MIPS_U16; }
- hid_t _go_hdf5_H5T_MIPS_U32() { return H5T_MIPS_U32; }
- hid_t _go_hdf5_H5T_MIPS_U64() { return H5T_MIPS_U64; }
- hid_t _go_hdf5_H5T_MIPS_B8() { return H5T_MIPS_B8; }
- hid_t _go_hdf5_H5T_MIPS_B16() { return H5T_MIPS_B16; }
- hid_t _go_hdf5_H5T_MIPS_B32() { return H5T_MIPS_B32; }
- hid_t _go_hdf5_H5T_MIPS_B64() { return H5T_MIPS_B64; }
- hid_t _go_hdf5_H5T_MIPS_F32() { return H5T_MIPS_F32; }
- hid_t _go_hdf5_H5T_MIPS_F64() { return H5T_MIPS_F64; }
-
- hid_t _go_hdf5_H5T_NATIVE_CHAR() { return H5T_NATIVE_CHAR; }
- hid_t _go_hdf5_H5T_NATIVE_INT() { return H5T_NATIVE_INT; }
- hid_t _go_hdf5_H5T_NATIVE_FLOAT() { return H5T_NATIVE_FLOAT; }
- hid_t _go_hdf5_H5T_NATIVE_SCHAR() { return H5T_NATIVE_SCHAR; }
- hid_t _go_hdf5_H5T_NATIVE_UCHAR() { return H5T_NATIVE_UCHAR; }
- hid_t _go_hdf5_H5T_NATIVE_SHORT() { return H5T_NATIVE_SHORT; }
- hid_t _go_hdf5_H5T_NATIVE_USHORT() { return H5T_NATIVE_USHORT; }
- hid_t _go_hdf5_H5T_NATIVE_UINT() { return H5T_NATIVE_UINT; }
- hid_t _go_hdf5_H5T_NATIVE_LONG() { return H5T_NATIVE_LONG; }
- hid_t _go_hdf5_H5T_NATIVE_ULONG() { return H5T_NATIVE_ULONG; }
- hid_t _go_hdf5_H5T_NATIVE_LLONG() { return H5T_NATIVE_LLONG; }
- hid_t _go_hdf5_H5T_NATIVE_ULLONG() { return H5T_NATIVE_ULLONG; }
- hid_t _go_hdf5_H5T_NATIVE_DOUBLE() { return H5T_NATIVE_DOUBLE; }
-#if H5_SIZEOF_LONG_DOUBLE !=0
- hid_t _go_hdf5_H5T_NATIVE_LDOUBLE() { return H5T_NATIVE_LDOUBLE; }
-#endif
- hid_t _go_hdf5_H5T_NATIVE_B8() { return H5T_NATIVE_B8; }
- hid_t _go_hdf5_H5T_NATIVE_B16() { return H5T_NATIVE_B16; }
- hid_t _go_hdf5_H5T_NATIVE_B32() { return H5T_NATIVE_B32; }
- hid_t _go_hdf5_H5T_NATIVE_B64() { return H5T_NATIVE_B64; }
- hid_t _go_hdf5_H5T_NATIVE_OPAQUE() { return H5T_NATIVE_OPAQUE; }
- hid_t _go_hdf5_H5T_NATIVE_HSIZE() { return H5T_NATIVE_HSIZE; }
- hid_t _go_hdf5_H5T_NATIVE_HSSIZE() { return H5T_NATIVE_HSSIZE; }
- hid_t _go_hdf5_H5T_NATIVE_HERR() { return H5T_NATIVE_HERR; }
- hid_t _go_hdf5_H5T_NATIVE_HBOOL() { return H5T_NATIVE_HBOOL; }
-
- hid_t _go_hdf5_H5T_NATIVE_INT8() { return H5T_NATIVE_INT8; }
- hid_t _go_hdf5_H5T_NATIVE_UINT8() { return H5T_NATIVE_UINT8; }
- hid_t _go_hdf5_H5T_NATIVE_INT16() { return H5T_NATIVE_INT16; }
- hid_t _go_hdf5_H5T_NATIVE_UINT16() { return H5T_NATIVE_UINT16; }
- hid_t _go_hdf5_H5T_NATIVE_INT32() { return H5T_NATIVE_INT32; }
- hid_t _go_hdf5_H5T_NATIVE_UINT32() { return H5T_NATIVE_UINT32; }
- hid_t _go_hdf5_H5T_NATIVE_INT64() { return H5T_NATIVE_INT64; }
- hid_t _go_hdf5_H5T_NATIVE_UINT64() { return H5T_NATIVE_UINT64; }
-
-*/
+ */
 import "C"
 
 import (
@@ -143,6 +22,7 @@ import (
 
 type DataType struct {
 	id C.hid_t
+	rt reflect.Type
 }
 
 type TypeClass C.H5T_class_t
@@ -187,132 +67,54 @@ const (
 	T_NCLASSES TypeClass = 11
 )
 
-// list of predefined data types
+type dummy_struct struct {}
+
+// list of go types
 var (
-	T_C_S1 *DataType = new_dtype(C._go_hdf5_H5T_C_S1())
-	T_FORTRAN_S1 *DataType = new_dtype(C._go_hdf5_H5T_FORTRAN_S1())
+	_go_string_t reflect.Type = reflect.Typeof(string(""))
+	_go_int_t    reflect.Type = reflect.Typeof(int(0))
+	_go_int8_t   reflect.Type = reflect.Typeof(int8(0))
+	_go_int16_t  reflect.Type = reflect.Typeof(int16(0))
+	_go_int32_t  reflect.Type = reflect.Typeof(int32(0))
+	_go_int64_t  reflect.Type = reflect.Typeof(int64(0))
+	_go_uint_t    reflect.Type = reflect.Typeof(uint(0))
+	_go_uint8_t   reflect.Type = reflect.Typeof(uint8(0))
+	_go_uint16_t  reflect.Type = reflect.Typeof(uint16(0))
+	_go_uint32_t  reflect.Type = reflect.Typeof(uint32(0))
+	_go_uint64_t  reflect.Type = reflect.Typeof(uint64(0))
 
-	T_STD_I8BE *DataType = new_dtype(C._go_hdf5_H5T_STD_I8BE())
-	T_STD_I8LE *DataType = new_dtype(C._go_hdf5_H5T_STD_I8LE())
-	T_STD_I16BE *DataType = new_dtype(C._go_hdf5_H5T_STD_I16BE())
-	T_STD_I16LE *DataType = new_dtype(C._go_hdf5_H5T_STD_I16LE())
-	T_STD_I32BE *DataType = new_dtype(C._go_hdf5_H5T_STD_I32BE())
-	T_STD_I32LE *DataType = new_dtype(C._go_hdf5_H5T_STD_I32LE())
-	T_STD_I64BE *DataType = new_dtype(C._go_hdf5_H5T_STD_I64BE())
-	T_STD_I64LE *DataType = new_dtype(C._go_hdf5_H5T_STD_I64LE())
-	T_STD_U8BE *DataType = new_dtype(C._go_hdf5_H5T_STD_U8BE())
-	T_STD_U8LE *DataType = new_dtype(C._go_hdf5_H5T_STD_U8LE())
-	T_STD_U16BE *DataType = new_dtype(C._go_hdf5_H5T_STD_U16BE())
-	T_STD_U16LE *DataType = new_dtype(C._go_hdf5_H5T_STD_U16LE())
-	T_STD_U32BE *DataType = new_dtype(C._go_hdf5_H5T_STD_U32BE())
-	T_STD_U32LE *DataType = new_dtype(C._go_hdf5_H5T_STD_U32LE())
-	T_STD_U64BE *DataType = new_dtype(C._go_hdf5_H5T_STD_U64BE())
-	T_STD_U64LE *DataType = new_dtype(C._go_hdf5_H5T_STD_U64LE())
-	T_STD_B8BE *DataType = new_dtype(C._go_hdf5_H5T_STD_B8BE())
-	T_STD_B8LE *DataType = new_dtype(C._go_hdf5_H5T_STD_B8LE())
+	_go_float32_t  reflect.Type = reflect.Typeof(float32(0))
+	_go_float64_t  reflect.Type = reflect.Typeof(float64(0))
 
-	T_STD_B16BE *DataType = new_dtype(C._go_hdf5_H5T_STD_B16BE())
-	T_STD_B16LE *DataType = new_dtype(C._go_hdf5_H5T_STD_B16LE())
-	T_STD_B32BE *DataType = new_dtype(C._go_hdf5_H5T_STD_B32BE())
-	T_STD_B32LE *DataType = new_dtype(C._go_hdf5_H5T_STD_B32LE())
-	T_STD_B64BE *DataType = new_dtype(C._go_hdf5_H5T_STD_B64BE())
-	T_STD_B64LE *DataType = new_dtype(C._go_hdf5_H5T_STD_B64LE())
-	T_STD_REF_OBJ *DataType = new_dtype(C._go_hdf5_H5T_STD_REF_OBJ())
-	T_STD_REF_DSETREG *DataType = new_dtype(C._go_hdf5_H5T_STD_REF_DSETREG())
+	_go_array_t reflect.Type = reflect.Typeof([1]int{0})
+	_go_slice_t reflect.Type = reflect.Typeof([]int{0})
 
-	T_IEEE_F32BE *DataType = new_dtype(C._go_hdf5_H5T_IEEE_F32BE())
-	T_IEEE_F32LE *DataType = new_dtype(C._go_hdf5_H5T_IEEE_F32LE())
-	T_IEEE_F64BE *DataType = new_dtype(C._go_hdf5_H5T_IEEE_F64BE())
-	T_IEEE_F64LE *DataType = new_dtype(C._go_hdf5_H5T_IEEE_F64LE())
+	_go_struct_t reflect.Type = reflect.Typeof(dummy_struct{})
 
-	T_UNIX_D32BE *DataType = new_dtype(C._go_hdf5_H5T_UNIX_D32BE())
-	T_UNIX_D32LE *DataType = new_dtype(C._go_hdf5_H5T_UNIX_D32LE())
-	T_UNIX_D64BE *DataType = new_dtype(C._go_hdf5_H5T_UNIX_D64BE())
-	T_UNIX_D64LE *DataType = new_dtype(C._go_hdf5_H5T_UNIX_D64LE())
-
-	T_INTEL_I8 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_I8())
-	T_INTEL_I16 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_I16())
-	T_INTEL_I32 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_I32())
-	T_INTEL_I64 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_I64())
-	T_INTEL_U8 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_U8())
-	T_INTEL_U16 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_U16())
-	T_INTEL_U32 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_U32())
-	T_INTEL_U64 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_U64())
-	T_INTEL_B8 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_B8())
-	T_INTEL_B16 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_B16())
-	T_INTEL_B32 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_B32())
-	T_INTEL_B64 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_B64())
-	T_INTEL_F32 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_F32())
-	T_INTEL_F64 *DataType = new_dtype(C._go_hdf5_H5T_INTEL_F64())
-
-	T_ALPHA_I8 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_I8())
-	T_ALPHA_I16 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_I16())
-	T_ALPHA_I32 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_I32())
-	T_ALPHA_I64 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_I64())
-	T_ALPHA_U8 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_U8())
-	T_ALPHA_U16 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_U16())
-	T_ALPHA_U32 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_U32())
-	T_ALPHA_U64 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_U64())
-	T_ALPHA_B8 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_B8())
-	T_ALPHA_B16 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_B16())
-	T_ALPHA_B32 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_B32())
-	T_ALPHA_B64 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_B64())
-	T_ALPHA_F32 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_F32())
-	T_ALPHA_F64 *DataType = new_dtype(C._go_hdf5_H5T_ALPHA_F64())
-
-	T_MIPS_I8 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_I8())
-	T_MIPS_I16 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_I16())
-	T_MIPS_I32 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_I32())
-	T_MIPS_I64 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_I64())
-	T_MIPS_U8 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_U8())
-	T_MIPS_U16 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_U16())
-	T_MIPS_U32 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_U32())
-	T_MIPS_U64 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_U64())
-	T_MIPS_B8 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_B8())
-	T_MIPS_B16 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_B16())
-	T_MIPS_B32 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_B32())
-	T_MIPS_B64 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_B64())
-	T_MIPS_F32 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_F32())
-	T_MIPS_F64 *DataType = new_dtype(C._go_hdf5_H5T_MIPS_F64())
-
-	T_NATIVE_CHAR *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_CHAR())
-	T_NATIVE_INT *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_INT())
-	T_NATIVE_FLOAT *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_FLOAT())
-	T_NATIVE_SCHAR *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_SCHAR())
-	T_NATIVE_UCHAR *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_UCHAR())
-	T_NATIVE_SHORT *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_SHORT())
-	T_NATIVE_USHORT *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_USHORT())
-	T_NATIVE_UINT *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_UINT())
-	T_NATIVE_LONG *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_LONG())
-	T_NATIVE_ULONG *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_ULONG())
-	T_NATIVE_LLONG *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_LLONG())
-	T_NATIVE_ULLONG *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_ULLONG())
-	T_NATIVE_DOUBLE *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_DOUBLE())
-	//#if H5_SIZEOF_LONG_DOUBLE !=0
-	T_NATIVE_LDOUBLE *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_LDOUBLE())
-	//#endif
-	T_NATIVE_B8 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_B8())
-	T_NATIVE_B16 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_B16())
-	T_NATIVE_B32 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_B32())
-	T_NATIVE_B64 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_B64())
-	T_NATIVE_OPAQUE *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_OPAQUE())
-	T_NATIVE_HSIZE *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_HSIZE())
-	T_NATIVE_HSSIZE *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_HSSIZE())
-	T_NATIVE_HERR *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_HERR())
-	T_NATIVE_HBOOL *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_HBOOL())
-
-	T_NATIVE_INT8 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_INT8())
-	T_NATIVE_UINT8 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_UINT8())
-	T_NATIVE_INT16 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_INT16())
-	T_NATIVE_UINT16 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_UINT16())
-	T_NATIVE_INT32 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_INT32())
-	T_NATIVE_UINT32 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_UINT32())
-	T_NATIVE_INT64 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_INT64())
-	T_NATIVE_UINT64 *DataType = new_dtype(C._go_hdf5_H5T_NATIVE_UINT64())
+	_go_ptr_t reflect.Type = reflect.PtrTo(_go_int_t)
 )
 
-func new_dtype(id C.hid_t) *DataType {
-	t := &DataType{id:id}
+type typeClassToType map[TypeClass]reflect.Type
+var (
+	// mapping of type-class to go-type
+	_type_cls_to_go_type typeClassToType = typeClassToType{
+	T_NO_CLASS: nil,
+	T_INTEGER: _go_int_t,
+	T_FLOAT: _go_float32_t,
+	T_TIME: nil,
+	T_STRING: _go_string_t,
+	T_BITFIELD: nil,
+	T_OPAQUE: nil,
+	T_COMPOUND: _go_struct_t,
+	T_REFERENCE: _go_ptr_t,
+	T_ENUM: _go_int_t,
+	T_VLEN: _go_slice_t,
+	T_ARRAY: _go_array_t,
+	}
+)
+
+func new_dtype(id C.hid_t, rt reflect.Type) *DataType {
+	t := &DataType{id:id, rt:rt}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
@@ -328,7 +130,7 @@ func CreateDataType(class TypeClass, size int) (t *DataType, err os.Error) {
 	if err != nil {
 		return
 	}
-	t = new_dtype(hid)
+	t = new_dtype(hid, _type_cls_to_go_type[class])
 	return
 }
 
@@ -373,7 +175,7 @@ func (t *DataType) Copy() (*DataType, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	o := new_dtype(hid)
+	o := new_dtype(hid, t.rt)
 	return o, err
 }
 
@@ -399,6 +201,12 @@ func (t *DataType) Size() int {
 	return int(C.H5Tget_size(t.id))
 }
 
+// Sets the total size for an atomic datatype.
+// herr_t H5Tset_size( hid_t dtype_id, size_tsize )
+func (t *DataType) SetSize(sz int) os.Error {
+	err := C.H5Tset_size(t.id, C.size_t(sz))
+	return togo_err(err)
+}
 // ---------------------------------------------------------------------------
 
 // array data type
@@ -525,7 +333,7 @@ func (t *CompType) MemberType(mbr_idx int) (*DataType, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := new_dtype(hid)
+	dt := new_dtype(hid, t.rt.Field(mbr_idx).Type)
 	return dt, nil
 }
 
@@ -534,7 +342,7 @@ func (t *CompType) MemberType(mbr_idx int) (*DataType, os.Error) {
 func (t *CompType) Insert(name string, offset int, field *DataType) os.Error {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	fmt.Printf("inserting [%s] at offset:%d...\n", name, offset)
+	//fmt.Printf("inserting [%s] at offset:%d (id=%d)...\n", name, offset, field.id)
 	err := C.H5Tinsert(t.id, c_name, C.size_t(offset), field.id)
 	return togo_err(err)
 }
@@ -578,7 +386,7 @@ func NewDataTypeFromValue(v interface{}) *DataType {
 	t := reflect.Typeof(v)
 	return new_dataTypeFromType(t)
 }
-	
+
 func new_dataTypeFromType(t reflect.Type) *DataType {
 	
 	var dt *DataType = nil
@@ -622,7 +430,8 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		dt = T_NATIVE_DOUBLE
 
 	case reflect.String:
-		dt = T_C_S1
+		dt = T_GO_STRING
+		//dt = T_C_S1
 
 	case reflect.Array:
 		elem_type := new_dataTypeFromType(t.Elem())
@@ -636,9 +445,8 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		if err != nil {
 			panic(err)
 		}
-		//panic("sorry, arrays not yet supported")
 
-	case  reflect.Slice:
+	case reflect.Slice:
 		elem_type := new_dataTypeFromType(t.Elem())
 		vlen_dt, err := NewVarLenType(elem_type)
 		if err != nil {
@@ -648,11 +456,9 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		if err != nil {
 			panic(err)
 		}
-		//panic("sorry, arrays and slices not yet supported")
 
 	case reflect.Struct:
 		sz := int(t.Size())
-		fmt.Printf("==> struct [%s] (sz: %d)...\n", t.Name(), sz)
 		hdf_dt, err := CreateDataType(T_COMPOUND, sz)
 		if err != nil {
 			panic(err)
@@ -661,11 +467,17 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
-			field_dt := new_dataTypeFromType(f.Type)
+			var field_dt *DataType = nil
+			field_dt = new_dataTypeFromType(f.Type)
+			offset := int(f.Offset + 0)
 			if field_dt == nil {
 				panic(fmt.Sprintf("pb with field [%d-%s]",i,f.Name))
 			}
-			err = cdt.Insert(f.Name, int(f.Offset), field_dt)
+			field_name := f.Tag
+			if len(field_name) == 0 {
+				field_name = f.Name
+			}
+			err = cdt.Insert(field_name, offset, field_dt)
 			if err != nil {
 				panic(fmt.Sprintf("pb with field [%d-%s]: %s",i,f.Name,err))
 			}
@@ -675,7 +487,6 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("==> struct [%s] (sz: %d)... [done]\n", t.Name(), sz)
 
 	case reflect.Ptr:
 		panic("sorry, pointers not yet supported")

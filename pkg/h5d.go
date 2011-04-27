@@ -64,14 +64,22 @@ func (s *DataSet) Space() *DataSpace {
 func (s *DataSet) Read(data interface{}, dtype *DataType) os.Error {
 	var addr uintptr
 	v := reflect.NewValue(data)
+
 	//fmt.Printf(":: read[%s]...\n", v.Kind())
 	switch v.Kind() {
+	
 	case reflect.Slice:
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		addr = slice.Data
+	
+	case reflect.String:
+		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		addr = str.Data
+	
 	default:
 		addr = v.UnsafeAddr()
 	}
+
 	rc := C.H5Dread(s.id, dtype.id, 0, 0, 0, unsafe.Pointer(addr))
 	err := togo_err(rc)
 	return err
@@ -82,14 +90,22 @@ func (s *DataSet) Read(data interface{}, dtype *DataType) os.Error {
 func (s *DataSet) Write(data interface{}, dtype *DataType) os.Error {
 	var addr uintptr
 	v := reflect.NewValue(data)
+
 	//fmt.Printf(":: write[%s]...\n", v.Kind())
 	switch v.Kind() {
+
 	case reflect.Slice:
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		addr = slice.Data
+
+	case reflect.String:
+		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		addr = str.Data
+
 	default:
 		addr = v.UnsafeAddr()
 	}
+
 	rc := C.H5Dwrite(s.id, dtype.id, 0, 0, 0, unsafe.Pointer(addr))
 	err := togo_err(rc)
 	return err

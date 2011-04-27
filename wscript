@@ -22,6 +22,7 @@ def build(ctx):
         pkg/h5p.go
         pkg/h5s.go
         pkg/h5t.go
+        pkg/h5t_shim.go
         pkg/h5pt.go
         ''',
         target='hdf5',
@@ -44,5 +45,21 @@ def build(ctx):
         name   = 'test-go-cpxcmpd',
         source ='cmd/test-go-cpxcmpd.go',
         target = 'test-go-cpxcmpd',
+        use = ['go-hdf5',],
+        )
+
+    ctx(
+        features='go goprogram',
+        name   = 'test-go-extend-ds',
+        source ='cmd/test-go-extend-ds.go',
+        target = 'test-go-extend-ds',
+        use = ['go-hdf5',],
+        )
+
+    ctx(
+        features='go goprogram',
+        name   = 'test-go-table-01',
+        source ='cmd/test-go-table-01.go',
+        target = 'test-go-table-01',
         use = ['go-hdf5',],
         )
