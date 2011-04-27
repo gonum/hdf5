@@ -107,7 +107,7 @@ func (g *Group) CreateTable(name string, dtype *DataType, chunk_size, compressio
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid, dtype.rt)
+	table := new_packet_table(hid)
 	return table, err
 }
 
@@ -141,12 +141,7 @@ func (g *Group) OpenTable(name string) (*Table, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid, nil)
-	dtype, err := table.Type()
-	if err != nil {
-		return nil, err
-	}
-	table.t = dtype.rt
+	table := new_packet_table(hid)
 	return table, err
 }
 

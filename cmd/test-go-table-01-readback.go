@@ -21,6 +21,10 @@ type particle_t struct {
 	temperature float64 "Temperature"
 }
 
+func (p *particle_t) Equal(o *particle_t) bool {
+	return p.name == o.name && p.lati == o.lati && p.longi == o.longi && p.pressure == o.pressure && p.temperature == o.temperature
+}
+
 func main() {
 
 	// define an array of particles
@@ -34,60 +38,33 @@ func main() {
 		{"six",   60, 60, 6.0, 60.},
 		{"seven", 70, 70, 7.0, 70.},
 	}
+	fmt.Printf(":: reference data: %v\n", p_data)
 
-	chunk_size := 10
-	compress := 0
-
-	// create a new file using default properties
-	f,err := hdf5.CreateFile(FNAME, hdf5.F_ACC_TRUNC)
+	// open a file
+	f,err := hdf5.OpenFile(FNAME, hdf5.F_ACC_RDONLY)
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
-	fmt.Printf(":: file [%s] created (id=%d)\n", FNAME, f.Id())
+	fmt.Printf(":: file [%s] opened (id=%d)\n", f.Name(), f.Id())
 
 
 	// create a fixed-length packet table within the file
-	table, err := f.CreateTableFrom(
-		TABLE_NAME, particle_t{}, chunk_size, compress)
+	table, err := f.OpenTable(TABLE_NAME)
 	if err != nil {
 		panic(err)
 	}
-	defer table.Close()
-	fmt.Printf(":: table [%s] created (id=%d)\n", TABLE_NAME, 3)
-
-	// write one packet to the packet table
-	err = table.Append(p_data[0])
-	if err != nil {
-		panic(err)
-	}
-
-	// write several packets
-	err = table.Append(p_data[1:])
-	if err != nil {
-		panic(err)
-	}
-
-	// get the number of packets
-	n, err := table.NumPackets()
-	if err != nil {
-		panic(err)
-	}
-	// should be NRECORDS
-	fmt.Printf(":: nbr entries: %d\n", n)
-	if n != NRECORDS {
-		panic("inconsistent number of entries")
-	}
+	fmt.Printf(":: table [%s] opened (id=%d)\n", TABLE_NAME, 3)
 
 	// iterate through packets
-	for i := 0; i != n; i++ {
+	for i := 0; i != NRECORDS; i++ {
 		//p := []particle_t{{}}
 		p := make([]particle_t, 1)
+		p[0].name = "+++++++    +"
 		err := table.Next(p)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf(":: data[%d]: %v\n", i, p)
+		fmt.Printf(":: data[%d]: %v -> [%v]\n", i, p, p[0].Equal(&p_data[i]))
 	}
 
 	// reset index

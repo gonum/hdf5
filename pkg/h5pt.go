@@ -23,11 +23,10 @@ import (
 // a HDF5 packet table
 type Table struct {
 	id C.hid_t
-	t  reflect.Type
 }
 
-func new_packet_table(id C.hid_t, rt reflect.Type) *Table {
-	t := &Table{id:id, t:rt}
+func new_packet_table(id C.hid_t) *Table {
+	t := &Table{id:id}
 	runtime.SetFinalizer(t, (*Table).h5pt_finalizer)
 	return t
 }

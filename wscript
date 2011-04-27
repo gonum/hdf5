@@ -63,3 +63,11 @@ def build(ctx):
         target = 'test-go-table-01',
         use = ['go-hdf5',],
         )
+
+    ctx(
+        features='go goprogram',
+        name   = 'test-go-table-01-readback',
+        source ='cmd/test-go-table-01-readback.go',
+        target = 'test-go-table-01-readback',
+        use = ['go-hdf5',],
+        )

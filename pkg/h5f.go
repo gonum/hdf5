@@ -273,7 +273,7 @@ func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression
 	if err != nil {
 		return nil, err
 	}
-	table := new_packet_table(hid, dtype.rt)
+	table := new_packet_table(hid)
 	return table, err
 }
 
@@ -305,14 +305,10 @@ func (f *File) OpenTable(name string) (*Table, os.Error) {
 	hid := C.H5PTopen(f.id, c_name)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
+		println("===")
 		return nil, err
 	}
-	table := new_packet_table(hid, nil)
-	dtype, err := table.Type()
-	if err != nil {
-		return nil, err
-	}
-	table.t = dtype.rt
+	table := new_packet_table(hid)
 	return table, err
 }
 
