@@ -71,25 +71,25 @@ type dummy_struct struct {}
 
 // list of go types
 var (
-	_go_string_t reflect.Type = reflect.Typeof(string(""))
-	_go_int_t    reflect.Type = reflect.Typeof(int(0))
-	_go_int8_t   reflect.Type = reflect.Typeof(int8(0))
-	_go_int16_t  reflect.Type = reflect.Typeof(int16(0))
-	_go_int32_t  reflect.Type = reflect.Typeof(int32(0))
-	_go_int64_t  reflect.Type = reflect.Typeof(int64(0))
-	_go_uint_t    reflect.Type = reflect.Typeof(uint(0))
-	_go_uint8_t   reflect.Type = reflect.Typeof(uint8(0))
-	_go_uint16_t  reflect.Type = reflect.Typeof(uint16(0))
-	_go_uint32_t  reflect.Type = reflect.Typeof(uint32(0))
-	_go_uint64_t  reflect.Type = reflect.Typeof(uint64(0))
+	_go_string_t reflect.Type = reflect.TypeOf(string(""))
+	_go_int_t    reflect.Type = reflect.TypeOf(int(0))
+	_go_int8_t   reflect.Type = reflect.TypeOf(int8(0))
+	_go_int16_t  reflect.Type = reflect.TypeOf(int16(0))
+	_go_int32_t  reflect.Type = reflect.TypeOf(int32(0))
+	_go_int64_t  reflect.Type = reflect.TypeOf(int64(0))
+	_go_uint_t    reflect.Type = reflect.TypeOf(uint(0))
+	_go_uint8_t   reflect.Type = reflect.TypeOf(uint8(0))
+	_go_uint16_t  reflect.Type = reflect.TypeOf(uint16(0))
+	_go_uint32_t  reflect.Type = reflect.TypeOf(uint32(0))
+	_go_uint64_t  reflect.Type = reflect.TypeOf(uint64(0))
 
-	_go_float32_t  reflect.Type = reflect.Typeof(float32(0))
-	_go_float64_t  reflect.Type = reflect.Typeof(float64(0))
+	_go_float32_t  reflect.Type = reflect.TypeOf(float32(0))
+	_go_float64_t  reflect.Type = reflect.TypeOf(float64(0))
 
-	_go_array_t reflect.Type = reflect.Typeof([1]int{0})
-	_go_slice_t reflect.Type = reflect.Typeof([]int{0})
+	_go_array_t reflect.Type = reflect.TypeOf([1]int{0})
+	_go_slice_t reflect.Type = reflect.TypeOf([]int{0})
 
-	_go_struct_t reflect.Type = reflect.Typeof(dummy_struct{})
+	_go_struct_t reflect.Type = reflect.TypeOf(dummy_struct{})
 
 	_go_ptr_t reflect.Type = reflect.PtrTo(_go_int_t)
 )
@@ -383,7 +383,7 @@ func (t *OpaqueDataType) Tag() string {
 
 // create a data-type from a golang value
 func NewDataTypeFromValue(v interface{}) *DataType {
-	t := reflect.Typeof(v)
+	t := reflect.TypeOf(v)
 	return new_dataTypeFromType(t)
 }
 

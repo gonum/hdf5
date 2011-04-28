@@ -289,7 +289,7 @@ func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compr
 		return f.CreateTable(name, dt, chunk_size, compression)
 	
 	default:
-		hdf_dtype := new_dataTypeFromType(reflect.Typeof(dtype))
+		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
 		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
 	}
 	panic("unreachable")

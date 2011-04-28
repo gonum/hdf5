@@ -123,7 +123,7 @@ func (g *Group) CreateTableFrom(name string, dtype interface{}, chunk_size, comp
 		return g.CreateTable(name, dt, chunk_size, compression)
 	
 	default:
-		hdf_dtype := new_dataTypeFromType(reflect.Typeof(dtype))
+		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
 		return g.CreateTable(name, hdf_dtype, chunk_size, compression)
 	}
 	panic("unreachable")

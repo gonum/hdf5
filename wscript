@@ -16,6 +16,7 @@ def build(ctx):
         name ='go-hdf5',
         source='''\
         pkg/hdf5.go
+        pkg/hdf5_hl.go
         pkg/h5d.go
         pkg/h5f.go
         pkg/h5g.go
@@ -71,3 +72,4 @@ def build(ctx):
         target = 'test-go-table-01-readback',
         use = ['go-hdf5',],
         )
+

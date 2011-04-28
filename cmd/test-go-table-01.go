@@ -19,20 +19,22 @@ type particle_t struct {
 	longi int           "Longitude"
 	pressure float32    "Pressure"
 	temperature float64 "Temperature"
+	isthep []int
+	jmohep [2][2]int
 }
 
 func main() {
 
 	// define an array of particles
 	p_data := []particle_t{
-		{"zero",   0, 0,  0.0,  0.},
-		{"one",   10, 10, 1.0, 10.},
-		{"two",   20, 20, 2.0, 20.},
-		{"three", 30, 30, 3.0, 30.},
-		{"four",  40, 40, 4.0, 40.},
-		{"five",  50, 50, 5.0, 50.},
-		{"six",   60, 60, 6.0, 60.},
-		{"seven", 70, 70, 7.0, 70.},
+		{"zero",   0, 0,  0.0,  0., []int{0,0}, [2][2]int{{0,0},{0,0}}},
+		{"one",   10, 10, 1.0, 10., []int{0,0}, [2][2]int{{1,0},{0,1}}},
+		{"two",   20, 20, 2.0, 20., []int{0,0}, [2][2]int{{2,0},{0,2}}},
+		{"three", 30, 30, 3.0, 30., []int{0,0}, [2][2]int{{3,0},{0,3}}},
+		{"four",  40, 40, 4.0, 40., []int{0,0}, [2][2]int{{4,0},{0,4}}},
+		{"five",  50, 50, 5.0, 50., []int{0,0}, [2][2]int{{5,0},{0,5}}},
+		{"six",   60, 60, 6.0, 60., []int{0,0}, [2][2]int{{6,0},{0,6}}},
+		{"seven", 70, 70, 7.0, 70., []int{0,0}, [2][2]int{{7,0},{0,7}}},
 	}
 
 	chunk_size := 10

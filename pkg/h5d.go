@@ -63,7 +63,7 @@ func (s *DataSet) Space() *DataSpace {
 // herr_t H5Dread(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, void * buf )
 func (s *DataSet) Read(data interface{}, dtype *DataType) os.Error {
 	var addr uintptr
-	v := reflect.NewValue(data)
+	v := reflect.ValueOf(data)
 
 	//fmt.Printf(":: read[%s]...\n", v.Kind())
 	switch v.Kind() {
@@ -89,7 +89,7 @@ func (s *DataSet) Read(data interface{}, dtype *DataType) os.Error {
 // herr_t H5Dwrite(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, const void * buf )
 func (s *DataSet) Write(data interface{}, dtype *DataType) os.Error {
 	var addr uintptr
-	v := reflect.NewValue(data)
+	v := reflect.ValueOf(data)
 
 	//fmt.Printf(":: write[%s]...\n", v.Kind())
 	switch v.Kind() {

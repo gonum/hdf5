@@ -66,8 +66,8 @@ func (t *Table) IsValid() bool {
 func (t *Table) ReadPackets(start, nrecords int, data interface{}) (os.Error) {
 	c_start := C.hsize_t(start)
 	c_nrecords := C.size_t(nrecords)
-	rt := reflect.Typeof(data)
-	rv := reflect.NewValue(data)
+	rt := reflect.TypeOf(data)
+	rv := reflect.ValueOf(data)
 	c_data := unsafe.Pointer(nil)
 	switch rt.Kind() {
 	case reflect.Array:
@@ -99,18 +99,20 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) (os.Error) {
 // Appends packets to the end of a packet table.
 // herr_t H5PTappend( hid_t table_id, size_t nrecords, const void *data)
 func (t *Table) Append(data interface{}) os.Error {
-	rt := reflect.Typeof(data)
-	v := reflect.NewValue(data)
+	rt := reflect.TypeOf(data)
+	v := reflect.ValueOf(data)
 	c_nrecords := C.size_t(0)
 	c_data := unsafe.Pointer(nil)
 
 	switch rt.Kind() {
 
 	case reflect.Array:
+		//fmt.Printf("-->array\n")
 		c_nrecords = C.size_t(v.Len())
 		c_data = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.Slice:
+		//fmt.Printf("-->slice\n")
 		c_nrecords = C.size_t(v.Len())
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		c_data = unsafe.Pointer(slice.Data)
@@ -120,7 +122,13 @@ func (t *Table) Append(data interface{}) os.Error {
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		c_data = unsafe.Pointer(str.Data)
 
+	case reflect.Ptr:
+		//fmt.Printf("-->ptr\n")
+		c_nrecords = C.size_t(1)
+		c_data = unsafe.Pointer(v.Elem().UnsafeAddr())
+
 	default:
+		//fmt.Printf("-->\n")
 		c_nrecords = C.size_t(1)
 		c_data = unsafe.Pointer(v.UnsafeAddr())
 	}
@@ -134,8 +142,8 @@ func (t *Table) Append(data interface{}) os.Error {
 // Reads packets from a packet table starting at the current index.
 // herr_t H5PTget_next( hid_t table_id, size_t nrecords, void *data)
 func (t *Table) Next(data interface{}) (os.Error) {
-	rt := reflect.Typeof(data)
-	rv := reflect.NewValue(data)
+	rt := reflect.TypeOf(data)
+	rv := reflect.ValueOf(data)
 	c_nrecords := C.size_t(0)
 	c_data := unsafe.Pointer(nil)
 	switch rt.Kind() {
