@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	// local
-	"hdf5"
+	"http://bitbucket.org/binet/go-hdf5/pkg/hdf5"
 )
 
 func main() {

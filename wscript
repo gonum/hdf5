@@ -26,7 +26,7 @@ def build(ctx):
         pkg/h5t_shim.go
         pkg/h5pt.go
         ''',
-        target='hdf5',
+        target='http://bitbucket.org/binet/go-hdf5/pkg/hdf5',
         use = [
             'hdf5',
             'hdf5_hl',
