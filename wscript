@@ -15,18 +15,18 @@ def build(ctx):
         features='cgopackage',
         name ='go-hdf5',
         source='''\
-        pkg/hdf5.go
-        pkg/hdf5_hl.go
-        pkg/h5d.go
-        pkg/h5f.go
-        pkg/h5g.go
-        pkg/h5p.go
-        pkg/h5s.go
-        pkg/h5t.go
-        pkg/h5t_shim.go
-        pkg/h5pt.go
+        pkg/hdf5/hdf5.go
+        pkg/hdf5/hdf5_hl.go
+        pkg/hdf5/h5d.go
+        pkg/hdf5/h5f.go
+        pkg/hdf5/h5g.go
+        pkg/hdf5/h5p.go
+        pkg/hdf5/h5s.go
+        pkg/hdf5/h5t.go
+        pkg/hdf5/h5t_shim.go
+        pkg/hdf5/h5pt.go
         ''',
-        target='http://bitbucket.org/binet/go-hdf5/pkg/hdf5',
+        target='bitbucket.org/binet/go-hdf5/pkg/hdf5',
         use = [
             'hdf5',
             'hdf5_hl',

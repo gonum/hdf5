@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"http://bitbucket.org/binet/go-hdf5/pkg/hdf5"
+	"bitbucket.org/binet/go-hdf5/pkg/hdf5"
 )
 
 const (
