@@ -473,7 +473,7 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 			if field_dt == nil {
 				panic(fmt.Sprintf("pb with field [%d-%s]",i,f.Name))
 			}
-			field_name := f.Tag
+			field_name := string(f.Tag)
 			if len(field_name) == 0 {
 				field_name = f.Name
 			}
