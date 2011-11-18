@@ -8,14 +8,14 @@ package hdf5
  #include <string.h>
 
  hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
- */
+*/
 import "C"
 
 import (
 	//"unsafe"
-	"os"
-	"runtime"
+
 	"fmt"
+	"runtime"
 )
 
 type PropType C.hid_t
@@ -31,7 +31,7 @@ var (
 )
 
 func new_proplist(id C.hid_t) *PropList {
-	p := &PropList{id:id}
+	p := &PropList{id: id}
 	runtime.SetFinalizer(p, (*PropList).h5p_finalizer)
 	return p
 }
@@ -46,7 +46,7 @@ func (p *PropList) h5p_finalizer() {
 
 // Creates a new property as an instance of a property list class.
 // hid_t H5Pcreate(hid_t cls_id )
-func NewPropList(cls_id PropType) (*PropList, os.Error) {
+func NewPropList(cls_id PropType) (*PropList, error) {
 	hid := C.H5Pcreate(C.hid_t(cls_id))
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -58,15 +58,15 @@ func NewPropList(cls_id PropType) (*PropList, os.Error) {
 
 // Terminates access to a property list.
 // herr_t H5Pclose(hid_t plist )
-func (p *PropList) Close() os.Error {
+func (p *PropList) Close() error {
 	err := C.H5Pclose(p.id)
 	return togo_err(err)
 }
 
 // Copies an existing property list to create a new property list.
 // hid_t H5Pcopy(hid_t plist )
-func (p *PropList) Copy() (*PropList, os.Error) {
-	
+func (p *PropList) Copy() (*PropList, error) {
+
 	hid := C.H5Pcopy(p.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {

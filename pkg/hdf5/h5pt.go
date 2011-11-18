@@ -7,15 +7,15 @@ package hdf5
 
  #include <stdlib.h>
  #include <string.h>
- */
+*/
 import "C"
 
 import (
-	"unsafe"
-	"os"
-	"runtime"
 	"fmt"
+
 	"reflect"
+	"runtime"
+	"unsafe"
 )
 
 // ---- HDF5 Packet Table ----
@@ -26,7 +26,7 @@ type Table struct {
 }
 
 func new_packet_table(id C.hid_t) *Table {
-	t := &Table{id:id}
+	t := &Table{id: id}
 	runtime.SetFinalizer(t, (*Table).h5pt_finalizer)
 	return t
 }
@@ -34,13 +34,13 @@ func new_packet_table(id C.hid_t) *Table {
 func (t *Table) h5pt_finalizer() {
 	err := t.Close()
 	if err != nil {
-		panic(fmt.Sprintf("error closing packet table: %s",err))
+		panic(fmt.Sprintf("error closing packet table: %s", err))
 	}
 }
 
 // Closes an open packet table.
 // herr_t H5PTclose( hid_t table_id )
-func (t *Table) Close() os.Error {
+func (t *Table) Close() error {
 	if t.id > 0 {
 		err := togo_err(C.H5PTclose(t.id))
 		if err != nil {
@@ -55,15 +55,15 @@ func (t *Table) Close() os.Error {
 // herr_t H5PTis_valid( hid_t table_id)
 func (t *Table) IsValid() bool {
 	o := int(C.H5PTis_valid(t.id))
-	if o> 0 {
+	if o > 0 {
 		return true
-	} 
+	}
 	return false
 }
 
 // Reads a number of packets from a packet table.
 // herr_t H5PTread_packets( hid_t table_id, hsize_t start, size_t nrecords, void* data)
-func (t *Table) ReadPackets(start, nrecords int, data interface{}) (os.Error) {
+func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	c_start := C.hsize_t(start)
 	c_nrecords := C.size_t(nrecords)
 	rt := reflect.TypeOf(data)
@@ -88,7 +88,7 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) (os.Error) {
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
 		c_data = unsafe.Pointer(slice.Data)
 		//c_nrecords = C.size_t(rv.Cap())
-				
+
 	default:
 		panic(fmt.Sprintf("unhandled kind (%s) need slice or array", rt.Kind()))
 	}
@@ -98,7 +98,7 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) (os.Error) {
 
 // Appends packets to the end of a packet table.
 // herr_t H5PTappend( hid_t table_id, size_t nrecords, const void *data)
-func (t *Table) Append(data interface{}) os.Error {
+func (t *Table) Append(data interface{}) error {
 	rt := reflect.TypeOf(data)
 	v := reflect.ValueOf(data)
 	c_nrecords := C.size_t(0)
@@ -141,7 +141,7 @@ func (t *Table) Append(data interface{}) os.Error {
 
 // Reads packets from a packet table starting at the current index.
 // herr_t H5PTget_next( hid_t table_id, size_t nrecords, void *data)
-func (t *Table) Next(data interface{}) (os.Error) {
+func (t *Table) Next(data interface{}) error {
 	rt := reflect.TypeOf(data)
 	rv := reflect.ValueOf(data)
 	c_nrecords := C.size_t(0)
@@ -157,13 +157,13 @@ func (t *Table) Next(data interface{}) (os.Error) {
 
 	case reflect.Slice:
 		//fmt.Printf("--> slice\n")
-		if rv.Cap() <=0 {
+		if rv.Cap() <= 0 {
 			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
 		}
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
 		c_data = unsafe.Pointer(slice.Data)
 		c_nrecords = C.size_t(rv.Cap())
-				
+
 	default:
 		panic(fmt.Sprintf("unhandled kind (%s) need slice or array", rt.Kind()))
 	}
@@ -176,7 +176,7 @@ func (t *Table) Next(data interface{}) (os.Error) {
 
 // Returns the number of packets in a packet table.
 // herr_t H5PTget_num_packets( hid_t table_id, hsize_t * nrecords)
-func (t *Table) NumPackets() (int, os.Error) {
+func (t *Table) NumPackets() (int, error) {
 	c_nrecords := C.hsize_t(0)
 	err := C.H5PTget_num_packets(t.id, &c_nrecords)
 	return int(c_nrecords), togo_err(err)
@@ -184,14 +184,14 @@ func (t *Table) NumPackets() (int, os.Error) {
 
 // Resets a packet table's index to the first packet.
 // herr_t H5PTcreate_index( hid_t table_id)
-func (t *Table) CreateIndex() os.Error {
+func (t *Table) CreateIndex() error {
 	err := C.H5PTcreate_index(t.id)
 	return togo_err(err)
 }
 
 // Sets a packet table's index.
 // herr_t H5PTset_index( hid_t table_id, hsize_t pt_index)
-func (t *Table) SetIndex(index int) os.Error {
+func (t *Table) SetIndex(index int) error {
 	c_idx := C.hsize_t(index)
 	err := C.H5PTset_index(t.id, c_idx)
 	return togo_err(err)
@@ -199,7 +199,7 @@ func (t *Table) SetIndex(index int) os.Error {
 
 // Returns an identifier for a copy of the datatype for a dataset.
 // hid_t H5Dget_type(hid_t dataset_id )
-func (t *Table) Type() (*DataType, os.Error) {
+func (t *Table) Type() (*DataType, error) {
 	hid := C.H5Dget_type(t.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -210,4 +210,3 @@ func (t *Table) Type() (*DataType, os.Error) {
 }
 
 // EOF
-

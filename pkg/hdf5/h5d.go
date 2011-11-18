@@ -6,15 +6,15 @@ package hdf5
 
  #include <stdlib.h>
  #include <string.h>
- */
+*/
 import "C"
 
 import (
-	"unsafe"
-	"os"
-	"runtime"
 	"fmt"
+
 	"reflect"
+	"runtime"
+	"unsafe"
 )
 
 type DataSet struct {
@@ -22,7 +22,7 @@ type DataSet struct {
 }
 
 func new_dataset(id C.hid_t) *DataSet {
-	d := &DataSet{id:id}
+	d := &DataSet{id: id}
 	runtime.SetFinalizer(d, (*DataSet).Close)
 	return d
 }
@@ -40,7 +40,7 @@ func (s *DataSet) Id() int {
 
 // Releases and terminates access to a dataset.
 // herr_t H5Dclose( hid_t space_id ) 
-func (s *DataSet) Close() os.Error {
+func (s *DataSet) Close() error {
 	if s.id > 0 {
 		err := C.H5Dclose(s.id)
 		s.id = 0
@@ -61,21 +61,21 @@ func (s *DataSet) Space() *DataSpace {
 
 // Reads raw data from a dataset into a buffer.
 // herr_t H5Dread(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, void * buf )
-func (s *DataSet) Read(data interface{}, dtype *DataType) os.Error {
+func (s *DataSet) Read(data interface{}, dtype *DataType) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
 
 	//fmt.Printf(":: read[%s]...\n", v.Kind())
 	switch v.Kind() {
-	
+
 	case reflect.Slice:
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		addr = slice.Data
-	
+
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		addr = str.Data
-	
+
 	default:
 		addr = v.UnsafeAddr()
 	}
@@ -87,7 +87,7 @@ func (s *DataSet) Read(data interface{}, dtype *DataType) os.Error {
 
 // Writes raw data from a buffer to a dataset.
 // herr_t H5Dwrite(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, const void * buf )
-func (s *DataSet) Write(data interface{}, dtype *DataType) os.Error {
+func (s *DataSet) Write(data interface{}, dtype *DataType) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
 

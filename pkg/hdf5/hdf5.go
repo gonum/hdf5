@@ -10,7 +10,6 @@ package hdf5
 import "C"
 
 import (
-	"os"
 	"fmt"
 	"runtime"
 	"unsafe"
@@ -21,7 +20,7 @@ type CString struct {
 }
 
 func NewCString(s string) *CString {
-	c_s := &CString{cstr:C.CString(s)}
+	c_s := &CString{cstr: C.CString(s)}
 	runtime.SetFinalizer(c_s, (*CString).cstring_finalizer)
 	return c_s
 }
@@ -34,15 +33,16 @@ func (s *CString) cstring_finalizer() {
 type hdferror struct {
 	code int
 }
-func (h *hdferror) String() string {
+
+func (h *hdferror) Error() string {
 	return fmt.Sprintf("**hdf5 error** code=%d", h.code)
 }
 
-func togo_err(herr C.herr_t) os.Error {
+func togo_err(herr C.herr_t) error {
 	if herr >= C.herr_t(0) {
 		return nil
 	}
-	return &hdferror{code:int(herr)}
+	return &hdferror{code: int(herr)}
 }
 
 // initialize the hdf5 library
@@ -55,17 +55,17 @@ func init() {
 }
 
 // Initializes the HDF5 library. 
-func init_hdf5() os.Error {
+func init_hdf5() error {
 	return togo_err(C.H5open())
 }
 
 // Flushes all data to disk, closes all open identifiers, and cleans up memory. 
-func close_hdf5() os.Error {
+func close_hdf5() error {
 	return togo_err(C.H5close())
 }
 
 // Returns the HDF library release number. 
-func GetLibVersion() (majnum, minnum, relnum uint, err os.Error) {
+func GetLibVersion() (majnum, minnum, relnum uint, err error) {
 	err = nil
 	majnum = 0
 	minnum = 0
@@ -86,11 +86,10 @@ func GetLibVersion() (majnum, minnum, relnum uint, err os.Error) {
 }
 
 // Garbage collects on all free-lists of all types. 
-func GarbageCollect() os.Error {
+func GarbageCollect() error {
 	return togo_err(C.H5garbage_collect())
 }
 
 // constants
-
 
 // EOF

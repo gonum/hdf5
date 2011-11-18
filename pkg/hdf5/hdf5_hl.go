@@ -7,22 +7,21 @@ package hdf5
 
  #include <stdlib.h>
  #include <string.h>
- */
+*/
 import "C"
 
-import (
-	"os"
-	//"io"
-	"reflect"
-)
+import
+
+//"io"
+"reflect"
 
 type Encoder interface {
-	Encode(v interface{}) os.Error
-	Close() os.Error
+	Encode(v interface{}) error
+	Close() error
 }
 
 func NewEncoder(f *File) Encoder {
-	e := &encoder{f:f, t:nil}
+	e := &encoder{f: f, t: nil}
 	return e
 }
 
@@ -31,19 +30,19 @@ type encoder struct {
 	t *Table
 }
 
-func (e *encoder) Close() os.Error {
+func (e *encoder) Close() error {
 	e.t.Close()
 	return e.f.Close()
 }
 
-func (e *encoder) Encode(v interface{}) os.Error {
+func (e *encoder) Encode(v interface{}) error {
 	rt := reflect.TypeOf(v)
 	rv := reflect.ValueOf(v)
 	if rt.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 		rt = rt.Elem()
 	}
-	
+
 	if e.t == nil {
 		chunk_size := 10
 		compress := 3

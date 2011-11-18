@@ -7,12 +7,12 @@ package hdf5
  #include <stdlib.h>
  #include <string.h>
 
- */
+*/
 import "C"
 
 import (
 	"unsafe"
-	"os"
+
 	//"runtime"
 	"fmt"
 	"reflect"
@@ -26,6 +26,7 @@ type DataType struct {
 }
 
 type TypeClass C.H5T_class_t
+
 const (
 	// Error
 	T_NO_CLASS TypeClass = -1
@@ -67,7 +68,7 @@ const (
 	T_NCLASSES TypeClass = 11
 )
 
-type dummy_struct struct {}
+type dummy_struct struct{}
 
 // list of go types
 var (
@@ -77,14 +78,14 @@ var (
 	_go_int16_t  reflect.Type = reflect.TypeOf(int16(0))
 	_go_int32_t  reflect.Type = reflect.TypeOf(int32(0))
 	_go_int64_t  reflect.Type = reflect.TypeOf(int64(0))
-	_go_uint_t    reflect.Type = reflect.TypeOf(uint(0))
-	_go_uint8_t   reflect.Type = reflect.TypeOf(uint8(0))
-	_go_uint16_t  reflect.Type = reflect.TypeOf(uint16(0))
-	_go_uint32_t  reflect.Type = reflect.TypeOf(uint32(0))
-	_go_uint64_t  reflect.Type = reflect.TypeOf(uint64(0))
+	_go_uint_t   reflect.Type = reflect.TypeOf(uint(0))
+	_go_uint8_t  reflect.Type = reflect.TypeOf(uint8(0))
+	_go_uint16_t reflect.Type = reflect.TypeOf(uint16(0))
+	_go_uint32_t reflect.Type = reflect.TypeOf(uint32(0))
+	_go_uint64_t reflect.Type = reflect.TypeOf(uint64(0))
 
-	_go_float32_t  reflect.Type = reflect.TypeOf(float32(0))
-	_go_float64_t  reflect.Type = reflect.TypeOf(float64(0))
+	_go_float32_t reflect.Type = reflect.TypeOf(float32(0))
+	_go_float64_t reflect.Type = reflect.TypeOf(float64(0))
 
 	_go_array_t reflect.Type = reflect.TypeOf([1]int{0})
 	_go_slice_t reflect.Type = reflect.TypeOf([]int{0})
@@ -95,33 +96,34 @@ var (
 )
 
 type typeClassToType map[TypeClass]reflect.Type
+
 var (
 	// mapping of type-class to go-type
 	_type_cls_to_go_type typeClassToType = typeClassToType{
-	T_NO_CLASS: nil,
-	T_INTEGER: _go_int_t,
-	T_FLOAT: _go_float32_t,
-	T_TIME: nil,
-	T_STRING: _go_string_t,
-	T_BITFIELD: nil,
-	T_OPAQUE: nil,
-	T_COMPOUND: _go_struct_t,
-	T_REFERENCE: _go_ptr_t,
-	T_ENUM: _go_int_t,
-	T_VLEN: _go_slice_t,
-	T_ARRAY: _go_array_t,
+		T_NO_CLASS:  nil,
+		T_INTEGER:   _go_int_t,
+		T_FLOAT:     _go_float32_t,
+		T_TIME:      nil,
+		T_STRING:    _go_string_t,
+		T_BITFIELD:  nil,
+		T_OPAQUE:    nil,
+		T_COMPOUND:  _go_struct_t,
+		T_REFERENCE: _go_ptr_t,
+		T_ENUM:      _go_int_t,
+		T_VLEN:      _go_slice_t,
+		T_ARRAY:     _go_array_t,
 	}
 )
 
 func new_dtype(id C.hid_t, rt reflect.Type) *DataType {
-	t := &DataType{id:id, rt:rt}
+	t := &DataType{id: id, rt: rt}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
 
 // Creates a new datatype.
 // hid_t H5Tcreate( H5T_class_t class, size_tsize ) 
-func CreateDataType(class TypeClass, size int) (t *DataType, err os.Error) {
+func CreateDataType(class TypeClass, size int) (t *DataType, err error) {
 	t = nil
 	err = nil
 
@@ -137,13 +139,13 @@ func CreateDataType(class TypeClass, size int) (t *DataType, err os.Error) {
 func (t *DataType) h5t_finalizer() {
 	err := t.Close()
 	if err != nil {
-		panic(fmt.Sprintf("error closing datatype: %s",err))
+		panic(fmt.Sprintf("error closing datatype: %s", err))
 	}
 }
 
 // Releases a datatype.
 // herr_t H5Tclose( hid_t dtype_id ) 
-func (t *DataType) Close() os.Error {
+func (t *DataType) Close() error {
 	if t.id > 0 {
 		fmt.Printf("--- closing dtype [%d]...\n", t.id)
 		err := togo_err(C.H5Tclose(t.id))
@@ -161,15 +163,15 @@ func (t *DataType) Close() os.Error {
 // htri_tH5Tcommitted( hid_t dtype_id ) 
 func (t *DataType) Committed() bool {
 	o := int(C.H5Tcommitted(t.id))
-	if o> 0 {
+	if o > 0 {
 		return true
-	} 
+	}
 	return false
 }
 
 // Copies an existing datatype.
 // hid_t H5Tcopy( hid_t dtype_id ) 
-func (t *DataType) Copy() (*DataType, os.Error) {
+func (t *DataType) Copy() (*DataType, error) {
 	hid := C.H5Tcopy(t.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -191,7 +193,7 @@ func (t *DataType) Equal(o *DataType) bool {
 
 // Locks a datatype. 
 // herr_t H5Tlock( hid_t dtype_id ) 
-func (t *DataType) Lock() os.Error {
+func (t *DataType) Lock() error {
 	return togo_err(C.H5Tlock(t.id))
 }
 
@@ -203,7 +205,7 @@ func (t *DataType) Size() int {
 
 // Sets the total size for an atomic datatype.
 // herr_t H5Tset_size( hid_t dtype_id, size_tsize )
-func (t *DataType) SetSize(sz int) os.Error {
+func (t *DataType) SetSize(sz int) error {
 	err := C.H5Tset_size(t.id, C.size_t(sz))
 	return togo_err(err)
 }
@@ -215,15 +217,15 @@ type ArrayType struct {
 }
 
 func new_array_type(id C.hid_t) *ArrayType {
-	t := &ArrayType{DataType{id:id}}
+	t := &ArrayType{DataType{id: id}}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
 
-func NewArrayType(base_type *DataType, dims []int) (*ArrayType, os.Error) {
+func NewArrayType(base_type *DataType, dims []int) (*ArrayType, error) {
 	ndims := C.uint(len(dims))
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
-	
+
 	hid := C.H5Tarray_create2(base_type.id, ndims, c_dims)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -259,7 +261,7 @@ type VarLenType struct {
 	DataType
 }
 
-func NewVarLenType(base_type *DataType) (*VarLenType, os.Error) {
+func NewVarLenType(base_type *DataType) (*VarLenType, error) {
 	hid := C.H5Tvlen_create(base_type.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -270,7 +272,7 @@ func NewVarLenType(base_type *DataType) (*VarLenType, os.Error) {
 }
 
 func new_vltype(id C.hid_t) *VarLenType {
-	t := &VarLenType{DataType{id:id}}
+	t := &VarLenType{DataType{id: id}}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
@@ -279,9 +281,9 @@ func new_vltype(id C.hid_t) *VarLenType {
 // htri_t H5Tis_variable_str( hid_t dtype_id )
 func (vl *VarLenType) IsVariableStr() bool {
 	o := int(C.H5Tis_variable_str(vl.id))
-	if o> 0 {
+	if o > 0 {
 		return true
-	} 
+	}
 	return false
 }
 
@@ -327,7 +329,7 @@ func (t *CompType) MemberOffset(mbr_idx int) int {
 
 // Returns the datatype of the specified member. 
 // hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx ) 
-func (t *CompType) MemberType(mbr_idx int) (*DataType, os.Error) {
+func (t *CompType) MemberType(mbr_idx int) (*DataType, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -339,7 +341,7 @@ func (t *CompType) MemberType(mbr_idx int) (*DataType, os.Error) {
 
 // Adds a new member to a compound datatype. 
 // herr_t H5Tinsert( hid_t dtype_id, const char * name, size_t offset, hid_t field_id ) 
-func (t *CompType) Insert(name string, offset int, field *DataType) os.Error {
+func (t *CompType) Insert(name string, offset int, field *DataType) error {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	//fmt.Printf("inserting [%s] at offset:%d (id=%d)...\n", name, offset, field.id)
@@ -349,7 +351,7 @@ func (t *CompType) Insert(name string, offset int, field *DataType) os.Error {
 
 // Recursively removes padding from within a compound datatype. 
 // herr_t H5Tpack( hid_t dtype_id ) 
-func (t *CompType) Pack() os.Error {
+func (t *CompType) Pack() error {
 	err := C.H5Tpack(t.id)
 	return togo_err(err)
 }
@@ -361,7 +363,7 @@ type OpaqueDataType struct {
 
 // Tags an opaque datatype. 
 // herr_t H5Tset_tag( hid_t dtype_id const char *tag ) 
-func (t *OpaqueDataType) SetTag(tag string) os.Error {
+func (t *OpaqueDataType) SetTag(tag string) error {
 	c_tag := C.CString(tag)
 	defer C.free(unsafe.Pointer(c_tag))
 
@@ -388,7 +390,7 @@ func NewDataTypeFromValue(v interface{}) *DataType {
 }
 
 func new_dataTypeFromType(t reflect.Type) *DataType {
-	
+
 	var dt *DataType = nil
 
 	switch t.Kind() {
@@ -471,7 +473,7 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 			field_dt = new_dataTypeFromType(f.Type)
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
-				panic(fmt.Sprintf("pb with field [%d-%s]",i,f.Name))
+				panic(fmt.Sprintf("pb with field [%d-%s]", i, f.Name))
 			}
 			field_name := string(f.Tag)
 			if len(field_name) == 0 {
@@ -479,7 +481,7 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 			}
 			err = cdt.Insert(field_name, offset, field_dt)
 			if err != nil {
-				panic(fmt.Sprintf("pb with field [%d-%s]: %s",i,f.Name,err))
+				panic(fmt.Sprintf("pb with field [%d-%s]: %s", i, f.Name, err))
 			}
 		}
 		cdt.Lock()

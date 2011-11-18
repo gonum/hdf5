@@ -7,15 +7,16 @@ package hdf5
 
  #include <stdlib.h>
  #include <string.h>
- */
+*/
 import "C"
 
 import (
-	"unsafe"
-	"os"
-	"runtime"
+	"errors"
 	"fmt"
+
 	"reflect"
+	"runtime"
+	"unsafe"
 )
 
 // -------- The H5F API for accessing HDF5 files. ---------
@@ -55,7 +56,7 @@ const (
 
 	// entire virtual file
 	F_SCOPE_GLOBAL Scope = 1
-	)
+)
 
 // a HDF5 file
 type File struct {
@@ -65,19 +66,19 @@ type File struct {
 func (f *File) h5f_finalizer() {
 	err := f.Close()
 	if err != nil {
-		panic(fmt.Sprintf("error closing file: %s",err))
+		panic(fmt.Sprintf("error closing file: %s", err))
 	}
 }
 
 func new_file(id C.hid_t) *File {
-	f := &File{id:id}
+	f := &File{id: id}
 	runtime.SetFinalizer(f, (*File).h5f_finalizer)
 	return f
 }
 
 // Creates an HDF5 file.
 // hid_t H5Fcreate( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id ) 
-func CreateFile(name string, flags int) (f *File, err os.Error) {
+func CreateFile(name string, flags int) (f *File, err error) {
 	f = nil
 	err = nil
 
@@ -96,13 +97,13 @@ func CreateFile(name string, flags int) (f *File, err os.Error) {
 
 // Opens an existing HDF5 file.
 // hid_t H5Fopen( const char *name, unsigned flags, hid_t fapl_id )
-func OpenFile(name string, flags int) (f *File, err os.Error) {
+func OpenFile(name string, flags int) (f *File, err error) {
 	f = nil
 	err = nil
 
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	
+
 	// FIXME: file props
 	hid := C.H5Fopen(c_name, C.uint(flags), P_DEFAULT.id)
 	err = togo_err(C.herr_t(int(hid)))
@@ -114,7 +115,7 @@ func OpenFile(name string, flags int) (f *File, err os.Error) {
 }
 
 // Returns a new identifier for a previously-opened HDF5 file. 
-func (self *File) ReOpen() (f *File, err os.Error) {
+func (self *File) ReOpen() (f *File, err error) {
 	f = nil
 	err = nil
 
@@ -140,8 +141,8 @@ func IsHdf5(name string) bool {
 }
 
 // Terminates access to an HDF5 file.
-func (f *File) Close() os.Error {
-	var err os.Error = nil
+func (f *File) Close() error {
+	var err error = nil
 	if f.id > 0 {
 		err = togo_err(C.H5Fclose(f.id))
 		f.id = 0
@@ -151,7 +152,7 @@ func (f *File) Close() os.Error {
 
 // Flushes all buffers associated with a file to disk. 
 // herr_t H5Fflush(hid_t object_id, H5F_scope_t scope ) 
-func (f *File) Flush(scope Scope) os.Error {
+func (f *File) Flush(scope Scope) error {
 	return togo_err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
 }
 
@@ -175,19 +176,19 @@ func (f *File) Name() string {
 
 // Creates a new empty group and links it to a location in the file. 
 // hid_t H5Gcreate2( hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id ) 
-func (self *File) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (g *Group, err os.Error) {
+func (self *File) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (g *Group, err error) {
 	g = nil
 	err = nil
 
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	
+
 	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return
 	}
-	g = &Group{id:hid}
+	g = &Group{id: hid}
 	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
 	return
 }
@@ -198,7 +199,7 @@ func (f *File) Id() int {
 
 // Opens an existing group in a file.
 // hid_t H5Gopen( hid_t loc_id, const char * name, hid_t gapl_id ) 
-func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err os.Error) {
+func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 	g = nil
 	err = nil
 
@@ -210,14 +211,14 @@ func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err os.Error) {
 	if err != nil {
 		return
 	}
-	g = &Group{id:hid}
+	g = &Group{id: hid}
 	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
 	return
 }
 
 // Opens a named datatype.
 // hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id ) 
-func (f *File) OpenDataType(name string, tapl_id int) (*DataType, os.Error) {
+func (f *File) OpenDataType(name string, tapl_id int) (*DataType, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -226,14 +227,14 @@ func (f *File) OpenDataType(name string, tapl_id int) (*DataType, os.Error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := &DataType{id:hid}
+	dt := &DataType{id: hid}
 	runtime.SetFinalizer(dt, (*DataType).h5t_finalizer)
 	return dt, err
 }
 
 // Creates a new dataset at this location.
 // hid_t H5Dcreate2( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id )
-func (f *File) CreateDataSet(name string, dtype *DataType, dspace *DataSpace, dcpl *PropList) (*DataSet, os.Error) {
+func (f *File) CreateDataSet(name string, dtype *DataType, dspace *DataSpace, dcpl *PropList) (*DataSet, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(f.id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
@@ -247,7 +248,7 @@ func (f *File) CreateDataSet(name string, dtype *DataType, dspace *DataSpace, dc
 
 // Opens an existing dataset.
 // hid_t H5Dopen( hid_t loc_id, const char *name, hid_t dapl_id )
-func (f *File) OpenDataSet(name string) (*DataSet, os.Error) {
+func (f *File) OpenDataSet(name string) (*DataSet, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -262,7 +263,7 @@ func (f *File) OpenDataSet(name string) (*DataSet, os.Error) {
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression int) (*Table, os.Error) {
+func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression int) (*Table, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -279,7 +280,7 @@ func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, os.Error) {
+func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, error) {
 	switch dt := dtype.(type) {
 	case reflect.Type:
 		hdf_dtype := new_dataTypeFromType(dt)
@@ -287,18 +288,18 @@ func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compr
 
 	case *DataType:
 		return f.CreateTable(name, dt, chunk_size, compression)
-	
+
 	default:
 		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
 		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
 	}
 	panic("unreachable")
-	return nil, os.NewError("unreachable")
+	return nil, errors.New("unreachable")
 }
 
 // Opens an existing packet table.
 // hid_t H5PTopen( hid_t loc_id, const char *dset_name )
-func (f *File) OpenTable(name string) (*Table, os.Error) {
+func (f *File) OpenTable(name string) (*Table, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
