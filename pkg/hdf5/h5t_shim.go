@@ -1,7 +1,6 @@
 package hdf5
 
 /*
- #cgo LDFLAGS: -lhdf5
  #include "hdf5.h"
 
  #include <stdlib.h>
@@ -128,7 +127,6 @@ package hdf5
  hid_t _go_hdf5_H5T_NATIVE_INT64() { return H5T_NATIVE_INT64; }
  hid_t _go_hdf5_H5T_NATIVE_UINT64() { return H5T_NATIVE_UINT64; }
 
- //#cgo CFLAGS: -I/home/binet/dev/atlas/nmssm/ana/src/externals/go-hdf5/pkg
  //#include "cgo_h5t_conv.h"
  */
 import "C"

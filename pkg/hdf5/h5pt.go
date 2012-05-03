@@ -1,13 +1,9 @@
 package hdf5
 
-/*
- #cgo LDFLAGS: -lhdf5 -lhdf5_hl
- #include "hdf5.h"
- #include "hdf5_hl.h"
-
- #include <stdlib.h>
- #include <string.h>
-*/
+// #include "hdf5.h"
+// #include "hdf5_hl.h"
+// #include <stdlib.h>
+// #include <string.h>
 import "C"
 
 import (
@@ -61,6 +57,10 @@ func (t *Table) IsValid() bool {
 	return false
 }
 
+func (t *Table) Id() int {
+	return int(t.id)
+}
+
 // Reads a number of packets from a packet table.
 // herr_t H5PTread_packets( hid_t table_id, hsize_t start, size_t nrecords, void* data)
 func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
@@ -112,10 +112,12 @@ func (t *Table) Append(data interface{}) error {
 		c_data = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.Slice:
-		//fmt.Printf("-->slice\n")
+		fmt.Printf("-->slice\n")
 		c_nrecords = C.size_t(v.Len())
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		c_data = unsafe.Pointer(slice.Data)
+		//c_data = unsafe.Pointer(v.Index(0).Addr().UnsafeAddr())
+		//c_data = unsafe.Pointer(&c_data)
 
 	case reflect.String:
 		c_nrecords = C.size_t(v.Len())
@@ -123,7 +125,7 @@ func (t *Table) Append(data interface{}) error {
 		c_data = unsafe.Pointer(str.Data)
 
 	case reflect.Ptr:
-		//fmt.Printf("-->ptr\n")
+		//fmt.Printf("-->ptr %v\n", v.Elem())
 		c_nrecords = C.size_t(1)
 		c_data = unsafe.Pointer(v.Elem().UnsafeAddr())
 
@@ -133,9 +135,9 @@ func (t *Table) Append(data interface{}) error {
 		c_data = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	//fmt.Printf(":: append(%d, %d)\n", c_nrecords, c_data)
+	fmt.Printf(":: append(%d, %d, %v)\n", c_nrecords, c_data, t.id)
 	err := C.H5PTappend(t.id, c_nrecords, c_data)
-	//fmt.Printf(":: append(%d, %d) -> %v\n", c_nrecords, c_data, err)
+	fmt.Printf(":: append(%d, %d) -> %v\n", c_nrecords, c_data, err)
 	return togo_err(err)
 }
 

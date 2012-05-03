@@ -1,12 +1,8 @@
 package hdf5
 
-/*
- #cgo LDFLAGS: -lhdf5
- #include "hdf5.h"
-
- #include <stdlib.h>
- #include <string.h>
-*/
+// #include "hdf5.h"
+// #include <stdlib.h>
+// #include <string.h>
 import "C"
 
 import (
@@ -69,8 +65,7 @@ func (s *DataSet) Read(data interface{}, dtype *DataType) error {
 	switch v.Kind() {
 
 	case reflect.Slice:
-		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = slice.Data
+		addr = v.Pointer()
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
@@ -95,8 +90,7 @@ func (s *DataSet) Write(data interface{}, dtype *DataType) error {
 	switch v.Kind() {
 
 	case reflect.Slice:
-		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = slice.Data
+		addr = v.Pointer()
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
@@ -110,4 +104,5 @@ func (s *DataSet) Write(data interface{}, dtype *DataType) error {
 	err := togo_err(rc)
 	return err
 }
+
 // EOF

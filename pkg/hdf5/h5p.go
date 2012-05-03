@@ -1,14 +1,10 @@
 package hdf5
 
-/*
- #cgo LDFLAGS: -lhdf5
- #include "hdf5.h"
-
- #include <stdlib.h>
- #include <string.h>
-
- hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
-*/
+// #include "hdf5.h"
+// #include <stdlib.h>
+// #include <string.h>
+// inline static
+// hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
 import "C"
 
 import (

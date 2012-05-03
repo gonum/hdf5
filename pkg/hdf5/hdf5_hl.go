@@ -1,19 +1,15 @@
 package hdf5
 
-/*
- #cgo LDFLAGS: -lhdf5 -lhdf5_hl
- #include "hdf5.h"
- #include "hdf5_hl.h"
-
- #include <stdlib.h>
- #include <string.h>
-*/
+// #include "hdf5.h"
+// #include "hdf5_hl.h"
+// #include <stdlib.h>
+// #include <string.h>
 import "C"
 
-import
-
-//"io"
-"reflect"
+import (
+	//"io"
+	"reflect"
+)
 
 type Encoder interface {
 	Encode(v interface{}) error

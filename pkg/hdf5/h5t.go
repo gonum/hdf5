@@ -1,13 +1,8 @@
 package hdf5
 
-/*
- #cgo LDFLAGS: -lhdf5
- #include "hdf5.h"
-
- #include <stdlib.h>
- #include <string.h>
-
-*/
+// #include "hdf5.h"
+// #include <stdlib.h>
+// #include <string.h>
 import "C"
 
 import (

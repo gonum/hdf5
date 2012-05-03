@@ -1,13 +1,9 @@
 package hdf5
 
-/*
- #cgo LDFLAGS: -lhdf5 -lhdf5_hl
- #include "hdf5.h"
- #include "hdf5_hl.h"
-
- #include <stdlib.h>
- #include <string.h>
-*/
+// #include "hdf5.h"
+// #include "hdf5_hl.h"
+// #include <stdlib.h>
+// #include <string.h>
 import "C"
 
 import (
@@ -280,18 +276,21 @@ func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, error) {
+func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (table *Table, err error) {
 	switch dt := dtype.(type) {
 	case reflect.Type:
 		hdf_dtype := new_dataTypeFromType(dt)
-		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
+		table, err = f.CreateTable(name, hdf_dtype, chunk_size, compression)
+		return
 
 	case *DataType:
-		return f.CreateTable(name, dt, chunk_size, compression)
+		table, err = f.CreateTable(name, dt, chunk_size, compression)
+		return
 
 	default:
 		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
-		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
+		table, err = f.CreateTable(name, hdf_dtype, chunk_size, compression)
+		return
 	}
 	panic("unreachable")
 	return nil, errors.New("unreachable")
