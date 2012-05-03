@@ -81,7 +81,7 @@ func main() {
 
 	// write data to the dataset
 	fmt.Printf(":: dset.Write...\n")
-	err = dset.Write(s1[:], dtype)
+	err = dset.Write(&s1, dtype)
 	if err != nil {
 		panic(err)
 	}

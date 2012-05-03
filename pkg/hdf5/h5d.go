@@ -64,12 +64,18 @@ func (s *DataSet) Read(data interface{}, dtype *DataType) error {
 	//fmt.Printf(":: read[%s]...\n", v.Kind())
 	switch v.Kind() {
 
+	case reflect.Array:
+		addr = v.UnsafeAddr()
+
 	case reflect.Slice:
 		addr = v.Pointer()
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		addr = str.Data
+
+	case reflect.Ptr:
+		addr = v.Pointer()
 
 	default:
 		addr = v.UnsafeAddr()
@@ -89,6 +95,9 @@ func (s *DataSet) Write(data interface{}, dtype *DataType) error {
 	//fmt.Printf(":: write[%s]...\n", v.Kind())
 	switch v.Kind() {
 
+	case reflect.Array:
+		addr = v.UnsafeAddr()
+
 	case reflect.Slice:
 		addr = v.Pointer()
 
@@ -96,8 +105,11 @@ func (s *DataSet) Write(data interface{}, dtype *DataType) error {
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
 		addr = str.Data
 
+	case reflect.Ptr:
+		addr = v.Pointer()
+
 	default:
-		addr = v.UnsafeAddr()
+		addr = v.Pointer()
 	}
 
 	rc := C.H5Dwrite(s.id, dtype.id, 0, 0, 0, unsafe.Pointer(addr))
