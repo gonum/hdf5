@@ -194,7 +194,7 @@ func (f *File) Id() int {
 }
 
 // Opens an existing group in a file.
-// hid_t H5Gopen( hid_t loc_id, const char * name, hid_t gapl_id ) 
+// hid_t H5Gopen2( hid_t loc_id, const char * name, hid_t gapl_id ) 
 func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 	g = nil
 	err = nil
@@ -202,7 +202,7 @@ func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	hid := C.H5Gopen(f.id, c_name, C.hid_t(gapl_flag))
+	hid := C.H5Gopen2(f.id, c_name, C.hid_t(gapl_flag))
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return

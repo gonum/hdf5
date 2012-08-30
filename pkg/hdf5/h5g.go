@@ -65,7 +65,7 @@ func (self *Group) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	hid := C.H5Gopen(self.id, c_name, C.hid_t(gapl_flag))
+	hid := C.H5Gopen2(self.id, c_name, C.hid_t(gapl_flag))
 	err = togo_err(C.herr_t(int(hid)))
 	if err != nil {
 		return

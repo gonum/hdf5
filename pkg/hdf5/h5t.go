@@ -243,7 +243,7 @@ func (t *ArrayType) ArrayDims() []int {
 	dims := make([]int, rank)
 	// fixme: int/hsize_t size!
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
-	c_rank := int(C.H5Tget_array_dims(t.id, c_dims))
+	c_rank := int(C.H5Tget_array_dims2(t.id, c_dims))
 	if c_rank == rank {
 		return dims
 	}
