@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	
+
 	fname := "SDSextendible.h5"
 	//dsname:= "ExtendibleArray"
 	//NX := 10
@@ -20,7 +20,7 @@ func main() {
 	//mspace := hdf5.CreateDataSpace(dims, maxdims)
 
 	// create a new file
-	f,err := hdf5.CreateFile(fname, hdf5.F_ACC_TRUNC)
+	f, err := hdf5.CreateFile(fname, hdf5.F_ACC_TRUNC)
 	if err != nil {
 		panic(err)
 	}

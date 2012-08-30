@@ -10,7 +10,7 @@ import (
 
 func main() {
 	fmt.Println("=== go-hdf5 ===")
-	m,n,r,err := hdf5.GetLibVersion()
+	m, n, r, err := hdf5.GetLibVersion()
 	if err != nil {
 		fmt.Printf("** error ** %s\n", err)
 		return

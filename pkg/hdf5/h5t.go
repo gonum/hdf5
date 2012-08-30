@@ -204,6 +204,7 @@ func (t *DataType) SetSize(sz int) error {
 	err := C.H5Tset_size(t.id, C.size_t(sz))
 	return togo_err(err)
 }
+
 // ---------------------------------------------------------------------------
 
 // array data type
@@ -249,6 +250,7 @@ func (t *ArrayType) ArrayDims() []int {
 	}
 	return nil
 }
+
 // ---------------------------------------------------------------------------
 
 // variable length array data type
@@ -494,4 +496,5 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 
 	return dt
 }
+
 // EOF
