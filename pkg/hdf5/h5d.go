@@ -19,7 +19,7 @@ type DataSet struct {
 
 func new_dataset(id C.hid_t) *DataSet {
 	d := &DataSet{id: id}
-	runtime.SetFinalizer(d, (*DataSet).Close)
+	runtime.SetFinalizer(d, (*DataSet).h5d_finalizer)
 	return d
 }
 
