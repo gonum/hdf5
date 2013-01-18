@@ -13,7 +13,7 @@ import (
 	"unsafe"
 )
 
-type DataSpace struct {
+type Dataspace struct {
 	id C.hid_t
 }
 
@@ -33,15 +33,15 @@ const (
 	S_NULL SpaceClass = 2
 )
 
-func new_dataspace(id C.hid_t) *DataSpace {
-	ds := &DataSpace{id: id}
-	runtime.SetFinalizer(ds, (*DataSpace).h5s_finalizer)
+func new_dataspace(id C.hid_t) *Dataspace {
+	ds := &Dataspace{id: id}
+	runtime.SetFinalizer(ds, (*Dataspace).h5s_finalizer)
 	return ds
 }
 
 // Creates a new dataspace of a specified type.
 // hid_t H5Screate( H5S_class_t type )
-func CreateDataSpace(class SpaceClass) (*DataSpace, error) {
+func CreateDataSpace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -51,7 +51,7 @@ func CreateDataSpace(class SpaceClass) (*DataSpace, error) {
 	return ds, nil
 }
 
-func (s *DataSpace) h5s_finalizer() {
+func (s *Dataspace) h5s_finalizer() {
 	err := s.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing dspace: %s", err))
@@ -60,7 +60,7 @@ func (s *DataSpace) h5s_finalizer() {
 
 // Creates an exact copy of a dataspace.
 // hid_t H5Scopy( hid_t space_id )
-func (s *DataSpace) Copy() (*DataSpace, error) {
+func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -72,16 +72,16 @@ func (s *DataSpace) Copy() (*DataSpace, error) {
 
 // Releases and terminates access to a dataspace.
 // herr_t H5Sclose( hid_t space_id )
-func (s *DataSpace) Close() error {
+func (s *Dataspace) Close() error {
 	err := C.H5Sclose(s.id)
 	return togo_err(err)
 }
 
-func (s *DataSpace) Id() int {
+func (s *Dataspace) Id() int {
 	return int(s.id)
 }
 
-func (s *DataSpace) Name() string {
+func (s *Dataspace) Name() string {
 	return getName(s.id)
 }
 
@@ -90,7 +90,7 @@ func (s *DataSpace) Name() string {
 
 // Creates a new simple dataspace and opens it for access.
 // hid_t H5Screate_simple( int rank, const hsize_t * current_dims, const hsize_t * maximum_dims )
-func CreateSimpleDataSpace(dims, maximum_dims []int) (*DataSpace, error) {
+func CreateSimpleDataSpace(dims, maximum_dims []int) (*Dataspace, error) {
 
 	var c_dims *C.hsize_t = nil
 	var c_maxdims *C.hsize_t = nil
@@ -123,7 +123,7 @@ func CreateSimpleDataSpace(dims, maximum_dims []int) (*DataSpace, error) {
 
 // Determines whether a dataspace is a simple dataspace.
 // htri_t H5Sis_simple( hid_t space_id )
-func (s *DataSpace) IsSimple() bool {
+func (s *Dataspace) IsSimple() bool {
 	o := int(C.H5Sis_simple(s.id))
 	if o > 0 {
 		return true
@@ -133,7 +133,7 @@ func (s *DataSpace) IsSimple() bool {
 
 // Sets the offset of a simple dataspace.
 // herr_t H5Soffset_simple(hid_t space_id, const hssize_t *offset )
-func (s *DataSpace) SetOffset(offset []int) error {
+func (s *Dataspace) SetOffset(offset []int) error {
 	rank := len(offset)
 	if rank == 0 || offset == nil {
 		err := C.H5Soffset_simple(s.id, nil)
@@ -151,7 +151,7 @@ func (s *DataSpace) SetOffset(offset []int) error {
 
 // Retrieves dataspace dimension size and maximum size.
 // int H5Sget_simple_extent_dims(hid_t space_id, hsize_t *dims, hsize_t *maxdims )
-func (s *DataSpace) SimpleExtentDims() (dims, maxdims []int, err error) {
+func (s *Dataspace) SimpleExtentDims() (dims, maxdims []int, err error) {
 	rank := s.SimpleExtentNDims()
 	dims = make([]int, rank)
 	maxdims = make([]int, rank)
@@ -165,19 +165,19 @@ func (s *DataSpace) SimpleExtentDims() (dims, maxdims []int, err error) {
 
 // Determines the dimensionality of a dataspace.
 // int H5Sget_simple_extent_ndims( hid_t space_id )
-func (s *DataSpace) SimpleExtentNDims() int {
+func (s *Dataspace) SimpleExtentNDims() int {
 	return int(C.H5Sget_simple_extent_ndims(s.id))
 }
 
 // Determines the number of elements in a dataspace.
 // hssize_t H5Sget_simple_extent_npoints( hid_t space_id )
-func (s *DataSpace) SimpleExtentNPoints() int {
+func (s *Dataspace) SimpleExtentNPoints() int {
 	return int(C.H5Sget_simple_extent_npoints(s.id))
 }
 
 // Determines the current class of a dataspace.
 // H5S_class_t H5Sget_simple_extent_type( hid_t space_id )
-func (s *DataSpace) SimpleEventType() SpaceClass {
+func (s *Dataspace) SimpleEventType() SpaceClass {
 	return SpaceClass(C.H5Sget_simple_extent_type(s.id))
 }
 

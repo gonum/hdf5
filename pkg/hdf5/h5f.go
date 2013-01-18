@@ -221,7 +221,7 @@ func (f *File) OpenDataType(name string, tapl_id int) (*DataType, error) {
 
 // Creates a new dataset at this location.
 // hid_t H5Dcreate2( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id )
-func (f *File) CreateDataSet(name string, dtype *DataType, dspace *DataSpace, dcpl *PropList) (*Dataset, error) {
+func (f *File) CreateDataSet(name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(f.id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)

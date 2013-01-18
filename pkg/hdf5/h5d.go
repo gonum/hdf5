@@ -51,7 +51,7 @@ func (s *Dataset) Close() error {
 
 // Returns an identifier for a copy of the dataspace for a dataset.
 // hid_t H5Dget_space(hid_t dataset_id )
-func (s *Dataset) Space() *DataSpace {
+func (s *Dataset) Space() *Dataspace {
 	hid := C.H5Dget_space(s.id)
 	if int(hid) > 0 {
 		return new_dataspace(hid)
