@@ -117,7 +117,7 @@ func new_dtype(id C.hid_t, rt reflect.Type) *DataType {
 }
 
 // Creates a new datatype.
-// hid_t H5Tcreate( H5T_class_t class, size_tsize ) 
+// hid_t H5Tcreate( H5T_class_t class, size_tsize )
 func CreateDataType(class TypeClass, size int) (t *DataType, err error) {
 	t = nil
 	err = nil
@@ -139,7 +139,7 @@ func (t *DataType) h5t_finalizer() {
 }
 
 // Releases a datatype.
-// herr_t H5Tclose( hid_t dtype_id ) 
+// herr_t H5Tclose( hid_t dtype_id )
 func (t *DataType) Close() error {
 	if t.id > 0 {
 		fmt.Printf("--- closing dtype [%d]...\n", t.id)
@@ -150,12 +150,12 @@ func (t *DataType) Close() error {
 	return nil
 }
 
-// Commits a transient datatype, linking it into the file and creating a new named datatype. 
-// herr_t H5Tcommit( hid_t loc_id, const char *name, hid_t dtype_id, hid_t lcpl_id, hid_t tcpl_id, hid_t tapl_id ) 
+// Commits a transient datatype, linking it into the file and creating a new named datatype.
+// herr_t H5Tcommit( hid_t loc_id, const char *name, hid_t dtype_id, hid_t lcpl_id, hid_t tcpl_id, hid_t tapl_id )
 //func (t *DataType) Commit()
 
-// Determines whether a datatype is a named type or a transient type. 
-// htri_tH5Tcommitted( hid_t dtype_id ) 
+// Determines whether a datatype is a named type or a transient type.
+// htri_tH5Tcommitted( hid_t dtype_id )
 func (t *DataType) Committed() bool {
 	o := int(C.H5Tcommitted(t.id))
 	if o > 0 {
@@ -165,7 +165,7 @@ func (t *DataType) Committed() bool {
 }
 
 // Copies an existing datatype.
-// hid_t H5Tcopy( hid_t dtype_id ) 
+// hid_t H5Tcopy( hid_t dtype_id )
 func (t *DataType) Copy() (*DataType, error) {
 	hid := C.H5Tcopy(t.id)
 	err := togo_err(C.herr_t(int(hid)))
@@ -176,8 +176,8 @@ func (t *DataType) Copy() (*DataType, error) {
 	return o, err
 }
 
-// Determines whether two datatype identifiers refer to the same datatype. 
-// htri_t H5Tequal( hid_t dtype_id1, hid_t dtype_id2 ) 
+// Determines whether two datatype identifiers refer to the same datatype.
+// htri_t H5Tequal( hid_t dtype_id1, hid_t dtype_id2 )
 func (t *DataType) Equal(o *DataType) bool {
 	v := int(C.H5Tequal(t.id, o.id))
 	if v > 0 {
@@ -186,14 +186,14 @@ func (t *DataType) Equal(o *DataType) bool {
 	return false
 }
 
-// Locks a datatype. 
-// herr_t H5Tlock( hid_t dtype_id ) 
+// Locks a datatype.
+// herr_t H5Tlock( hid_t dtype_id )
 func (t *DataType) Lock() error {
 	return togo_err(C.H5Tlock(t.id))
 }
 
-// Returns the size of a datatype. 
-// size_t H5Tget_size( hid_t dtype_id ) 
+// Returns the size of a datatype.
+// size_t H5Tget_size( hid_t dtype_id )
 func (t *DataType) Size() int {
 	return int(C.H5Tget_size(t.id))
 }
@@ -291,41 +291,41 @@ type CompType struct {
 	DataType
 }
 
-// Retrieves the number of elements in a compound or enumeration datatype. 
-// int H5Tget_nmembers( hid_t dtype_id ) 
+// Retrieves the number of elements in a compound or enumeration datatype.
+// int H5Tget_nmembers( hid_t dtype_id )
 func (t *CompType) NMembers() int {
 	return int(C.H5Tget_nmembers(t.id))
 }
 
-// Returns datatype class of compound datatype member. 
-// H5T_class_t H5Tget_member_class( hid_t cdtype_id, unsigned member_no ) 
+// Returns datatype class of compound datatype member.
+// H5T_class_t H5Tget_member_class( hid_t cdtype_id, unsigned member_no )
 func (t *CompType) MemberClass(mbr_idx int) TypeClass {
 	return TypeClass(C.H5Tget_member_class(t.id, C.uint(mbr_idx)))
 }
 
-// Retrieves the name of a compound or enumeration datatype member. 
-// char * H5Tget_member_name( hid_t dtype_id, unsigned field_idx ) 
+// Retrieves the name of a compound or enumeration datatype member.
+// char * H5Tget_member_name( hid_t dtype_id, unsigned field_idx )
 func (t *CompType) MemberName(mbr_idx int) string {
 	c_name := C.H5Tget_member_name(t.id, C.uint(mbr_idx))
 	return C.GoString(c_name)
 }
 
-// Retrieves the index of a compound or enumeration datatype member. 
-// int H5Tget_member_index( hid_t dtype_id, const char * field_name ) 
+// Retrieves the index of a compound or enumeration datatype member.
+// int H5Tget_member_index( hid_t dtype_id, const char * field_name )
 func (t *CompType) MemberIndex(name string) int {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	return int(C.H5Tget_member_index(t.id, c_name))
 }
 
-// Retrieves the offset of a field of a compound datatype. 
-// size_t H5Tget_member_offset( hid_t dtype_id, unsigned memb_no ) 
+// Retrieves the offset of a field of a compound datatype.
+// size_t H5Tget_member_offset( hid_t dtype_id, unsigned memb_no )
 func (t *CompType) MemberOffset(mbr_idx int) int {
 	return int(C.H5Tget_member_offset(t.id, C.uint(mbr_idx)))
 }
 
-// Returns the datatype of the specified member. 
-// hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx ) 
+// Returns the datatype of the specified member.
+// hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx )
 func (t *CompType) MemberType(mbr_idx int) (*DataType, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	err := togo_err(C.herr_t(int(hid)))
@@ -336,8 +336,8 @@ func (t *CompType) MemberType(mbr_idx int) (*DataType, error) {
 	return dt, nil
 }
 
-// Adds a new member to a compound datatype. 
-// herr_t H5Tinsert( hid_t dtype_id, const char * name, size_t offset, hid_t field_id ) 
+// Adds a new member to a compound datatype.
+// herr_t H5Tinsert( hid_t dtype_id, const char * name, size_t offset, hid_t field_id )
 func (t *CompType) Insert(name string, offset int, field *DataType) error {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -346,8 +346,8 @@ func (t *CompType) Insert(name string, offset int, field *DataType) error {
 	return togo_err(err)
 }
 
-// Recursively removes padding from within a compound datatype. 
-// herr_t H5Tpack( hid_t dtype_id ) 
+// Recursively removes padding from within a compound datatype.
+// herr_t H5Tpack( hid_t dtype_id )
 func (t *CompType) Pack() error {
 	err := C.H5Tpack(t.id)
 	return togo_err(err)
@@ -358,8 +358,8 @@ type OpaqueDataType struct {
 	DataType
 }
 
-// Tags an opaque datatype. 
-// herr_t H5Tset_tag( hid_t dtype_id const char *tag ) 
+// Tags an opaque datatype.
+// herr_t H5Tset_tag( hid_t dtype_id const char *tag )
 func (t *OpaqueDataType) SetTag(tag string) error {
 	c_tag := C.CString(tag)
 	defer C.free(unsafe.Pointer(c_tag))
@@ -368,8 +368,8 @@ func (t *OpaqueDataType) SetTag(tag string) error {
 	return togo_err(err)
 }
 
-// Gets the tag associated with an opaque datatype. 
-// char *H5Tget_tag( hid_t dtype_id ) 
+// Gets the tag associated with an opaque datatype.
+// char *H5Tget_tag( hid_t dtype_id )
 func (t *OpaqueDataType) Tag() string {
 	c_name := C.H5Tget_tag(t.id)
 	if c_name != nil {
