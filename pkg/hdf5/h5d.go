@@ -61,7 +61,7 @@ func (s *Dataset) Space() *Dataspace {
 
 // Reads raw data from a dataset into a buffer.
 // herr_t H5Dread(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, void * buf )
-func (s *Dataset) Read(data interface{}, dtype *DataType) error {
+func (s *Dataset) Read(data interface{}, dtype *Datatype) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
 
@@ -92,7 +92,7 @@ func (s *Dataset) Read(data interface{}, dtype *DataType) error {
 
 // Writes raw data from a buffer to a dataset.
 // herr_t H5Dwrite(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, const void * buf )
-func (s *Dataset) Write(data interface{}, dtype *DataType) error {
+func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
 

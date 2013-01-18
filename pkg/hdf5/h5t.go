@@ -15,7 +15,7 @@ import (
 
 // ---- H5T: Datatype Interface ----
 
-type DataType struct {
+type Datatype struct {
 	id C.hid_t
 	rt reflect.Type
 }
@@ -110,15 +110,15 @@ var (
 	}
 )
 
-func new_dtype(id C.hid_t, rt reflect.Type) *DataType {
-	t := &DataType{id: id, rt: rt}
+func new_dtype(id C.hid_t, rt reflect.Type) *Datatype {
+	t := &Datatype{id: id, rt: rt}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
 
 // Creates a new datatype.
 // hid_t H5Tcreate( H5T_class_t class, size_tsize )
-func CreateDataType(class TypeClass, size int) (t *DataType, err error) {
+func CreateDataType(class TypeClass, size int) (t *Datatype, err error) {
 	t = nil
 	err = nil
 
@@ -131,7 +131,7 @@ func CreateDataType(class TypeClass, size int) (t *DataType, err error) {
 	return
 }
 
-func (t *DataType) h5t_finalizer() {
+func (t *Datatype) h5t_finalizer() {
 	err := t.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing datatype: %s", err))
@@ -140,7 +140,7 @@ func (t *DataType) h5t_finalizer() {
 
 // Releases a datatype.
 // herr_t H5Tclose( hid_t dtype_id )
-func (t *DataType) Close() error {
+func (t *Datatype) Close() error {
 	if t.id > 0 {
 		fmt.Printf("--- closing dtype [%d]...\n", t.id)
 		err := togo_err(C.H5Tclose(t.id))
@@ -156,7 +156,7 @@ func (t *DataType) Close() error {
 
 // Determines whether a datatype is a named type or a transient type.
 // htri_tH5Tcommitted( hid_t dtype_id )
-func (t *DataType) Committed() bool {
+func (t *Datatype) Committed() bool {
 	o := int(C.H5Tcommitted(t.id))
 	if o > 0 {
 		return true
@@ -166,7 +166,7 @@ func (t *DataType) Committed() bool {
 
 // Copies an existing datatype.
 // hid_t H5Tcopy( hid_t dtype_id )
-func (t *DataType) Copy() (*DataType, error) {
+func (t *Datatype) Copy() (*Datatype, error) {
 	hid := C.H5Tcopy(t.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -178,7 +178,7 @@ func (t *DataType) Copy() (*DataType, error) {
 
 // Determines whether two datatype identifiers refer to the same datatype.
 // htri_t H5Tequal( hid_t dtype_id1, hid_t dtype_id2 )
-func (t *DataType) Equal(o *DataType) bool {
+func (t *Datatype) Equal(o *Datatype) bool {
 	v := int(C.H5Tequal(t.id, o.id))
 	if v > 0 {
 		return true
@@ -188,19 +188,19 @@ func (t *DataType) Equal(o *DataType) bool {
 
 // Locks a datatype.
 // herr_t H5Tlock( hid_t dtype_id )
-func (t *DataType) Lock() error {
+func (t *Datatype) Lock() error {
 	return togo_err(C.H5Tlock(t.id))
 }
 
 // Returns the size of a datatype.
 // size_t H5Tget_size( hid_t dtype_id )
-func (t *DataType) Size() int {
+func (t *Datatype) Size() int {
 	return int(C.H5Tget_size(t.id))
 }
 
 // Sets the total size for an atomic datatype.
 // herr_t H5Tset_size( hid_t dtype_id, size_tsize )
-func (t *DataType) SetSize(sz int) error {
+func (t *Datatype) SetSize(sz int) error {
 	err := C.H5Tset_size(t.id, C.size_t(sz))
 	return togo_err(err)
 }
@@ -209,16 +209,16 @@ func (t *DataType) SetSize(sz int) error {
 
 // array data type
 type ArrayType struct {
-	DataType
+	Datatype
 }
 
 func new_array_type(id C.hid_t) *ArrayType {
-	t := &ArrayType{DataType{id: id}}
+	t := &ArrayType{Datatype{id: id}}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
 
-func NewArrayType(base_type *DataType, dims []int) (*ArrayType, error) {
+func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	ndims := C.uint(len(dims))
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
@@ -255,10 +255,10 @@ func (t *ArrayType) ArrayDims() []int {
 
 // variable length array data type
 type VarLenType struct {
-	DataType
+	Datatype
 }
 
-func NewVarLenType(base_type *DataType) (*VarLenType, error) {
+func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	hid := C.H5Tvlen_create(base_type.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -269,7 +269,7 @@ func NewVarLenType(base_type *DataType) (*VarLenType, error) {
 }
 
 func new_vltype(id C.hid_t) *VarLenType {
-	t := &VarLenType{DataType{id: id}}
+	t := &VarLenType{Datatype{id: id}}
 	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
 	return t
 }
@@ -288,7 +288,7 @@ func (vl *VarLenType) IsVariableStr() bool {
 
 // compound data type
 type CompType struct {
-	DataType
+	Datatype
 }
 
 // Retrieves the number of elements in a compound or enumeration datatype.
@@ -326,7 +326,7 @@ func (t *CompType) MemberOffset(mbr_idx int) int {
 
 // Returns the datatype of the specified member.
 // hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx )
-func (t *CompType) MemberType(mbr_idx int) (*DataType, error) {
+func (t *CompType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
@@ -338,7 +338,7 @@ func (t *CompType) MemberType(mbr_idx int) (*DataType, error) {
 
 // Adds a new member to a compound datatype.
 // herr_t H5Tinsert( hid_t dtype_id, const char * name, size_t offset, hid_t field_id )
-func (t *CompType) Insert(name string, offset int, field *DataType) error {
+func (t *CompType) Insert(name string, offset int, field *Datatype) error {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	//fmt.Printf("inserting [%s] at offset:%d (id=%d)...\n", name, offset, field.id)
@@ -355,7 +355,7 @@ func (t *CompType) Pack() error {
 
 // --- opaque type ---
 type OpaqueDataType struct {
-	DataType
+	Datatype
 }
 
 // Tags an opaque datatype.
@@ -381,14 +381,14 @@ func (t *OpaqueDataType) Tag() string {
 // -----------------------------------------
 
 // create a data-type from a golang value
-func NewDataTypeFromValue(v interface{}) *DataType {
+func NewDataTypeFromValue(v interface{}) *Datatype {
 	t := reflect.TypeOf(v)
 	return new_dataTypeFromType(t)
 }
 
-func new_dataTypeFromType(t reflect.Type) *DataType {
+func new_dataTypeFromType(t reflect.Type) *Datatype {
 
-	var dt *DataType = nil
+	var dt *Datatype = nil
 
 	switch t.Kind() {
 
@@ -466,7 +466,7 @@ func new_dataTypeFromType(t reflect.Type) *DataType {
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
-			var field_dt *DataType = nil
+			var field_dt *Datatype = nil
 			field_dt = new_dataTypeFromType(f.Type)
 			offset := int(f.Offset + 0)
 			if field_dt == nil {

@@ -80,7 +80,7 @@ func (self *Group) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 
 // Opens a named datatype.
 // hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
-func (g *Group) OpenDataType(name string, tapl_id int) (*DataType, error) {
+func (g *Group) OpenDataType(name string, tapl_id int) (*Datatype, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -89,14 +89,14 @@ func (g *Group) OpenDataType(name string, tapl_id int) (*DataType, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := &DataType{id: hid}
-	runtime.SetFinalizer(dt, (*DataType).h5t_finalizer)
+	dt := &Datatype{id: hid}
+	runtime.SetFinalizer(dt, (*Datatype).h5t_finalizer)
 	return dt, err
 }
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (g *Group) CreateTable(name string, dtype *DataType, chunk_size, compression int) (*Table, error) {
+func (g *Group) CreateTable(name string, dtype *Datatype, chunk_size, compression int) (*Table, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -119,7 +119,7 @@ func (g *Group) CreateTableFrom(name string, dtype interface{}, chunk_size, comp
 		hdf_dtype := new_dataTypeFromType(dt)
 		return g.CreateTable(name, hdf_dtype, chunk_size, compression)
 
-	case *DataType:
+	case *Datatype:
 		return g.CreateTable(name, dt, chunk_size, compression)
 
 	default:

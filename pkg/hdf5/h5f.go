@@ -205,7 +205,7 @@ func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 
 // Opens a named datatype.
 // hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
-func (f *File) OpenDataType(name string, tapl_id int) (*DataType, error) {
+func (f *File) OpenDataType(name string, tapl_id int) (*Datatype, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -214,14 +214,14 @@ func (f *File) OpenDataType(name string, tapl_id int) (*DataType, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := &DataType{id: hid}
-	runtime.SetFinalizer(dt, (*DataType).h5t_finalizer)
+	dt := &Datatype{id: hid}
+	runtime.SetFinalizer(dt, (*Datatype).h5t_finalizer)
 	return dt, err
 }
 
 // Creates a new dataset at this location.
 // hid_t H5Dcreate2( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id )
-func (f *File) CreateDataSet(name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+func (f *File) CreateDataSet(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(f.id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
@@ -250,7 +250,7 @@ func (f *File) OpenDataSet(name string) (*Dataset, error) {
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTable(name string, dtype *DataType, chunk_size, compression int) (*Table, error) {
+func (f *File) CreateTable(name string, dtype *Datatype, chunk_size, compression int) (*Table, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -274,7 +274,7 @@ func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compr
 		table, err = f.CreateTable(name, hdf_dtype, chunk_size, compression)
 		return
 
-	case *DataType:
+	case *Datatype:
 		table, err = f.CreateTable(name, dt, chunk_size, compression)
 		return
 

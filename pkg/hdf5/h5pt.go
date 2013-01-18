@@ -201,7 +201,7 @@ func (t *Table) SetIndex(index int) error {
 
 // Returns an identifier for a copy of the datatype for a dataset.
 // hid_t H5Dget_type(hid_t dataset_id )
-func (t *Table) Type() (*DataType, error) {
+func (t *Table) Type() (*Datatype, error) {
 	hid := C.H5Dget_type(t.id)
 	err := togo_err(C.herr_t(int(hid)))
 	if err != nil {
