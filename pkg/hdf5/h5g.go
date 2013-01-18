@@ -51,6 +51,10 @@ func (g *Group) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags in
 	return createGroup(g.id, name, C.H5P_DEFAULT, C.H5P_DEFAULT, C.H5P_DEFAULT)
 }
 
+func (g *Group) CreateDataset(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+	return createDataset(g.id, name, dtype, dspace, dcpl)
+}
+
 func (g *Group) h5g_finalizer() {
 	err := g.Close()
 	if err != nil {
@@ -70,6 +74,10 @@ func (g *Group) Name() string {
 
 func (g *Group) Id() int {
 	return int(g.id)
+}
+
+func (g *Group) File() *File {
+	return getFile(g.id)
 }
 
 // Opens an existing group in a file.

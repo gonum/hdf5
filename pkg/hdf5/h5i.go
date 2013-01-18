@@ -29,3 +29,13 @@ func getName(id C.hid_t) string {
 	}
 	return C.GoString(c_buf)
 }
+
+// getFile returns an open File with which the object identified by id is associated.
+// Returns nil if the file could not be opened.
+func getFile(id C.hid_t) *File {
+	fid := C.H5Iget_file_id(id)
+	if fid < 0 {
+		return nil
+	}
+	return &File{fid}
+}

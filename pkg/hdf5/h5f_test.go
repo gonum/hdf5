@@ -16,18 +16,22 @@ func TestFile(t *testing.T) {
 	if fileName := f.FileName(); fileName != FNAME {
 		t.Fatalf("FileName() have %v, want %v", fileName, FNAME)
 	}
-
 	// The file is also the root group
 	if name := f.Name(); name != "/" {
 		t.Fatalf("Name() have %v, want %v", name, FNAME)
 	}
-
 	if err := f.Flush(F_SCOPE_GLOBAL); err != nil {
 		t.Fatalf("Flush() failed: %s", err)
 	}
-
 	if !IsHdf5(FNAME) {
 		t.Fatalf("IsHdf5 returned false")
+	}
+
+	f2 := f.File()
+	fName := f.FileName()
+	f2Name := f2.FileName()
+	if fName != f2Name {
+		t.Fatalf("f2 FileName() have %v, want %v", f2Name, fName)
 	}
 
 	groupName := "test"
@@ -46,4 +50,27 @@ func TestFile(t *testing.T) {
 	if name := g2.Name(); name != "/"+groupName {
 		t.Fatalf("Group Name() have %v, want %v", name, groupName)
 	}
+}
+
+func TestClosedFile(t *testing.T) {
+	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	if err != nil {
+		t.Fatalf("CreateFile failed: %s", err)
+	}
+	fName := f.Name()
+	f2 := f.File()
+	f.Close()
+
+	f2Name := f2.FileName()
+	if f2Name != FNAME {
+		t.Fatalf("f2 FileName() have %v, want %v", f2Name, fName)
+	}
+	f2.Close()
+
+	os.Remove(FNAME)
+	f3 := f.File()
+	if f3 != nil {
+		t.Fatalf("expected file to be nil")
+	}
+
 }

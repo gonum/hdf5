@@ -17,10 +17,20 @@ type Dataset struct {
 	id C.hid_t
 }
 
-func new_dataset(id C.hid_t) *Dataset {
+func newDataset(id C.hid_t) *Dataset {
 	d := &Dataset{id: id}
 	runtime.SetFinalizer(d, (*Dataset).h5d_finalizer)
 	return d
+}
+
+func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	hid := C.H5Dcreate2(id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
+	if err := togo_err(C.herr_t(int(hid))); err != nil {
+		return nil, err
+	}
+	return newDataset(hid), nil
 }
 
 func (s *Dataset) h5d_finalizer() {
@@ -36,6 +46,10 @@ func (s *Dataset) Name() string {
 
 func (s *Dataset) Id() int {
 	return int(s.id)
+}
+
+func (s *Dataset) File() *File {
+	return getFile(s.id)
 }
 
 // Releases and terminates access to a dataset.

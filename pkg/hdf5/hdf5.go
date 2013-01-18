@@ -89,4 +89,5 @@ func GarbageCollect() error {
 type Object interface {
 	Name() string
 	Id() int
+	File() *File
 }
