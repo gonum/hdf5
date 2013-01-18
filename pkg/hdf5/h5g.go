@@ -32,6 +32,19 @@ func createGroup(id C.hid_t, name string, link_flags, grp_c_flags, grp_a_flags i
 	return g, nil
 }
 
+func openGroup(id C.hid_t, name string, gapl_flag C.hid_t) (*Group, error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5Gopen2(id, c_name, gapl_flag)
+	if err := togo_err(C.herr_t(int(hid))); err != nil {
+		return nil, err
+	}
+	g := &Group{id: hid}
+	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
+	return g, nil
+}
+
 // FIXME
 // Creates a new empty group and links it to a location in the file.
 func (g *Group) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (*Group, error) {
@@ -60,22 +73,8 @@ func (g *Group) Id() int {
 }
 
 // Opens an existing group in a file.
-// hid_t H5Gopen( hid_t loc_id, const char * name, hid_t gapl_id )
-func (self *Group) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
-	g = nil
-	err = nil
-
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5Gopen2(self.id, c_name, C.hid_t(gapl_flag))
-	err = togo_err(C.herr_t(int(hid)))
-	if err != nil {
-		return
-	}
-	g = &Group{id: hid}
-	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
-	return
+func (g *Group) OpenGroup(name string) (*Group, error) {
+	return openGroup(g.id, name, P_DEFAULT.id)
 }
 
 // Opens a named datatype.

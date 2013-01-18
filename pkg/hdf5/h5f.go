@@ -185,22 +185,8 @@ func (f *File) Id() int {
 }
 
 // Opens an existing group in a file.
-// hid_t H5Gopen2( hid_t loc_id, const char * name, hid_t gapl_id )
-func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
-	g = nil
-	err = nil
-
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5Gopen2(f.id, c_name, C.hid_t(gapl_flag))
-	err = togo_err(C.herr_t(int(hid)))
-	if err != nil {
-		return
-	}
-	g = &Group{id: hid}
-	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
-	return
+func (f *File) OpenGroup(name string) (*Group, error) {
+	return openGroup(f.id, name, P_DEFAULT.id)
 }
 
 // Opens a named datatype.

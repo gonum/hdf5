@@ -38,4 +38,12 @@ func TestFile(t *testing.T) {
 	if name := g.Name(); name != "/"+groupName {
 		t.Fatalf("Group Name() have %v, want %v", name, groupName)
 	}
+
+	g2, err := f.OpenGroup(groupName)
+	if err != nil {
+		t.Fatalf("OpenGroup() failed: %s", err)
+	}
+	if name := g2.Name(); name != "/"+groupName {
+		t.Fatalf("Group Name() have %v, want %v", name, groupName)
+	}
 }
