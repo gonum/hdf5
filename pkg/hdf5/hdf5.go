@@ -50,17 +50,17 @@ func init() {
 	}
 }
 
-// Initializes the HDF5 library. 
+// Initializes the HDF5 library.
 func init_hdf5() error {
 	return togo_err(C.H5open())
 }
 
-// Flushes all data to disk, closes all open identifiers, and cleans up memory. 
+// Flushes all data to disk, closes all open identifiers, and cleans up memory.
 func close_hdf5() error {
 	return togo_err(C.H5close())
 }
 
-// Returns the HDF library release number. 
+// Returns the HDF library release number.
 func GetLibVersion() (majnum, minnum, relnum uint, err error) {
 	err = nil
 	majnum = 0
@@ -81,11 +81,12 @@ func GetLibVersion() (majnum, minnum, relnum uint, err error) {
 	return
 }
 
-// Garbage collects on all free-lists of all types. 
+// Garbage collects on all free-lists of all types.
 func GarbageCollect() error {
 	return togo_err(C.H5garbage_collect())
 }
 
-// constants
-
-// EOF
+type Object interface {
+	Name() string
+	Id() int
+}

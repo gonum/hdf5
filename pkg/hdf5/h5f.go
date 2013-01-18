@@ -26,10 +26,10 @@ const (
 	// open for read and write
 	F_ACC_RDWR int = 0x0001
 
-	// Truncate file, if it already exists, erasing all data previously stored in the file. 
+	// Truncate file, if it already exists, erasing all data previously stored in the file.
 	F_ACC_TRUNC int = 0x0002
 
-	// Fail if file already exists. 
+	// Fail if file already exists.
 	F_ACC_EXCL int = 0x0004
 
 	// print debug info
@@ -73,7 +73,7 @@ func new_file(id C.hid_t) *File {
 }
 
 // Creates an HDF5 file.
-// hid_t H5Fcreate( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id ) 
+// hid_t H5Fcreate( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id )
 func CreateFile(name string, flags int) (f *File, err error) {
 	f = nil
 	err = nil
@@ -110,7 +110,7 @@ func OpenFile(name string, flags int) (f *File, err error) {
 	return
 }
 
-// Returns a new identifier for a previously-opened HDF5 file. 
+// Returns a new identifier for a previously-opened HDF5 file.
 func (self *File) ReOpen() (f *File, err error) {
 	f = nil
 	err = nil
@@ -146,16 +146,20 @@ func (f *File) Close() error {
 	return err
 }
 
-// Flushes all buffers associated with a file to disk. 
-// herr_t H5Fflush(hid_t object_id, H5F_scope_t scope ) 
+// Flushes all buffers associated with a file to disk.
+// herr_t H5Fflush(hid_t object_id, H5F_scope_t scope )
 func (f *File) Flush(scope Scope) error {
 	return togo_err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
 }
 
-// FIXME
-// Retrieves name of file to which object belongs. 
-// ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size ) 
 func (f *File) Name() string {
+	return getName(f.id)
+}
+
+// FIXME
+// Retrieves name of file to which object belongs.
+// ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size )
+func (f *File) FileName() string {
 	sz := int(C.H5Fget_name(f.id, nil, 0)) + 1
 	if sz < 0 {
 		return ""
@@ -168,10 +172,11 @@ func (f *File) Name() string {
 		return ""
 	}
 	return C.GoString(c_buf)
+
 }
 
-// Creates a new empty group and links it to a location in the file. 
-// hid_t H5Gcreate2( hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id ) 
+// Creates a new empty group and links it to a location in the file.
+// hid_t H5Gcreate2( hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id )
 func (self *File) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (g *Group, err error) {
 	g = nil
 	err = nil
@@ -194,7 +199,7 @@ func (f *File) Id() int {
 }
 
 // Opens an existing group in a file.
-// hid_t H5Gopen2( hid_t loc_id, const char * name, hid_t gapl_id ) 
+// hid_t H5Gopen2( hid_t loc_id, const char * name, hid_t gapl_id )
 func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 	g = nil
 	err = nil
@@ -213,7 +218,7 @@ func (f *File) OpenGroup(name string, gapl_flag int) (g *Group, err error) {
 }
 
 // Opens a named datatype.
-// hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id ) 
+// hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
 func (f *File) OpenDataType(name string, tapl_id int) (*DataType, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))

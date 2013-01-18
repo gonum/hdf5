@@ -30,12 +30,16 @@ func (s *DataSet) h5d_finalizer() {
 	}
 }
 
+func (s *DataSet) Name() string {
+	return getName(s.id)
+}
+
 func (s *DataSet) Id() int {
 	return int(s.id)
 }
 
 // Releases and terminates access to a dataset.
-// herr_t H5Dclose( hid_t space_id ) 
+// herr_t H5Dclose( hid_t space_id )
 func (s *DataSet) Close() error {
 	if s.id > 0 {
 		err := C.H5Dclose(s.id)
