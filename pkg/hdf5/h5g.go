@@ -19,24 +19,23 @@ type Group struct {
 	id C.hid_t
 }
 
-// FIXME
-// Creates a new empty group and links it to a location in the file.
-// hid_t H5Gcreate2( hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id )
-func (self *Group) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (g *Group, err error) {
-	g = nil
-	err = nil
-
+func createGroup(id C.hid_t, name string, link_flags, grp_c_flags, grp_a_flags int) (*Group, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
-	err = togo_err(C.herr_t(int(hid)))
-	if err != nil {
-		return
+	hid := C.H5Gcreate2(id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
+	if err := togo_err(C.herr_t(int(hid))); err != nil {
+		return nil, err
 	}
-	g = &Group{id: hid}
+	g := &Group{id: hid}
 	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
-	return
+	return g, nil
+}
+
+// FIXME
+// Creates a new empty group and links it to a location in the file.
+func (g *Group) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (*Group, error) {
+	return createGroup(g.id, name, C.H5P_DEFAULT, C.H5P_DEFAULT, C.H5P_DEFAULT)
 }
 
 func (g *Group) h5g_finalizer() {

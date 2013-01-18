@@ -176,22 +176,8 @@ func (f *File) FileName() string {
 }
 
 // Creates a new empty group and links it to a location in the file.
-// hid_t H5Gcreate2( hid_t loc_id, const char *name, hid_t lcpl_id, hid_t gcpl_id, hid_t gapl_id )
-func (self *File) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (g *Group, err error) {
-	g = nil
-	err = nil
-
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5Gcreate2(self.id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
-	err = togo_err(C.herr_t(int(hid)))
-	if err != nil {
-		return
-	}
-	g = &Group{id: hid}
-	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
-	return
+func (f *File) CreateGroup(name string) (*Group, error) {
+	return createGroup(f.id, name, C.H5P_DEFAULT, C.H5P_DEFAULT, C.H5P_DEFAULT)
 }
 
 func (f *File) Id() int {

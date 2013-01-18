@@ -29,4 +29,13 @@ func TestFile(t *testing.T) {
 	if !IsHdf5(FNAME) {
 		t.Fatalf("IsHdf5 returned false")
 	}
+
+	groupName := "test"
+	g, err := f.CreateGroup(groupName)
+	if err != nil {
+		t.Fatalf("CreateGroup() failed: %s", err)
+	}
+	if name := g.Name(); name != "/"+groupName {
+		t.Fatalf("Group Name() have %v, want %v", name, groupName)
+	}
 }
