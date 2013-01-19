@@ -34,13 +34,14 @@ func TestFile(t *testing.T) {
 		t.Fatalf("f2 FileName() have %v, want %v", f2Name, fName)
 	}
 
+	// Test a Group
 	groupName := "test"
 	g, err := f.CreateGroup(groupName)
 	if err != nil {
 		t.Fatalf("CreateGroup() failed: %s", err)
 	}
 	if name := g.Name(); name != "/"+groupName {
-		t.Fatalf("Group Name() have %v, want %v", name, groupName)
+		t.Fatalf("Group Name() have %v, want /%v", name, groupName)
 	}
 
 	g2, err := f.OpenGroup(groupName)
@@ -48,7 +49,25 @@ func TestFile(t *testing.T) {
 		t.Fatalf("OpenGroup() failed: %s", err)
 	}
 	if name := g2.Name(); name != "/"+groupName {
-		t.Fatalf("Group Name() have %v, want %v", name, groupName)
+		t.Fatalf("Group Name() have %v, want /%v", name, groupName)
+	}
+
+	// Test a Dataset
+	ds, err := CreateDataSpace(S_SCALAR)
+	if err != nil {
+		t.Fatalf("CreateDataspace failed: %s", err)
+	}
+	dsetName := "test_dataset"
+	dset, err := f.CreateDataset(dsetName, T_NATIVE_INT, ds, P_DEFAULT)
+	if err != nil {
+		t.Fatalf("CreateDataset failed: %s", err)
+	}
+	if name := dset.Name(); name != "/"+dsetName {
+		t.Fatalf("Dataset Name() have %v, want /%v", name, dsetName)
+	}
+	dFile := dset.File()
+	if dFile.Name() != f.Name() {
+		t.Fatalf("Dataset File() have %v, want %v", dFile.Name(), f.Name())
 	}
 }
 
