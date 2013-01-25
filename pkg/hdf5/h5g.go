@@ -85,6 +85,10 @@ func (g *Group) OpenGroup(name string) (*Group, error) {
 	return openGroup(g.id, name, P_DEFAULT.id)
 }
 
+func (g *Group) OpenDataset(name string) (*Dataset, error) {
+	return openDataset(g.id, name)
+}
+
 // Opens a named datatype.
 // hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
 func (g *Group) OpenDataType(name string, tapl_id int) (*Datatype, error) {
@@ -100,6 +104,8 @@ func (g *Group) OpenDataType(name string, tapl_id int) (*Datatype, error) {
 	runtime.SetFinalizer(dt, (*Datatype).h5t_finalizer)
 	return dt, err
 }
+
+/* Packet table methods */
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )

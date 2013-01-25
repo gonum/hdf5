@@ -33,6 +33,17 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 	return newDataset(hid), nil
 }
 
+func openDataset(id C.hid_t, name string) (*Dataset, error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5Dopen2(id, c_name, P_DEFAULT.id)
+	if err := togo_err(C.herr_t(int(hid))); err != nil {
+		return nil, err
+	}
+	return newDataset(hid), nil
+}
+
 func (s *Dataset) h5d_finalizer() {
 	err := s.Close()
 	if err != nil {

@@ -210,22 +210,13 @@ func (f *File) OpenDataType(name string, tapl_id int) (*Datatype, error) {
 }
 
 // Creates a new dataset at this location.
-// hid_t H5Dcreate2( hid_t loc_id, const char *name, hid_t dtype_id, hid_t space_id, hid_t lcpl_id, hid_t dcpl_id, hid_t dapl_id )
 func (f *File) CreateDataset(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	return createDataset(f.id, name, dtype, dspace, dcpl)
 }
 
 // Opens an existing dataset.
-// hid_t H5Dopen( hid_t loc_id, const char *name, hid_t dapl_id )
-func (f *File) OpenDataSet(name string) (*Dataset, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5Dopen2(f.id, c_name, P_DEFAULT.id)
-	if err := togo_err(C.herr_t(int(hid))); err != nil {
-		return nil, err
-	}
-	return newDataset(hid), nil
+func (f *File) OpenDataset(name string) (*Dataset, error) {
+	return openDataset(f.id, name)
 }
 
 // Creates a packet table to store fixed-length packets.
