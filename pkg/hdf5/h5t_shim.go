@@ -257,12 +257,16 @@ var (
 	T_GO_STRING *Datatype = _make_go_string_datatype()
 )
 
+//
+var h5t_VARIABLE int64 = C.H5T_VARIABLE
+
 func _make_go_string_datatype() *Datatype {
 	dt, err := T_C_S1.Copy()
 	if err != nil {
 		panic(err)
 	}
-	dt.SetSize(C.H5T_VARIABLE)
+
+	dt.SetSize(uint(h5t_VARIABLE))
 
 	return dt
 }
