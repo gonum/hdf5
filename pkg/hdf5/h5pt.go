@@ -146,33 +146,19 @@ func (t *Table) Append(data interface{}) error {
 func (t *Table) Next(data interface{}) error {
 	rt := reflect.TypeOf(data)
 	rv := reflect.ValueOf(data)
-	c_nrecords := C.size_t(0)
-	c_data := unsafe.Pointer(nil)
+	n := C.size_t(0)
+	cdata := unsafe.Pointer(nil)
 	switch rt.Kind() {
-	case reflect.Array:
-		//fmt.Printf("--> array\n")
+	case reflect.Array, reflect.Slice:
 		if rv.Cap() <= 0 {
 			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
 		}
-		c_data = unsafe.Pointer(rv.Index(0).UnsafeAddr())
-		c_nrecords = C.size_t(rv.Cap())
-
-	case reflect.Slice:
-		//fmt.Printf("--> slice\n")
-		if rv.Cap() <= 0 {
-			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
-		}
-		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
-		c_data = unsafe.Pointer(slice.Data)
-		c_nrecords = C.size_t(rv.Cap())
-
+		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
+		n = C.size_t(rv.Cap())
 	default:
-		panic(fmt.Sprintf("unhandled kind (%s) need slice or array", rt.Kind()))
+		panic(fmt.Sprintf("unsupported kind (%s), need slice or array", rt.Kind()))
 	}
-	//fmt.Printf("--data: %v...\n", data)
-	err := C.H5PTget_next(t.id, c_nrecords, c_data)
-	//fmt.Printf("--data: err [%v]\n", err)
-	//fmt.Printf("--data: %v... [%v]\n", data, err)
+	err := C.H5PTget_next(t.id, n, cdata)
 	return togo_err(err)
 }
 
