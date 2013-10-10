@@ -27,7 +27,7 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
-	if err := togo_err(C.herr_t(int(hid))); err != nil {
+	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
 	return newDataset(hid), nil
@@ -38,7 +38,7 @@ func openDataset(id C.hid_t, name string) (*Dataset, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Dopen2(id, c_name, P_DEFAULT.id)
-	if err := togo_err(C.herr_t(int(hid))); err != nil {
+	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
 	return newDataset(hid), nil
@@ -69,7 +69,7 @@ func (s *Dataset) Close() error {
 	if s.id > 0 {
 		err := C.H5Dclose(s.id)
 		s.id = 0
-		return togo_err(err)
+		return h5err(err)
 	}
 	return nil
 }
@@ -111,7 +111,7 @@ func (s *Dataset) Read(data interface{}, dtype *Datatype) error {
 	}
 
 	rc := C.H5Dread(s.id, dtype.id, 0, 0, 0, unsafe.Pointer(addr))
-	err := togo_err(rc)
+	err := h5err(rc)
 	return err
 }
 
@@ -142,7 +142,7 @@ func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 	}
 
 	rc := C.H5Dwrite(s.id, dtype.id, 0, 0, 0, unsafe.Pointer(addr))
-	err := togo_err(rc)
+	err := h5err(rc)
 	return err
 }
 

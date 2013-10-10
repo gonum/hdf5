@@ -12,10 +12,10 @@ const (
 
 type particle_t struct {
 	name        string  //"Name"
-	lati        int     "Latitude"
-	longi       int     "Longitude"
-	pressure    float32 "Pressure"
-	temperature float64 "Temperature"
+	lati        int     //"Latitude"
+	longi       int     //"Longitude"
+	pressure    float32 //"Pressure"
+	temperature float64 //"Temperature"
 	isthep      []int
 	jmohep      [2][2]int
 }

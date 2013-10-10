@@ -38,7 +38,7 @@ func (t *Table) finalizer() {
 // herr_t H5PTclose( hid_t table_id )
 func (t *Table) Close() error {
 	if t.id > 0 {
-		err := togo_err(C.H5PTclose(t.id))
+		err := h5err(C.H5PTclose(t.id))
 		if err != nil {
 			t.id = 0
 		}
@@ -93,7 +93,7 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 		panic(fmt.Sprintf("unhandled kind (%s) need slice or array", rt.Kind()))
 	}
 	err := C.H5PTread_packets(t.id, c_start, c_nrecords, c_data)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Appends packets to the end of a packet table.
@@ -138,7 +138,7 @@ func (t *Table) Append(data interface{}) error {
 	fmt.Printf(":: append(%d, %d, %v)\n", c_nrecords, c_data, t.id)
 	err := C.H5PTappend(t.id, c_nrecords, c_data)
 	fmt.Printf(":: append(%d, %d) -> %v\n", c_nrecords, c_data, err)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Reads packets from a packet table starting at the current index.
@@ -159,7 +159,7 @@ func (t *Table) Next(data interface{}) error {
 		panic(fmt.Sprintf("unsupported kind (%s), need slice or array", rt.Kind()))
 	}
 	err := C.H5PTget_next(t.id, n, cdata)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Returns the number of packets in a packet table.
@@ -167,14 +167,14 @@ func (t *Table) Next(data interface{}) error {
 func (t *Table) NumPackets() (int, error) {
 	c_nrecords := C.hsize_t(0)
 	err := C.H5PTget_num_packets(t.id, &c_nrecords)
-	return int(c_nrecords), togo_err(err)
+	return int(c_nrecords), h5err(err)
 }
 
 // Resets a packet table's index to the first packet.
 // herr_t H5PTcreate_index( hid_t table_id)
 func (t *Table) CreateIndex() error {
 	err := C.H5PTcreate_index(t.id)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Sets a packet table's index.
@@ -182,14 +182,14 @@ func (t *Table) CreateIndex() error {
 func (t *Table) SetIndex(index int) error {
 	c_idx := C.hsize_t(index)
 	err := C.H5PTset_index(t.id, c_idx)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Returns an identifier for a copy of the datatype for a dataset.
 // hid_t H5Dget_type(hid_t dataset_id )
 func (t *Table) Type() (*Datatype, error) {
 	hid := C.H5Dget_type(t.id)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}

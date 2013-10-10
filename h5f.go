@@ -40,15 +40,14 @@ const (
 	F_ACC_DEFAULT int = 0xffff
 )
 
-// The difference between a single file and a set of mounted files
+// The difference between a single file and a set of mounted files.
 type Scope C.H5F_scope_t
 
 const (
-
-	// specified file handle only
+	// specified file handle only.
 	F_SCOPE_LOCAL Scope = 0
 
-	// entire virtual file
+	// entire virtual file.
 	F_SCOPE_GLOBAL Scope = 1
 )
 
@@ -64,66 +63,52 @@ func (f *File) finalizer() {
 	}
 }
 
-func new_file(id C.hid_t) *File {
+func newFile(id C.hid_t) *File {
 	f := &File{id: id}
 	runtime.SetFinalizer(f, (*File).finalizer)
 	return f
 }
 
 // Creates an HDF5 file.
-// hid_t H5Fcreate( const char *name, unsigned flags, hid_t fcpl_id, hid_t fapl_id )
-func CreateFile(name string, flags int) (f *File, err error) {
-	f = nil
-	err = nil
-
+func CreateFile(name string, flags int) (*File, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
 	// FIXME: file props
 	hid := C.H5Fcreate(c_name, C.uint(flags), P_DEFAULT.id, P_DEFAULT.id)
-	err = togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
-		return
+		return nil, err
 	}
-	f = new_file(hid)
-	return
+	return newFile(hid), nil
 }
 
 // Opens an existing HDF5 file.
-// hid_t H5Fopen( const char *name, unsigned flags, hid_t fapl_id )
-func OpenFile(name string, flags int) (f *File, err error) {
-	f = nil
-	err = nil
-
+func OpenFile(name string, flags int) (*File, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
 	// FIXME: file props
 	hid := C.H5Fopen(c_name, C.uint(flags), P_DEFAULT.id)
-	err = togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
-		return
+		return nil, err
 	}
-	f = new_file(hid)
-	return
+	return newFile(hid), nil
 }
 
 // Returns a new identifier for a previously-opened HDF5 file.
-func (self *File) ReOpen() (f *File, err error) {
-	f = nil
-	err = nil
-
+func (self *File) ReOpen() (*File, error) {
 	hid := C.H5Freopen(self.id)
-	err = togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
-		return
+		return nil, err
 	}
-	f = new_file(hid)
-	return
+	return newFile(hid), nil
 }
 
-// Determines whether a file is in the HDF5 format.
-func IsHdf5(name string) bool {
+// IsHDF5 Determines whether a file is in the HDF5 format.
+func IsHDF5(name string) bool {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -138,7 +123,7 @@ func IsHdf5(name string) bool {
 func (f *File) Close() error {
 	var err error = nil
 	if f.id > 0 {
-		err = togo_err(C.H5Fclose(f.id))
+		err = h5err(C.H5Fclose(f.id))
 		f.id = 0
 	}
 	return err
@@ -147,7 +132,7 @@ func (f *File) Close() error {
 // Flushes all buffers associated with a file to disk.
 // herr_t H5Fflush(hid_t object_id, H5F_scope_t scope )
 func (f *File) Flush(scope Scope) error {
-	return togo_err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
+	return h5err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
 }
 
 func (f *File) Name() string {
@@ -216,7 +201,7 @@ func (f *File) CreateTable(name string, dtype *Datatype, chunk_size, compression
 	c_chunk := C.hsize_t(chunk_size)
 	c_compr := C.int(compression)
 	hid := C.H5PTcreate_fl(f.id, c_name, dtype.id, c_chunk, c_compr)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +231,7 @@ func (f *File) OpenTable(name string) (*Table, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5PTopen(f.id, c_name)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		println("===")
 		return nil, err

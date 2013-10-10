@@ -22,7 +22,7 @@ func createGroup(id C.hid_t, name string, link_flags, grp_c_flags, grp_a_flags i
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Gcreate2(id, c_name, C.hid_t(link_flags), C.hid_t(grp_c_flags), P_DEFAULT.id)
-	if err := togo_err(C.herr_t(int(hid))); err != nil {
+	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
 	g := &Group{id: hid}
@@ -35,7 +35,7 @@ func openGroup(id C.hid_t, name string, gapl_flag C.hid_t) (*Group, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Gopen2(id, c_name, gapl_flag)
-	if err := togo_err(C.herr_t(int(hid))); err != nil {
+	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
 	g := &Group{id: hid}
@@ -63,7 +63,7 @@ func (g *Group) finalizer() {
 // Closes the specified group.
 // herr_t H5Gclose(hid_t group_id)
 func (g *Group) Close() error {
-	return togo_err(C.H5Gclose(g.id))
+	return h5err(C.H5Gclose(g.id))
 }
 
 func (g *Group) Name() string {
@@ -104,7 +104,7 @@ func (g *Group) CreateTable(name string, dtype *Datatype, chunk_size, compressio
 	c_chunk := C.hsize_t(chunk_size)
 	c_compr := C.int(compression)
 	hid := C.H5PTcreate_fl(g.id, c_name, dtype.id, c_chunk, c_compr)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (g *Group) OpenTable(name string) (*Table, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5PTopen(g.id, c_name)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}

@@ -43,7 +43,7 @@ func new_dataspace(id C.hid_t) *Dataspace {
 // hid_t H5Screate( H5S_class_t type )
 func CreateDataSpace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (s *Dataspace) finalizer() {
 // hid_t H5Scopy( hid_t space_id )
 func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *Dataspace) Copy() (*Dataspace, error) {
 // herr_t H5Sclose( hid_t space_id )
 func (s *Dataspace) Close() error {
 	err := C.H5Sclose(s.id)
-	return togo_err(err)
+	return h5err(err)
 }
 
 func (s *Dataspace) Id() int {
@@ -113,7 +113,7 @@ func CreateSimpleDataSpace(dims, maximum_dims []int) (*Dataspace, error) {
 	}
 
 	hid := C.H5Screate_simple(rank, c_dims, c_maxdims)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (s *Dataspace) SetOffset(offset []int) error {
 	rank := len(offset)
 	if rank == 0 || offset == nil {
 		err := C.H5Soffset_simple(s.id, nil)
-		return togo_err(err)
+		return h5err(err)
 	}
 	if rank != s.SimpleExtentNDims() {
 		err := errors.New("size of offset does not match extent")
@@ -146,7 +146,7 @@ func (s *Dataspace) SetOffset(offset []int) error {
 
 	c_offset := (*C.hssize_t)(unsafe.Pointer(&offset[0]))
 	err := C.H5Soffset_simple(s.id, c_offset)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Retrieves dataspace dimension size and maximum size.
@@ -159,7 +159,7 @@ func (s *Dataspace) SimpleExtentDims() (dims, maxdims []int, err error) {
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 	c_maxdims := (*C.hsize_t)(unsafe.Pointer(&maxdims[0]))
 	rc := C.H5Sget_simple_extent_dims(s.id, c_dims, c_maxdims)
-	err = togo_err(C.herr_t(rc))
+	err = h5err(C.herr_t(rc))
 	return
 }
 

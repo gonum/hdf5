@@ -114,7 +114,7 @@ func openDatatype(loc_id C.hid_t, name string, tapl_id int) (*Datatype, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Topen2(C.hid_t(loc_id), c_name, C.hid_t(tapl_id))
-	err := togo_err(C.herr_t(hid))
+	err := h5err(C.herr_t(hid))
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func CreateDatatype(class TypeClass, size int) (t *Datatype, err error) {
 	err = nil
 
 	hid := C.H5Tcreate(C.H5T_class_t(class), C.size_t(size))
-	err = togo_err(C.herr_t(int(hid)))
+	err = h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return
 	}
@@ -156,7 +156,7 @@ func (t *Datatype) finalizer() {
 func (t *Datatype) Close() error {
 	if t.id > 0 {
 		fmt.Printf("--- closing dtype [%d]...\n", t.id)
-		err := togo_err(C.H5Tclose(t.id))
+		err := h5err(C.H5Tclose(t.id))
 		t.id = 0
 		return err
 	}
@@ -181,7 +181,7 @@ func (t *Datatype) Committed() bool {
 // hid_t H5Tcopy( hid_t dtype_id )
 func (t *Datatype) Copy() (*Datatype, error) {
 	hid := C.H5Tcopy(t.id)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (t *Datatype) Equal(o *Datatype) bool {
 // Locks a datatype.
 // herr_t H5Tlock( hid_t dtype_id )
 func (t *Datatype) Lock() error {
-	return togo_err(C.H5Tlock(t.id))
+	return h5err(C.H5Tlock(t.id))
 }
 
 // Size returns the size of the Datatype.
@@ -215,7 +215,7 @@ func (t *Datatype) Size() uint {
 func (t *Datatype) SetSize(sz uint) error {
 	// herr_t H5Tset_size( hid_t dtype_id, size_tsize )
 	err := C.H5Tset_size(t.id, C.size_t(sz))
-	return togo_err(err)
+	return h5err(err)
 }
 
 // ---------------------------------------------------------------------------
@@ -236,7 +236,7 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	hid := C.H5Tarray_create2(base_type.id, ndims, c_dims)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ type VarLenType struct {
 
 func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	hid := C.H5Tvlen_create(base_type.id)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func (t *CompType) MemberOffset(mbr_idx int) int {
 // hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx )
 func (t *CompType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -356,14 +356,14 @@ func (t *CompType) Insert(name string, offset int, field *Datatype) error {
 	defer C.free(unsafe.Pointer(c_name))
 	//fmt.Printf("inserting [%s] at offset:%d (id=%d)...\n", name, offset, field.id)
 	err := C.H5Tinsert(t.id, c_name, C.size_t(offset), field.id)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Recursively removes padding from within a compound datatype.
 // herr_t H5Tpack( hid_t dtype_id )
 func (t *CompType) Pack() error {
 	err := C.H5Tpack(t.id)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // --- opaque type ---
@@ -378,7 +378,7 @@ func (t *OpaqueDatatype) SetTag(tag string) error {
 	defer C.free(unsafe.Pointer(c_tag))
 
 	err := C.H5Tset_tag(t.id, c_tag)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Gets the tag associated with an opaque datatype.

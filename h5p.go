@@ -44,7 +44,7 @@ func (p *PropList) finalizer() {
 // hid_t H5Pcreate(hid_t cls_id )
 func NewPropList(cls_id PropType) (*PropList, error) {
 	hid := C.H5Pcreate(C.hid_t(cls_id))
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func NewPropList(cls_id PropType) (*PropList, error) {
 // herr_t H5Pclose(hid_t plist )
 func (p *PropList) Close() error {
 	err := C.H5Pclose(p.id)
-	return togo_err(err)
+	return h5err(err)
 }
 
 // Copies an existing property list to create a new property list.
@@ -64,7 +64,7 @@ func (p *PropList) Close() error {
 func (p *PropList) Copy() (*PropList, error) {
 
 	hid := C.H5Pcopy(p.id)
-	err := togo_err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
