@@ -25,22 +25,6 @@ func (s *CString) finalizer() {
 	C.free(unsafe.Pointer(s.cstr))
 }
 
-// utils
-type hdferror struct {
-	code int
-}
-
-func (h *hdferror) Error() string {
-	return fmt.Sprintf("**hdf5 error** code=%d", h.code)
-}
-
-func togo_err(herr C.herr_t) error {
-	if herr >= C.herr_t(0) {
-		return nil
-	}
-	return &hdferror{code: int(herr)}
-}
-
 // initialize the hdf5 library
 func init() {
 	err := togo_err(C.H5open())
@@ -50,8 +34,9 @@ func init() {
 	}
 }
 
-// Flushes all data to disk, closes all open identifiers, and cleans up memory.
-func close_hdf5() error {
+// Close flushes all data to disk, closes all open identifiers, and cleans up memory.
+// It should generally be called before your application exits.
+func Close() error {
 	return togo_err(C.H5close())
 }
 
