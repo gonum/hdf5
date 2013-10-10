@@ -90,17 +90,7 @@ func (g *Group) OpenDataset(name string) (*Dataset, error) {
 // Opens a named datatype.
 // hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
 func (g *Group) OpenDataType(name string, tapl_id int) (*Datatype, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5Topen2(g.id, c_name, C.hid_t(tapl_id))
-	err := togo_err(C.herr_t(hid))
-	if err != nil {
-		return nil, err
-	}
-	dt := &Datatype{id: hid}
-	runtime.SetFinalizer(dt, (*Datatype).finalizer)
-	return dt, err
+	return openDatatype(g.id, name, tapl_id)
 }
 
 /* Packet table methods */

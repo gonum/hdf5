@@ -6,11 +6,10 @@ package hdf5
 import "C"
 
 import (
-	"unsafe"
-
-	//"runtime"
 	"fmt"
 	"reflect"
+	"runtime"
+	"unsafe"
 )
 
 // ---- H5T: Datatype Interface ----
@@ -109,6 +108,20 @@ var (
 		T_ARRAY:     _go_array_t,
 	}
 )
+
+func openDatatype(loc_id C.hid_t, name string, tapl_id int) (*Datatype, error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5Topen2(C.hid_t(loc_id), c_name, C.hid_t(tapl_id))
+	err := togo_err(C.herr_t(hid))
+	if err != nil {
+		return nil, err
+	}
+	dt := &Datatype{id: hid}
+	runtime.SetFinalizer(dt, (*Datatype).finalizer)
+	return dt, err
+}
 
 func new_dtype(id C.hid_t, rt reflect.Type) *Datatype {
 	t := &Datatype{id: id, rt: rt}
