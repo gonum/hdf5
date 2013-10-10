@@ -23,11 +23,11 @@ type Table struct {
 
 func new_packet_table(id C.hid_t) *Table {
 	t := &Table{id: id}
-	runtime.SetFinalizer(t, (*Table).h5pt_finalizer)
+	runtime.SetFinalizer(t, (*Table).finalizer)
 	return t
 }
 
-func (t *Table) h5pt_finalizer() {
+func (t *Table) finalizer() {
 	err := t.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing packet table: %s", err))

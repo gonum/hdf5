@@ -19,7 +19,7 @@ type Dataset struct {
 
 func newDataset(id C.hid_t) *Dataset {
 	d := &Dataset{id: id}
-	runtime.SetFinalizer(d, (*Dataset).h5d_finalizer)
+	runtime.SetFinalizer(d, (*Dataset).finalizer)
 	return d
 }
 
@@ -44,7 +44,7 @@ func openDataset(id C.hid_t, name string) (*Dataset, error) {
 	return newDataset(hid), nil
 }
 
-func (s *Dataset) h5d_finalizer() {
+func (s *Dataset) finalizer() {
 	err := s.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing dset: %s", err))

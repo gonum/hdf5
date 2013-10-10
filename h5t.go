@@ -112,7 +112,7 @@ var (
 
 func new_dtype(id C.hid_t, rt reflect.Type) *Datatype {
 	t := &Datatype{id: id, rt: rt}
-	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
+	//runtime.SetFinalizer(t, (*DataType).finalizer)
 	return t
 }
 
@@ -131,7 +131,7 @@ func CreateDataType(class TypeClass, size int) (t *Datatype, err error) {
 	return
 }
 
-func (t *Datatype) h5t_finalizer() {
+func (t *Datatype) finalizer() {
 	err := t.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing datatype: %s", err))
@@ -214,7 +214,7 @@ type ArrayType struct {
 
 func new_array_type(id C.hid_t) *ArrayType {
 	t := &ArrayType{Datatype{id: id}}
-	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
+	//runtime.SetFinalizer(t, (*DataType).finalizer)
 	return t
 }
 
@@ -270,7 +270,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 
 func new_vltype(id C.hid_t) *VarLenType {
 	t := &VarLenType{Datatype{id: id}}
-	//runtime.SetFinalizer(t, (*DataType).h5t_finalizer)
+	//runtime.SetFinalizer(t, (*DataType).finalizer)
 	return t
 }
 

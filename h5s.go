@@ -35,7 +35,7 @@ const (
 
 func new_dataspace(id C.hid_t) *Dataspace {
 	ds := &Dataspace{id: id}
-	runtime.SetFinalizer(ds, (*Dataspace).h5s_finalizer)
+	runtime.SetFinalizer(ds, (*Dataspace).finalizer)
 	return ds
 }
 
@@ -51,7 +51,7 @@ func CreateDataSpace(class SpaceClass) (*Dataspace, error) {
 	return ds, nil
 }
 
-func (s *Dataspace) h5s_finalizer() {
+func (s *Dataspace) finalizer() {
 	err := s.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing dspace: %s", err))

@@ -28,11 +28,11 @@ var (
 
 func new_proplist(id C.hid_t) *PropList {
 	p := &PropList{id: id}
-	runtime.SetFinalizer(p, (*PropList).h5p_finalizer)
+	runtime.SetFinalizer(p, (*PropList).finalizer)
 	return p
 }
 
-func (p *PropList) h5p_finalizer() {
+func (p *PropList) finalizer() {
 	err := p.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing PropList: %s", err))

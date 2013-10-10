@@ -17,11 +17,11 @@ type CString struct {
 
 func NewCString(s string) *CString {
 	c_s := &CString{cstr: C.CString(s)}
-	runtime.SetFinalizer(c_s, (*CString).cstring_finalizer)
+	runtime.SetFinalizer(c_s, (*CString).finalizer)
 	return c_s
 }
 
-func (s *CString) cstring_finalizer() {
+func (s *CString) finalizer() {
 	C.free(unsafe.Pointer(s.cstr))
 }
 

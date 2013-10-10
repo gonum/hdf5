@@ -7,9 +7,7 @@ package hdf5
 import "C"
 
 import (
-	"errors"
 	"fmt"
-
 	"reflect"
 	"runtime"
 	"unsafe"
@@ -28,7 +26,7 @@ func createGroup(id C.hid_t, name string, link_flags, grp_c_flags, grp_a_flags i
 		return nil, err
 	}
 	g := &Group{id: hid}
-	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
+	runtime.SetFinalizer(g, (*Group).finalizer)
 	return g, nil
 }
 
@@ -41,7 +39,7 @@ func openGroup(id C.hid_t, name string, gapl_flag C.hid_t) (*Group, error) {
 		return nil, err
 	}
 	g := &Group{id: hid}
-	runtime.SetFinalizer(g, (*Group).h5g_finalizer)
+	runtime.SetFinalizer(g, (*Group).finalizer)
 	return g, nil
 }
 
@@ -55,7 +53,7 @@ func (g *Group) CreateDataset(name string, dtype *Datatype, dspace *Dataspace, d
 	return createDataset(g.id, name, dtype, dspace, dcpl)
 }
 
-func (g *Group) h5g_finalizer() {
+func (g *Group) finalizer() {
 	err := g.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing group: %s", err))
@@ -101,7 +99,7 @@ func (g *Group) OpenDataType(name string, tapl_id int) (*Datatype, error) {
 		return nil, err
 	}
 	dt := &Datatype{id: hid}
-	runtime.SetFinalizer(dt, (*Datatype).h5t_finalizer)
+	runtime.SetFinalizer(dt, (*Datatype).finalizer)
 	return dt, err
 }
 
@@ -131,16 +129,12 @@ func (g *Group) CreateTableFrom(name string, dtype interface{}, chunk_size, comp
 	case reflect.Type:
 		hdf_dtype := new_dataTypeFromType(dt)
 		return g.CreateTable(name, hdf_dtype, chunk_size, compression)
-
 	case *Datatype:
 		return g.CreateTable(name, dt, chunk_size, compression)
-
 	default:
 		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
 		return g.CreateTable(name, hdf_dtype, chunk_size, compression)
 	}
-	panic("unreachable")
-	return nil, errors.New("unreachable")
 }
 
 // Opens an existing packet table.

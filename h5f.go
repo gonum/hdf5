@@ -7,9 +7,7 @@ package hdf5
 import "C"
 
 import (
-	"errors"
 	"fmt"
-
 	"reflect"
 	"runtime"
 	"unsafe"
@@ -59,7 +57,7 @@ type File struct {
 	id C.hid_t
 }
 
-func (f *File) h5f_finalizer() {
+func (f *File) finalizer() {
 	err := f.Close()
 	if err != nil {
 		panic(fmt.Sprintf("error closing file: %s", err))
@@ -68,7 +66,7 @@ func (f *File) h5f_finalizer() {
 
 func new_file(id C.hid_t) *File {
 	f := &File{id: id}
-	runtime.SetFinalizer(f, (*File).h5f_finalizer)
+	runtime.SetFinalizer(f, (*File).finalizer)
 	return f
 }
 
@@ -205,7 +203,7 @@ func (f *File) OpenDataType(name string, tapl_id int) (*Datatype, error) {
 		return nil, err
 	}
 	dt := &Datatype{id: hid}
-	runtime.SetFinalizer(dt, (*Datatype).h5t_finalizer)
+	runtime.SetFinalizer(dt, (*Datatype).finalizer)
 	return dt, err
 }
 
@@ -238,24 +236,17 @@ func (f *File) CreateTable(name string, dtype *Datatype, chunk_size, compression
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (table *Table, err error) {
+func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, error) {
 	switch dt := dtype.(type) {
 	case reflect.Type:
 		hdf_dtype := new_dataTypeFromType(dt)
-		table, err = f.CreateTable(name, hdf_dtype, chunk_size, compression)
-		return
-
+		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
 	case *Datatype:
-		table, err = f.CreateTable(name, dt, chunk_size, compression)
-		return
-
+		return f.CreateTable(name, dt, chunk_size, compression)
 	default:
 		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
-		table, err = f.CreateTable(name, hdf_dtype, chunk_size, compression)
-		return
+		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
 	}
-	panic("unreachable")
-	return nil, errors.New("unreachable")
 }
 
 // Opens an existing packet table.
