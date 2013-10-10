@@ -163,6 +163,12 @@ func (f *File) OpenDatatype(name string, tapl_id int) (*Datatype, error) {
 	return openDatatype(f.id, name, tapl_id)
 }
 
+func (f *File) NumObjects() (uint, error) {
+	var info C.H5G_info_t
+	err := h5err(C.H5Gget_info(f.id, &info))
+	return uint(info.nlinks), err
+}
+
 // Creates a new dataset at this location.
 func (f *File) CreateDataset(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	return createDataset(f.id, name, dtype, dspace, dcpl)
@@ -220,5 +226,3 @@ func (f *File) OpenTable(name string) (*Table, error) {
 	table := new_packet_table(hid)
 	return table, err
 }
-
-// EOF

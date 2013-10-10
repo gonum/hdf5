@@ -23,8 +23,13 @@ func TestFile(t *testing.T) {
 	if err := f.Flush(F_SCOPE_GLOBAL); err != nil {
 		t.Fatalf("Flush() failed: %s", err)
 	}
-	if !IsHdf5(FNAME) {
-		t.Fatalf("IsHdf5 returned false")
+	if !IsHDF5(FNAME) {
+		t.Fatalf("IsHDF5 returned false")
+	}
+	if n, err := f.NumObjects(); err != nil {
+		t.Fatalf("NumObjects failed: %s", err)
+	} else if n != 0 {
+		t.Fatalf("empty file had %d objects", n)
 	}
 
 	f2 := f.File()
