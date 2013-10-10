@@ -9,7 +9,7 @@ It is a work in progress and the API has not been finalized yet, so expect break
 Documentation
 -------------
 
-http://godoc.org/github.com/kisielk/go-hdf5/lib/
+http://godoc.org/github.com/kisielk/go-hdf5
 
 Example
 -------
