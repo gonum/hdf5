@@ -193,7 +193,7 @@ func (f *File) OpenGroup(name string) (*Group, error) {
 
 // Opens a named datatype.
 // hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
-func (f *File) OpenDataType(name string, tapl_id int) (*Datatype, error) {
+func (f *File) OpenDatatype(name string, tapl_id int) (*Datatype, error) {
 	return openDatatype(f.id, name, tapl_id)
 }
 

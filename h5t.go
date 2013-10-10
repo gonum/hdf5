@@ -125,13 +125,13 @@ func openDatatype(loc_id C.hid_t, name string, tapl_id int) (*Datatype, error) {
 
 func new_dtype(id C.hid_t, rt reflect.Type) *Datatype {
 	t := &Datatype{id: id, rt: rt}
-	//runtime.SetFinalizer(t, (*DataType).finalizer)
+	//runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
 // Creates a new datatype.
 // hid_t H5Tcreate( H5T_class_t class, size_tsize )
-func CreateDataType(class TypeClass, size int) (t *Datatype, err error) {
+func CreateDatatype(class TypeClass, size int) (t *Datatype, err error) {
 	t = nil
 	err = nil
 
@@ -165,7 +165,7 @@ func (t *Datatype) Close() error {
 
 // Commits a transient datatype, linking it into the file and creating a new named datatype.
 // herr_t H5Tcommit( hid_t loc_id, const char *name, hid_t dtype_id, hid_t lcpl_id, hid_t tcpl_id, hid_t tapl_id )
-//func (t *DataType) Commit()
+//func (t *Datatype) Commit()
 
 // Determines whether a datatype is a named type or a transient type.
 // htri_tH5Tcommitted( hid_t dtype_id )
@@ -227,7 +227,7 @@ type ArrayType struct {
 
 func new_array_type(id C.hid_t) *ArrayType {
 	t := &ArrayType{Datatype{id: id}}
-	//runtime.SetFinalizer(t, (*DataType).finalizer)
+	//runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
@@ -283,7 +283,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 
 func new_vltype(id C.hid_t) *VarLenType {
 	t := &VarLenType{Datatype{id: id}}
-	//runtime.SetFinalizer(t, (*DataType).finalizer)
+	//runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
@@ -367,13 +367,13 @@ func (t *CompType) Pack() error {
 }
 
 // --- opaque type ---
-type OpaqueDataType struct {
+type OpaqueDatatype struct {
 	Datatype
 }
 
 // Tags an opaque datatype.
 // herr_t H5Tset_tag( hid_t dtype_id const char *tag )
-func (t *OpaqueDataType) SetTag(tag string) error {
+func (t *OpaqueDatatype) SetTag(tag string) error {
 	c_tag := C.CString(tag)
 	defer C.free(unsafe.Pointer(c_tag))
 
@@ -383,7 +383,7 @@ func (t *OpaqueDataType) SetTag(tag string) error {
 
 // Gets the tag associated with an opaque datatype.
 // char *H5Tget_tag( hid_t dtype_id )
-func (t *OpaqueDataType) Tag() string {
+func (t *OpaqueDatatype) Tag() string {
 	c_name := C.H5Tget_tag(t.id)
 	if c_name != nil {
 		return C.GoString(c_name)
@@ -394,7 +394,7 @@ func (t *OpaqueDataType) Tag() string {
 // -----------------------------------------
 
 // create a data-type from a golang value
-func NewDataTypeFromValue(v interface{}) *Datatype {
+func NewDatatypeFromValue(v interface{}) *Datatype {
 	t := reflect.TypeOf(v)
 	return new_dataTypeFromType(t)
 }
@@ -471,7 +471,7 @@ func new_dataTypeFromType(t reflect.Type) *Datatype {
 
 	case reflect.Struct:
 		sz := int(t.Size())
-		hdf_dt, err := CreateDataType(T_COMPOUND, sz)
+		hdf_dt, err := CreateDatatype(T_COMPOUND, sz)
 		if err != nil {
 			panic(err)
 		}
