@@ -43,16 +43,11 @@ func togo_err(herr C.herr_t) error {
 
 // initialize the hdf5 library
 func init() {
-	err := init_hdf5()
+	err := togo_err(C.H5open())
 	if err != nil {
 		err_str := fmt.Sprintf("pb calling H5open(): %s", err)
 		panic(err_str)
 	}
-}
-
-// Initializes the HDF5 library.
-func init_hdf5() error {
-	return togo_err(C.H5open())
 }
 
 // Flushes all data to disk, closes all open identifiers, and cleans up memory.
