@@ -93,6 +93,20 @@ func TestFile(t *testing.T) {
 	if dFile.Name() != f.Name() {
 		t.Fatalf("Dataset File() have %v, want %v", dFile.Name(), f.Name())
 	}
+
+	if n, err := f.NumObjects(); err != nil {
+		t.Fatalf("NumObjects failed: %s", err)
+	} else if n != 2 {
+		t.Fatalf("NumObjects: got %d, want %d", n, 1)
+	}
+
+	for i, n := range []string{groupName, dsetName} {
+		if name, err := f.ObjectNameByIndex(uint(i)); err != nil {
+			t.Fatalf("ObjectNameByIndex failed: %s", err)
+		} else if name != n {
+			t.Fatalf("ObjectNameByIndex: got %q, want %q", name, groupName)
+		}
+	}
 }
 
 func TestClosedFile(t *testing.T) {
