@@ -17,6 +17,28 @@ type Group struct {
 	id C.hid_t
 }
 
+func numObjects(id C.hid_t) (uint, error) {
+	var info C.H5G_info_t
+	err := h5err(C.H5Gget_info(id, &info))
+	return uint(info.nlinks), err
+}
+
+func objectNameByIndex(id C.hid_t, idx uint) (string, error) {
+	cidx := C.hsize_t(idx)
+	size := C.H5Lget_name_by_idx(id, cdot, C.H5_INDEX_NAME, C.H5_ITER_INC, cidx, nil, 0, C.H5P_DEFAULT)
+	if size < 0 {
+		return "", fmt.Errorf("could not get name")
+	}
+
+	name := make([]C.char, size+1)
+	size = C.H5Lget_name_by_idx(id, cdot, C.H5_INDEX_NAME, C.H5_ITER_INC, cidx, &name[0], C.size_t(size)+1, C.H5P_DEFAULT)
+
+	if size < 0 {
+		return "", fmt.Errorf("could not get name")
+	}
+	return C.GoString(&name[0]), nil
+}
+
 func createGroup(id C.hid_t, name string, link_flags, grp_c_flags, grp_a_flags int) (*Group, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -93,7 +115,13 @@ func (g *Group) OpenDatatype(name string, tapl_id int) (*Datatype, error) {
 	return openDatatype(g.id, name, tapl_id)
 }
 
-/* Packet table methods */
+func (g *Group) NumObjects() (uint, error) {
+	return numObjects(g.id)
+}
+
+func (g *Group) ObjectNameByIndex(idx uint) (string, error) {
+	return objectNameByIndex(g.id, idx)
+}
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
@@ -141,5 +169,3 @@ func (g *Group) OpenTable(name string) (*Table, error) {
 	table := new_packet_table(hid)
 	return table, err
 }
-
-// EOF
