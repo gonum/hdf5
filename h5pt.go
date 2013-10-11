@@ -21,7 +21,7 @@ type Table struct {
 	id C.hid_t
 }
 
-func new_packet_table(id C.hid_t) *Table {
+func newPacketTable(id C.hid_t) *Table {
 	t := &Table{id: id}
 	runtime.SetFinalizer(t, (*Table).finalizer)
 	return t
@@ -197,4 +197,43 @@ func (t *Table) Type() (*Datatype, error) {
 	return dt, err
 }
 
-// EOF
+func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	chunk := C.hsize_t(chunkSize)
+	compr := C.int(compression)
+	hid := C.H5PTcreate_fl(id, c_name, dtype.id, chunk, compr)
+	err := h5err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	table := newPacketTable(hid)
+	return table, err
+}
+
+func createTableFrom(id C.hid_t, name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
+	switch dt := dtype.(type) {
+	case reflect.Type:
+		hdfDtype := new_dataTypeFromType(dt)
+		return createTable(id, name, hdfDtype, chunkSize, compression)
+	case *Datatype:
+		return createTable(id, name, dt, chunkSize, compression)
+	default:
+		hdfDtype := new_dataTypeFromType(reflect.TypeOf(dtype))
+		return createTable(id, name, hdfDtype, chunkSize, compression)
+	}
+}
+
+func openTable(id C.hid_t, name string) (*Table, error) {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+
+	hid := C.H5PTopen(id, c_name)
+	err := h5err(C.herr_t(int(hid)))
+	if err != nil {
+		return nil, err
+	}
+	table := newPacketTable(hid)
+	return table, err
+}

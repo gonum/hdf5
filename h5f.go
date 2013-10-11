@@ -8,7 +8,6 @@ import "C"
 
 import (
 	"fmt"
-	"reflect"
 	"runtime"
 	"unsafe"
 )
@@ -186,48 +185,18 @@ func (f *File) OpenDataset(name string) (*Dataset, error) {
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTable(name string, dtype *Datatype, chunk_size, compression int) (*Table, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	c_chunk := C.hsize_t(chunk_size)
-	c_compr := C.int(compression)
-	hid := C.H5PTcreate_fl(f.id, c_name, dtype.id, c_chunk, c_compr)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
-		return nil, err
-	}
-	table := new_packet_table(hid)
-	return table, err
+func (f *File) CreateTable(name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
+	return createTable(f.id, name, dtype, chunkSize, compression)
 }
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTableFrom(name string, dtype interface{}, chunk_size, compression int) (*Table, error) {
-	switch dt := dtype.(type) {
-	case reflect.Type:
-		hdf_dtype := new_dataTypeFromType(dt)
-		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
-	case *Datatype:
-		return f.CreateTable(name, dt, chunk_size, compression)
-	default:
-		hdf_dtype := new_dataTypeFromType(reflect.TypeOf(dtype))
-		return f.CreateTable(name, hdf_dtype, chunk_size, compression)
-	}
+func (f *File) CreateTableFrom(name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
+	return createTableFrom(f.id, name, dtype, chunkSize, compression)
 }
 
 // Opens an existing packet table.
 // hid_t H5PTopen( hid_t loc_id, const char *dset_name )
 func (f *File) OpenTable(name string) (*Table, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5PTopen(f.id, c_name)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
-		println("===")
-		return nil, err
-	}
-	table := new_packet_table(hid)
-	return table, err
+	return openTable(f.id, name)
 }
