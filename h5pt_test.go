@@ -21,6 +21,8 @@ type particle_t struct {
 }
 
 func TestTable(t *testing.T) {
+	t.Skip()
+
 	// define an array of particles
 	p_data := []particle_t{
 		{"zero", 0, 0, 0.0, 0., []int{0, 0}, [2][2]int{{0, 0}, {0, 0}}},

@@ -32,6 +32,10 @@ func TestFile(t *testing.T) {
 		t.Fatalf("empty file had %d objects", n)
 	}
 
+	if _, err := f.ObjectNameByIndex(0); err == nil {
+		t.Fatalf("expected error")
+	}
+
 	f2 := f.File()
 	fName := f.FileName()
 	f2Name := f2.FileName()
@@ -55,6 +59,21 @@ func TestFile(t *testing.T) {
 	}
 	if name := g2.Name(); name != "/"+groupName {
 		t.Fatalf("Group Name() have %v, want /%v", name, groupName)
+	}
+
+	if n, err := f.NumObjects(); err != nil {
+		t.Fatalf("NumObjects failed: %s", err)
+	} else if n != 1 {
+		t.Fatalf("NumObjects: got %d, want %d", n, 1)
+	}
+
+	if name, err := f.ObjectNameByIndex(0); err != nil {
+		t.Fatalf("ObjectNameByIndex failed: %s", err)
+	} else if name != groupName {
+		t.Fatalf("ObjectNameByIndex: got %q, want %q", name, groupName)
+	}
+	if _, err := f.ObjectNameByIndex(1); err == nil {
+		t.Fatalf("expected error")
 	}
 
 	// Test a Dataset

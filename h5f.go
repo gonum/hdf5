@@ -158,15 +158,34 @@ func (f *File) OpenGroup(name string) (*Group, error) {
 }
 
 // Opens a named datatype.
-// hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
 func (f *File) OpenDatatype(name string, tapl_id int) (*Datatype, error) {
 	return openDatatype(f.id, name, tapl_id)
 }
 
+// NumObjects returns the number of objects in the root of the File.
 func (f *File) NumObjects() (uint, error) {
 	var info C.H5G_info_t
 	err := h5err(C.H5Gget_info(f.id, &info))
 	return uint(info.nlinks), err
+}
+
+var cdot = C.CString(".")
+
+// ObjectNameByIndex returns the name of an object given its index.
+func (f *File) ObjectNameByIndex(idx uint) (string, error) {
+	cidx := C.hsize_t(idx)
+	size := C.H5Lget_name_by_idx(f.id, cdot, C.H5_INDEX_NAME, C.H5_ITER_INC, cidx, nil, 0, C.H5P_DEFAULT)
+	if size < 0 {
+		return "", fmt.Errorf("could not get name")
+	}
+
+	name := make([]C.char, size+1)
+	size = C.H5Lget_name_by_idx(f.id, cdot, C.H5_INDEX_NAME, C.H5_ITER_INC, cidx, &name[0], C.size_t(size)+1, C.H5P_DEFAULT)
+
+	if size < 0 {
+		return "", fmt.Errorf("could not get name")
+	}
+	return C.GoString(&name[0]), nil
 }
 
 // Creates a new dataset at this location.
