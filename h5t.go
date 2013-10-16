@@ -101,7 +101,6 @@ func new_dtype(id C.hid_t, rt reflect.Type) *Datatype {
 }
 
 // Creates a new datatype.
-// hid_t H5Tcreate( H5T_class_t class, size_tsize )
 func CreateDatatype(class TypeClass, size int) (t *Datatype, err error) {
 	t = nil
 	err = nil
@@ -123,7 +122,6 @@ func (t *Datatype) finalizer() {
 }
 
 // Releases a datatype.
-// herr_t H5Tclose( hid_t dtype_id )
 func (t *Datatype) Close() error {
 	if t.id > 0 {
 		fmt.Printf("--- closing dtype [%d]...\n", t.id)
@@ -134,12 +132,7 @@ func (t *Datatype) Close() error {
 	return nil
 }
 
-// Commits a transient datatype, linking it into the file and creating a new named datatype.
-// herr_t H5Tcommit( hid_t loc_id, const char *name, hid_t dtype_id, hid_t lcpl_id, hid_t tcpl_id, hid_t tapl_id )
-//func (t *Datatype) Commit()
-
 // Determines whether a datatype is a named type or a transient type.
-// htri_tH5Tcommitted( hid_t dtype_id )
 func (t *Datatype) Committed() bool {
 	o := int(C.H5Tcommitted(t.id))
 	if o > 0 {
@@ -149,7 +142,6 @@ func (t *Datatype) Committed() bool {
 }
 
 // Copies an existing datatype.
-// hid_t H5Tcopy( hid_t dtype_id )
 func (t *Datatype) Copy() (*Datatype, error) {
 	hid := C.H5Tcopy(t.id)
 	err := h5err(C.herr_t(int(hid)))
@@ -161,7 +153,6 @@ func (t *Datatype) Copy() (*Datatype, error) {
 }
 
 // Determines whether two datatype identifiers refer to the same datatype.
-// htri_t H5Tequal( hid_t dtype_id1, hid_t dtype_id2 )
 func (t *Datatype) Equal(o *Datatype) bool {
 	v := int(C.H5Tequal(t.id, o.id))
 	if v > 0 {
@@ -171,34 +162,27 @@ func (t *Datatype) Equal(o *Datatype) bool {
 }
 
 // Locks a datatype.
-// herr_t H5Tlock( hid_t dtype_id )
 func (t *Datatype) Lock() error {
 	return h5err(C.H5Tlock(t.id))
 }
 
 // Size returns the size of the Datatype.
 func (t *Datatype) Size() uint {
-	// size_t H5Tget_size( hid_t dtype_id )
 	return uint(C.H5Tget_size(t.id))
 }
 
 // SetSize sets the total size of a Datatype.
 func (t *Datatype) SetSize(sz uint) error {
-	// herr_t H5Tset_size( hid_t dtype_id, size_tsize )
 	err := C.H5Tset_size(t.id, C.size_t(sz))
 	return h5err(err)
 }
 
-// ---------------------------------------------------------------------------
-
-// array data type
 type ArrayType struct {
 	Datatype
 }
 
 func new_array_type(id C.hid_t) *ArrayType {
 	t := &ArrayType{Datatype{id: id}}
-	//runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
@@ -216,13 +200,11 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 }
 
 // Returns the rank of an array datatype.
-// int H5Tget_array_ndims( hid_t adtype_id )
 func (t *ArrayType) NDims() int {
 	return int(C.H5Tget_array_ndims(t.id))
 }
 
 // Retrieves sizes of array dimensions.
-// int H5Tget_array_dims2( hid_t adtype_id, hsize_t dims[] )
 func (t *ArrayType) ArrayDims() []int {
 	rank := t.NDims()
 	dims := make([]int, rank)
@@ -235,9 +217,6 @@ func (t *ArrayType) ArrayDims() []int {
 	return nil
 }
 
-// ---------------------------------------------------------------------------
-
-// variable length array data type
 type VarLenType struct {
 	Datatype
 }
@@ -268,49 +247,40 @@ func (vl *VarLenType) IsVariableStr() bool {
 	return false
 }
 
-// ---------------------------------------------------------------------------
-
-// compound data type
-type CompType struct {
+type CompoundType struct {
 	Datatype
 }
 
 // Retrieves the number of elements in a compound or enumeration datatype.
-// int H5Tget_nmembers( hid_t dtype_id )
-func (t *CompType) NMembers() int {
+func (t *CompoundType) NMembers() int {
 	return int(C.H5Tget_nmembers(t.id))
 }
 
 // Returns datatype class of compound datatype member.
-// H5T_class_t H5Tget_member_class( hid_t cdtype_id, unsigned member_no )
-func (t *CompType) MemberClass(mbr_idx int) TypeClass {
+func (t *CompoundType) MemberClass(mbr_idx int) TypeClass {
 	return TypeClass(C.H5Tget_member_class(t.id, C.uint(mbr_idx)))
 }
 
 // Retrieves the name of a compound or enumeration datatype member.
-// char * H5Tget_member_name( hid_t dtype_id, unsigned field_idx )
-func (t *CompType) MemberName(mbr_idx int) string {
+func (t *CompoundType) MemberName(mbr_idx int) string {
 	c_name := C.H5Tget_member_name(t.id, C.uint(mbr_idx))
 	return C.GoString(c_name)
 }
 
 // Retrieves the index of a compound or enumeration datatype member.
-// int H5Tget_member_index( hid_t dtype_id, const char * field_name )
-func (t *CompType) MemberIndex(name string) int {
+func (t *CompoundType) MemberIndex(name string) int {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	return int(C.H5Tget_member_index(t.id, c_name))
 }
 
 // Retrieves the offset of a field of a compound datatype.
-// size_t H5Tget_member_offset( hid_t dtype_id, unsigned memb_no )
-func (t *CompType) MemberOffset(mbr_idx int) int {
+func (t *CompoundType) MemberOffset(mbr_idx int) int {
 	return int(C.H5Tget_member_offset(t.id, C.uint(mbr_idx)))
 }
 
 // Returns the datatype of the specified member.
-// hid_t H5Tget_member_type( hid_t dtype_id, unsigned field_idx )
-func (t *CompType) MemberType(mbr_idx int) (*Datatype, error) {
+func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
@@ -321,50 +291,38 @@ func (t *CompType) MemberType(mbr_idx int) (*Datatype, error) {
 }
 
 // Adds a new member to a compound datatype.
-// herr_t H5Tinsert( hid_t dtype_id, const char * name, size_t offset, hid_t field_id )
-func (t *CompType) Insert(name string, offset int, field *Datatype) error {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	//fmt.Printf("inserting [%s] at offset:%d (id=%d)...\n", name, offset, field.id)
-	err := C.H5Tinsert(t.id, c_name, C.size_t(offset), field.id)
-	return h5err(err)
+func (t *CompoundType) Insert(name string, offset int, field *Datatype) error {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	return h5err(C.H5Tinsert(t.id, cname, C.size_t(offset), field.id))
 }
 
 // Recursively removes padding from within a compound datatype.
-// herr_t H5Tpack( hid_t dtype_id )
-func (t *CompType) Pack() error {
-	err := C.H5Tpack(t.id)
-	return h5err(err)
+func (t *CompoundType) Pack() error {
+	return h5err(C.H5Tpack(t.id))
 }
 
-// --- opaque type ---
 type OpaqueDatatype struct {
 	Datatype
 }
 
 // Tags an opaque datatype.
-// herr_t H5Tset_tag( hid_t dtype_id const char *tag )
 func (t *OpaqueDatatype) SetTag(tag string) error {
-	c_tag := C.CString(tag)
-	defer C.free(unsafe.Pointer(c_tag))
-
-	err := C.H5Tset_tag(t.id, c_tag)
-	return h5err(err)
+	ctag := C.CString(tag)
+	defer C.free(unsafe.Pointer(ctag))
+	return h5err(C.H5Tset_tag(t.id, ctag))
 }
 
 // Gets the tag associated with an opaque datatype.
-// char *H5Tget_tag( hid_t dtype_id )
 func (t *OpaqueDatatype) Tag() string {
-	c_name := C.H5Tget_tag(t.id)
-	if c_name != nil {
-		return C.GoString(c_name)
+	cname := C.H5Tget_tag(t.id)
+	if cname != nil {
+		return C.GoString(cname)
 	}
 	return ""
 }
 
-// -----------------------------------------
-
-// create a data-type from a golang value
+// NewDatatypeFromValue creates  a datatype from a value in an interface.
 func NewDatatypeFromValue(v interface{}) *Datatype {
 	t := reflect.TypeOf(v)
 	return newDataTypeFromType(t)
@@ -446,7 +404,7 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 		if err != nil {
 			panic(err)
 		}
-		cdt := &CompType{*hdf_dt}
+		cdt := &CompoundType{*hdf_dt}
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)

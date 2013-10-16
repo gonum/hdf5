@@ -127,7 +127,6 @@ func (s *Dataspace) SetOffset(offset []int) error {
 }
 
 // Retrieves dataspace dimension size and maximum size.
-// int H5Sget_simple_extent_dims(hid_t space_id, hsize_t *dims, hsize_t *maxdims )
 func (s *Dataspace) SimpleExtentDims() (dims, maxdims []int, err error) {
 	rank := s.SimpleExtentNDims()
 	dims = make([]int, rank)
