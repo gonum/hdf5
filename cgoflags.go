@@ -5,5 +5,3 @@ package hdf5
 // #cgo darwin LDFLAGS: -L/opt/local/lib
 // #include "hdf5.h"
 import "C"
-
-// EOF

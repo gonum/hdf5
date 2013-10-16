@@ -50,5 +50,3 @@ func (e *encoder) Encode(v interface{}) error {
 	}
 	return e.t.Append(rv.Interface())
 }
-
-// EOF

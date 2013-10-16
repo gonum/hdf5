@@ -509,5 +509,3 @@ func new_dataTypeFromType(t reflect.Type) *Datatype {
 
 	return dt
 }
-
-// EOF

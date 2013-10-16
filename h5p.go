@@ -72,5 +72,3 @@ func (p *PropList) Copy() (*PropList, error) {
 	return o, err
 
 }
-
-// EOF

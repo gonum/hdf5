@@ -145,5 +145,3 @@ func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 	err := h5err(rc)
 	return err
 }
-
-// EOF
