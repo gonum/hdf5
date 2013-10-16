@@ -40,25 +40,27 @@ func Close() error {
 	return h5err(C.H5close())
 }
 
-// Returns the HDF library release number.
-func GetLibVersion() (majnum, minnum, relnum uint, err error) {
-	err = nil
-	majnum = 0
-	minnum = 0
-	relnum = 0
+type Version struct {
+	Major   uint
+	Minor   uint
+	Release uint
+}
 
-	c_majnum := C.uint(majnum)
-	c_minnum := C.uint(minnum)
-	c_relnum := C.uint(relnum)
+func (v Version) String() string {
+	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Release)
+}
 
-	herr := C.H5get_libversion(&c_majnum, &c_minnum, &c_relnum)
-	err = h5err(herr)
+// LibVersion returns version information for the HDF5 library.
+func LibVersion() (Version, error) {
+	var maj, min, rel C.uint
+	var v Version
+	err := h5err(C.H5get_libversion(&maj, &min, &rel))
 	if err == nil {
-		majnum = uint(c_majnum)
-		minnum = uint(c_minnum)
-		relnum = uint(c_relnum)
+		v.Major = uint(maj)
+		v.Minor = uint(min)
+		v.Release = uint(rel)
 	}
-	return
+	return v, err
 }
 
 // Garbage collects on all free-lists of all types.
