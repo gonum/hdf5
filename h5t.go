@@ -12,8 +12,6 @@ import (
 	"unsafe"
 )
 
-// ---- H5T: Datatype Interface ----
-
 type Datatype struct {
 	id C.hid_t
 	rt reflect.Type
@@ -22,47 +20,20 @@ type Datatype struct {
 type TypeClass C.H5T_class_t
 
 const (
-	// Error
-	T_NO_CLASS TypeClass = -1
-
-	// integer types
-	T_INTEGER TypeClass = 0
-
-	// floating-point types
-	T_FLOAT TypeClass = 1
-
-	// date and time types
-	T_TIME TypeClass = 2
-
-	// character string types
-	T_STRING TypeClass = 3
-
-	// bit field types
-	T_BITFIELD TypeClass = 4
-
-	// opaque types
-	T_OPAQUE TypeClass = 5
-
-	// compound types
-	T_COMPOUND TypeClass = 6
-
-	// reference types
-	T_REFERENCE TypeClass = 7
-
-	// enumeration types
-	T_ENUM TypeClass = 8
-
-	// variable-length types
-	T_VLEN TypeClass = 9
-
-	// array types
-	T_ARRAY TypeClass = 10
-
-	// nbr of classes -- MUST BE LAST
-	T_NCLASSES TypeClass = 11
+	T_NO_CLASS  TypeClass = -1 // Error
+	T_INTEGER   TypeClass = 0  // integer types
+	T_FLOAT     TypeClass = 1  // floating-point types
+	T_TIME      TypeClass = 2  // date and time types
+	T_STRING    TypeClass = 3  // character string types
+	T_BITFIELD  TypeClass = 4  // bit field types
+	T_OPAQUE    TypeClass = 5  // opaque types
+	T_COMPOUND  TypeClass = 6  // compound types
+	T_REFERENCE TypeClass = 7  // reference types
+	T_ENUM      TypeClass = 8  // enumeration types
+	T_VLEN      TypeClass = 9  // variable-length types
+	T_ARRAY     TypeClass = 10 // array types
+	T_NCLASSES  TypeClass = 11 // nbr of classes -- MUST BE LAST
 )
-
-type dummy_struct struct{}
 
 // list of go types
 var (
@@ -84,7 +55,7 @@ var (
 	_go_array_t reflect.Type = reflect.TypeOf([1]int{0})
 	_go_slice_t reflect.Type = reflect.TypeOf([]int{0})
 
-	_go_struct_t reflect.Type = reflect.TypeOf(dummy_struct{})
+	_go_struct_t reflect.Type = reflect.TypeOf(struct{}{})
 
 	_go_ptr_t reflect.Type = reflect.PtrTo(_go_int_t)
 )
@@ -396,10 +367,10 @@ func (t *OpaqueDatatype) Tag() string {
 // create a data-type from a golang value
 func NewDatatypeFromValue(v interface{}) *Datatype {
 	t := reflect.TypeOf(v)
-	return new_dataTypeFromType(t)
+	return newDataTypeFromType(t)
 }
 
-func new_dataTypeFromType(t reflect.Type) *Datatype {
+func newDataTypeFromType(t reflect.Type) *Datatype {
 
 	var dt *Datatype = nil
 
@@ -446,7 +417,7 @@ func new_dataTypeFromType(t reflect.Type) *Datatype {
 		//dt = T_C_S1
 
 	case reflect.Array:
-		elem_type := new_dataTypeFromType(t.Elem())
+		elem_type := newDataTypeFromType(t.Elem())
 		n := t.Len()
 		dims := []int{n}
 		adt, err := NewArrayType(elem_type, dims)
@@ -459,7 +430,7 @@ func new_dataTypeFromType(t reflect.Type) *Datatype {
 		}
 
 	case reflect.Slice:
-		elem_type := new_dataTypeFromType(t.Elem())
+		elem_type := newDataTypeFromType(t.Elem())
 		vlen_dt, err := NewVarLenType(elem_type)
 		if err != nil {
 			panic(err)
@@ -480,7 +451,7 @@ func new_dataTypeFromType(t reflect.Type) *Datatype {
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
 			var field_dt *Datatype = nil
-			field_dt = new_dataTypeFromType(f.Type)
+			field_dt = newDataTypeFromType(f.Type)
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
 				panic(fmt.Sprintf("pb with field [%d-%s]", i, f.Name))

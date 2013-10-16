@@ -215,12 +215,12 @@ func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compressio
 func createTableFrom(id C.hid_t, name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
 	switch dt := dtype.(type) {
 	case reflect.Type:
-		hdfDtype := new_dataTypeFromType(dt)
+		hdfDtype := newDataTypeFromType(dt)
 		return createTable(id, name, hdfDtype, chunkSize, compression)
 	case *Datatype:
 		return createTable(id, name, dt, chunkSize, compression)
 	default:
-		hdfDtype := new_dataTypeFromType(reflect.TypeOf(dtype))
+		hdfDtype := newDataTypeFromType(reflect.TypeOf(dtype))
 		return createTable(id, name, hdfDtype, chunkSize, compression)
 	}
 }
