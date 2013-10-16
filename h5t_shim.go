@@ -254,19 +254,20 @@ var (
 	T_NATIVE_INT64  *Datatype = NewDatatype(C._go_hdf5_H5T_NATIVE_INT64(), _go_int64_t)
 	T_NATIVE_UINT64 *Datatype = NewDatatype(C._go_hdf5_H5T_NATIVE_UINT64(), _go_uint64_t)
 
-	T_GO_STRING *Datatype = _make_go_string_datatype()
+	T_GO_STRING *Datatype = makeGoStringDatatype()
 )
 
 //
 var h5t_VARIABLE int64 = C.H5T_VARIABLE
 
-func _make_go_string_datatype() *Datatype {
+func makeGoStringDatatype() *Datatype {
 	dt, err := T_C_S1.Copy()
 	if err != nil {
 		panic(err)
 	}
-
-	dt.SetSize(uint(h5t_VARIABLE))
-
+	err = dt.SetSize(uint(h5t_VARIABLE))
+	if err != nil {
+		panic(err)
+	}
 	return dt
 }
