@@ -94,7 +94,7 @@ func openDatatype(loc_id C.hid_t, name string, tapl_id int) (*Datatype, error) {
 	return dt, err
 }
 
-func new_dtype(id C.hid_t, rt reflect.Type) *Datatype {
+func NewDatatype(id C.hid_t, rt reflect.Type) *Datatype {
 	t := &Datatype{id: id, rt: rt}
 	//runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
@@ -110,7 +110,7 @@ func CreateDatatype(class TypeClass, size int) (t *Datatype, err error) {
 	if err != nil {
 		return
 	}
-	t = new_dtype(hid, _type_cls_to_go_type[class])
+	t = NewDatatype(hid, _type_cls_to_go_type[class])
 	return
 }
 
@@ -148,7 +148,7 @@ func (t *Datatype) Copy() (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	o := new_dtype(hid, t.rt)
+	o := NewDatatype(hid, t.rt)
 	return o, err
 }
 
@@ -286,7 +286,7 @@ func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := new_dtype(hid, t.rt.Field(mbr_idx).Type)
+	dt := NewDatatype(hid, t.rt.Field(mbr_idx).Type)
 	return dt, nil
 }
 

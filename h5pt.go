@@ -193,7 +193,7 @@ func (t *Table) Type() (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := new_dtype(hid, nil)
+	dt := NewDatatype(hid, nil)
 	return dt, err
 }
 
