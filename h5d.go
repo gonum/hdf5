@@ -64,7 +64,6 @@ func (s *Dataset) File() *File {
 }
 
 // Releases and terminates access to a dataset.
-// herr_t H5Dclose( hid_t space_id )
 func (s *Dataset) Close() error {
 	if s.id > 0 {
 		err := C.H5Dclose(s.id)
@@ -75,11 +74,10 @@ func (s *Dataset) Close() error {
 }
 
 // Returns an identifier for a copy of the dataspace for a dataset.
-// hid_t H5Dget_space(hid_t dataset_id )
 func (s *Dataset) Space() *Dataspace {
 	hid := C.H5Dget_space(s.id)
 	if int(hid) > 0 {
-		return new_dataspace(hid)
+		return newDataspace(hid)
 	}
 	return nil
 }

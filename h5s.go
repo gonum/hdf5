@@ -20,20 +20,13 @@ type Dataspace struct {
 type SpaceClass C.H5S_class_t
 
 const (
-	// error
-	S_NO_CLASS SpaceClass = -1
-
-	// scalar variable
-	S_SCALAR SpaceClass = 0
-
-	// simple data space
-	S_SIMPLE SpaceClass = 1
-
-	// null data space
-	S_NULL SpaceClass = 2
+	S_NO_CLASS SpaceClass = -1 // error
+	S_SCALAR   SpaceClass = 0  // scalar variable
+	S_SIMPLE   SpaceClass = 1  // simple data space
+	S_NULL     SpaceClass = 2  // null data space
 )
 
-func new_dataspace(id C.hid_t) *Dataspace {
+func newDataspace(id C.hid_t) *Dataspace {
 	ds := &Dataspace{id: id}
 	runtime.SetFinalizer(ds, (*Dataspace).finalizer)
 	return ds
@@ -47,7 +40,7 @@ func CreateDataSpace(class SpaceClass) (*Dataspace, error) {
 	if err != nil {
 		return nil, err
 	}
-	ds := new_dataspace(hid)
+	ds := newDataspace(hid)
 	return ds, nil
 }
 
@@ -66,7 +59,7 @@ func (s *Dataspace) Copy() (*Dataspace, error) {
 	if err != nil {
 		return nil, err
 	}
-	o := new_dataspace(hid)
+	o := newDataspace(hid)
 	return o, err
 }
 
@@ -85,54 +78,38 @@ func (s *Dataspace) Name() string {
 	return getName(s.id)
 }
 
-// FIXME: H5Sencode
-// FIXME: H5Sdecode
-
 // Creates a new simple dataspace and opens it for access.
-// hid_t H5Screate_simple( int rank, const hsize_t * current_dims, const hsize_t * maximum_dims )
-func CreateSimpleDataSpace(dims, maximum_dims []int) (*Dataspace, error) {
-
-	var c_dims *C.hsize_t = nil
-	var c_maxdims *C.hsize_t = nil
+func CreateSimpleDataSpace(dims, maxDims []uint) (*Dataspace, error) {
+	var c_dims, c_maxdims *C.hsize_t
 
 	rank := C.int(0)
 	if dims != nil {
 		rank = C.int(len(dims))
-		// FIXME: size of C.hsize_t and go.int !!
 		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	}
-	if maximum_dims != nil {
-		rank = C.int(len(maximum_dims))
-		// FIXME: size of C.hsize_t and go.int !!
-		c_maxdims = (*C.hsize_t)(unsafe.Pointer(&maximum_dims[0]))
+	if maxDims != nil {
+		rank = C.int(len(maxDims))
+		c_maxdims = (*C.hsize_t)(unsafe.Pointer(&maxDims[0]))
 
 	}
-	if len(dims) != len(maximum_dims) && (dims != nil && maximum_dims != nil) {
-		return nil, errors.New("sizes of 'dims' and 'maximum_dims' dont match")
+	if len(dims) != len(maxDims) && (dims != nil && maxDims != nil) {
+		return nil, errors.New("lengths of dims and maxDims do not match")
 	}
 
 	hid := C.H5Screate_simple(rank, c_dims, c_maxdims)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
-		return nil, err
+	if hid < 0 {
+		return nil, fmt.Errorf("failed to create dataspace")
 	}
-	ds := new_dataspace(hid)
-	return ds, err
+	return newDataspace(hid), nil
 }
 
-// Determines whether a dataspace is a simple dataspace.
-// htri_t H5Sis_simple( hid_t space_id )
+// IsSimple determines whether a dataspace is a simple dataspace.
 func (s *Dataspace) IsSimple() bool {
-	o := int(C.H5Sis_simple(s.id))
-	if o > 0 {
-		return true
-	}
-	return false
+	return int(C.H5Sis_simple(s.id)) > 0
 }
 
-// Sets the offset of a simple dataspace.
-// herr_t H5Soffset_simple(hid_t space_id, const hssize_t *offset )
+// SetOffset sets the offset of a simple dataspace.
 func (s *Dataspace) SetOffset(offset []int) error {
 	rank := len(offset)
 	if rank == 0 || offset == nil {
