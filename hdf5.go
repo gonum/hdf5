@@ -7,23 +7,7 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
-	"unsafe"
 )
-
-type CString struct {
-	cstr *C.char
-}
-
-func NewCString(s string) *CString {
-	c_s := &CString{cstr: C.CString(s)}
-	runtime.SetFinalizer(c_s, (*CString).finalizer)
-	return c_s
-}
-
-func (s *CString) finalizer() {
-	C.free(unsafe.Pointer(s.cstr))
-}
 
 // initialize the hdf5 library
 func init() {
