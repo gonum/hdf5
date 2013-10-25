@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/sbinet/go-hdf5/pkg/hdf5"
+	"github.com/kisielk/go-hdf5"
 )
 
 const (

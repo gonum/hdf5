@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/sbinet/go-hdf5/pkg/hdf5"
+	"github.com/kisielk/go-hdf5"
 )
 
 const (
@@ -12,7 +12,7 @@ const (
 	MEMBER1 string = "A_name"
 	MEMBER2 string = "B_name"
 	MEMBER3 string = "C_name"
-	LENGTH  int    = 10
+	LENGTH  uint   = 10
 	RANK    int    = 1
 )
 
@@ -38,7 +38,7 @@ func main() {
 	// }
 	// fmt.Printf(":: data: %v\n", s1)
 	s1 := [LENGTH]s1_t{}
-	for i := 0; i < LENGTH; i++ {
+	for i := 0; i < int(LENGTH); i++ {
 		s1[i] = s1_t{
 			a: i,
 			b: float32(i * i),
@@ -51,7 +51,7 @@ func main() {
 	fmt.Printf(":: data: %v\n", s1)
 
 	// create data space
-	dims := []int{LENGTH}
+	dims := []uint{LENGTH}
 	space, err := hdf5.CreateSimpleDataSpace(dims, nil)
 	if err != nil {
 		panic(err)
@@ -66,13 +66,13 @@ func main() {
 	fmt.Printf(":: file [%s] created (id=%d)\n", FNAME, f.Id())
 
 	// create the memory data type
-	var dtype *hdf5.DataType = hdf5.NewDataTypeFromValue(s1[0])
+	var dtype *hdf5.Datatype = hdf5.NewDatatypeFromValue(s1[0])
 	if dtype == nil {
 		panic("could not create a dtype")
 	}
 
 	// create the dataset
-	dset, err := f.CreateDataSet(DATASET, dtype, space, hdf5.P_DEFAULT)
+	dset, err := f.CreateDataset(DATASET, dtype, space, hdf5.P_DEFAULT)
 	if err != nil {
 		panic(err)
 	}
@@ -95,7 +95,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	dset, err = f.OpenDataSet(DATASET)
+	dset, err = f.OpenDataset(DATASET)
 	if err != nil {
 		panic(err)
 	}

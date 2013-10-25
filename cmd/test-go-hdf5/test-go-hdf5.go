@@ -1,20 +1,17 @@
 package main
 
 import (
-	// stdlib
 	"fmt"
-
-	// local
-	"github.com/sbinet/go-hdf5/pkg/hdf5"
+	"github.com/kisielk/go-hdf5"
 )
 
 func main() {
 	fmt.Println("=== go-hdf5 ===")
-	m, n, r, err := hdf5.GetLibVersion()
+	version, err := hdf5.LibVersion()
 	if err != nil {
 		fmt.Printf("** error ** %s\n", err)
 		return
 	}
-	fmt.Printf("=== version: %d.%d.%d\n", m, n, r)
+	fmt.Printf("=== version: %s", version)
 	fmt.Println("=== bye.")
 }

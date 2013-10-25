@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/sbinet/go-hdf5/pkg/hdf5"
+	"github.com/kisielk/go-hdf5"
 
 	"fmt"
 )
@@ -28,5 +28,3 @@ func main() {
 	fmt.Printf(":: file [%s] created\n", f.Name())
 
 }
-
-// EOF
