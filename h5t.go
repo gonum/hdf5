@@ -376,8 +376,7 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 
 	case reflect.Array:
 		elem_type := newDataTypeFromType(t.Elem())
-		n := t.Len()
-		dims := []int{n}
+		dims := getArrayDims(t)
 		adt, err := NewArrayType(elem_type, dims)
 		if err != nil {
 			panic(err)
@@ -437,4 +436,15 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 	}
 
 	return dt
+}
+
+func getArrayDims(dt reflect.Type) []int {
+	result := []int{}
+	if dt.Kind() == reflect.Array {
+		result = append(result, dt.Len())
+		for _, dim := range getArrayDims(dt.Elem()) {
+			result = append(result, dim)
+		}
+	}
+	return result
 }
