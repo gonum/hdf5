@@ -11,3 +11,9 @@ func TestLibVersion(t *testing.T) {
 		t.Fatalf("go-hdf5 requires HDF5 > 1.8.0, detected %s", v)
 	}
 }
+
+func init() {
+	if err := disableErrorPrinting(); err != nil {
+		panic(err)
+	}
+}
