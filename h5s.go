@@ -32,8 +32,7 @@ func newDataspace(id C.hid_t) *Dataspace {
 	return ds
 }
 
-// Creates a new dataspace of a specified type.
-// hid_t H5Screate( H5S_class_t type )
+// CreateDataspace creates a new dataspace of a specified type.
 func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
 	err := h5err(C.herr_t(int(hid)))
@@ -51,8 +50,7 @@ func (s *Dataspace) finalizer() {
 	}
 }
 
-// Creates an exact copy of a dataspace.
-// hid_t H5Scopy( hid_t space_id )
+// Copy creates an exact copy of a dataspace.
 func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
 	err := h5err(C.herr_t(int(hid)))
@@ -63,8 +61,7 @@ func (s *Dataspace) Copy() (*Dataspace, error) {
 	return o, err
 }
 
-// Releases and terminates access to a dataspace.
-// herr_t H5Sclose( hid_t space_id )
+// Close releases and terminates access to a dataspace.
 func (s *Dataspace) Close() error {
 	err := C.H5Sclose(s.id)
 	return h5err(err)
@@ -78,7 +75,7 @@ func (s *Dataspace) Name() string {
 	return getName(s.id)
 }
 
-// Creates a new simple dataspace and opens it for access.
+// CreateSimpleDataspace creates a new simple dataspace and opens it for access.
 func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
 	var c_dims, c_maxdims *C.hsize_t
 
@@ -104,7 +101,7 @@ func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
 	return newDataspace(hid), nil
 }
 
-// IsSimple determines whether a dataspace is a simple dataspace.
+// IsSimple returns whether a dataspace is a simple dataspace.
 func (s *Dataspace) IsSimple() bool {
 	return int(C.H5Sis_simple(s.id)) > 0
 }
@@ -113,7 +110,6 @@ func (s *Dataspace) IsSimple() bool {
 func (s *Dataspace) SetOffset(offset []uint) error {
 	rank := len(offset)
 	if rank == 0 {
-		// nil or empty offset is equivalent
 		err := C.H5Soffset_simple(s.id, nil)
 		return h5err(err)
 	}
@@ -127,7 +123,7 @@ func (s *Dataspace) SetOffset(offset []uint) error {
 	return h5err(err)
 }
 
-// Retrieves dataspace dimension size and maximum size.
+// SmpleExtentDims returns dataspace dimension size and maximum size.
 func (s *Dataspace) SimpleExtentDims() (dims, maxdims []uint, err error) {
 	rank := s.SimpleExtentNDims()
 	dims = make([]uint, rank)
@@ -140,20 +136,17 @@ func (s *Dataspace) SimpleExtentDims() (dims, maxdims []uint, err error) {
 	return
 }
 
-// Determines the dimensionality of a dataspace.
-// int H5Sget_simple_extent_ndims( hid_t space_id )
+// SimpleExtentNDims returns the dimensionality of a dataspace.
 func (s *Dataspace) SimpleExtentNDims() int {
 	return int(C.H5Sget_simple_extent_ndims(s.id))
 }
 
-// Determines the number of elements in a dataspace.
-// hssize_t H5Sget_simple_extent_npoints( hid_t space_id )
+// SimpleExtentNPoints returns the number of elements in a dataspace.
 func (s *Dataspace) SimpleExtentNPoints() int {
 	return int(C.H5Sget_simple_extent_npoints(s.id))
 }
 
-// Determines the current class of a dataspace.
-// H5S_class_t H5Sget_simple_extent_type( hid_t space_id )
+// SimpleExtentType returns the current class of a dataspace.
 func (s *Dataspace) SimpleExtentType() SpaceClass {
 	return SpaceClass(C.H5Sget_simple_extent_type(s.id))
 }
