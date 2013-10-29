@@ -77,7 +77,7 @@ func TestFile(t *testing.T) {
 	}
 
 	// Test a Dataset
-	ds, err := CreateDataSpace(S_SCALAR)
+	ds, err := CreateDataspace(S_SCALAR)
 	if err != nil {
 		t.Fatalf("CreateDataspace failed: %s", err)
 	}

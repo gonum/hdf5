@@ -34,7 +34,7 @@ func newDataspace(id C.hid_t) *Dataspace {
 
 // Creates a new dataspace of a specified type.
 // hid_t H5Screate( H5S_class_t type )
-func CreateDataSpace(class SpaceClass) (*Dataspace, error) {
+func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
 	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *Dataspace) Name() string {
 }
 
 // Creates a new simple dataspace and opens it for access.
-func CreateSimpleDataSpace(dims, maxDims []uint) (*Dataspace, error) {
+func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
 	var c_dims, c_maxdims *C.hsize_t
 
 	rank := C.int(0)
