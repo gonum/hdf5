@@ -52,7 +52,7 @@ func main() {
 
 	// create data space
 	dims := []uint{LENGTH}
-	space, err := hdf5.CreateSimpleDataSpace(dims, nil)
+	space, err := hdf5.CreateSimpleDataspace(dims, nil)
 	if err != nil {
 		panic(err)
 	}
