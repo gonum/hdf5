@@ -110,9 +110,10 @@ func (s *Dataspace) IsSimple() bool {
 }
 
 // SetOffset sets the offset of a simple dataspace.
-func (s *Dataspace) SetOffset(offset []int) error {
+func (s *Dataspace) SetOffset(offset []uint) error {
 	rank := len(offset)
-	if rank == 0 || offset == nil {
+	if rank == 0 {
+		// nil or empty offset is equivalent
 		err := C.H5Soffset_simple(s.id, nil)
 		return h5err(err)
 	}
@@ -127,10 +128,10 @@ func (s *Dataspace) SetOffset(offset []int) error {
 }
 
 // Retrieves dataspace dimension size and maximum size.
-func (s *Dataspace) SimpleExtentDims() (dims, maxdims []int, err error) {
+func (s *Dataspace) SimpleExtentDims() (dims, maxdims []uint, err error) {
 	rank := s.SimpleExtentNDims()
-	dims = make([]int, rank)
-	maxdims = make([]int, rank)
+	dims = make([]uint, rank)
+	maxdims = make([]uint, rank)
 
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 	c_maxdims := (*C.hsize_t)(unsafe.Pointer(&maxdims[0]))
@@ -153,6 +154,6 @@ func (s *Dataspace) SimpleExtentNPoints() int {
 
 // Determines the current class of a dataspace.
 // H5S_class_t H5Sget_simple_extent_type( hid_t space_id )
-func (s *Dataspace) SimpleEventType() SpaceClass {
+func (s *Dataspace) SimpleExtentType() SpaceClass {
 	return SpaceClass(C.H5Sget_simple_extent_type(s.id))
 }
