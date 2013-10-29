@@ -86,7 +86,6 @@ func TestSimpleDataspace(t *testing.T) {
 	if err = ds.SetOffset([]uint{1}); err == nil {
 		t.Error("expected a non-nil error")
 	}
-
 }
 
 func arrayEq(a, b []uint) bool {
