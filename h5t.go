@@ -96,7 +96,7 @@ func openDatatype(loc_id C.hid_t, name string, tapl_id int) (*Datatype, error) {
 
 func NewDatatype(id C.hid_t, rt reflect.Type) *Datatype {
 	t := &Datatype{id: id, rt: rt}
-	//runtime.SetFinalizer(t, (*Datatype).finalizer)
+	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
@@ -227,14 +227,9 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := new_vltype(hid)
-	return dt, err
-}
-
-func new_vltype(id C.hid_t) *VarLenType {
-	t := &VarLenType{Datatype{id: id}}
-	//runtime.SetFinalizer(t, (*Datatype).finalizer)
-	return t
+	t := &VarLenType{Datatype{id: hid}}
+	runtime.SetFinalizer(t, (*VarLenType).finalizer)
+	return t, err
 }
 
 // Determines whether datatype is a variable-length string.
@@ -372,7 +367,6 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 
 	case reflect.String:
 		dt = T_GO_STRING
-		//dt = T_C_S1
 
 	case reflect.Array:
 		elem_type := newDataTypeFromType(t.Elem())
@@ -382,17 +376,6 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 			panic(err)
 		}
 		dt, err = adt.Copy()
-		if err != nil {
-			panic(err)
-		}
-
-	case reflect.Slice:
-		elem_type := newDataTypeFromType(t.Elem())
-		vlen_dt, err := NewVarLenType(elem_type)
-		if err != nil {
-			panic(err)
-		}
-		dt, err = vlen_dt.Copy()
 		if err != nil {
 			panic(err)
 		}
@@ -428,11 +411,8 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 			panic(err)
 		}
 
-	case reflect.Ptr:
-		panic("sorry, pointers not yet supported")
-
 	default:
-		panic(fmt.Sprintf("unhandled kind (%d)", t.Kind()))
+		panic(fmt.Sprintf("unhandled kind (%v)", t.Kind()))
 	}
 
 	return dt
