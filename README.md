@@ -1,5 +1,6 @@
 go-hdf5
 =======
+[![Build Status](https://travis-ci.org/kisielk/go-hdf5.png?branch=master)](https://travis-ci.org/kisielk/go-hdf5)
 
 This is a fork of sbinet's ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 The aim is to provide a more object-like API similar to the C++ and Java APIs of HDF5.
