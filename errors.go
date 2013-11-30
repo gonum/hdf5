@@ -14,11 +14,11 @@ import (
 func DisplayErrors(b bool) error {
 	switch b {
 	case true:
-		if err := togo_err(C._go_hdf5_unsilence_errors()); err != nil {
+		if err := h5err(C._go_hdf5_unsilence_errors()); err != nil {
 			return fmt.Errorf("hdf5: could not call H5E_set_auto(): %v", err)
 		}
 	default:
-		if err := togo_err(C._go_hdf5_silence_errors()); err != nil {
+		if err := h5err(C._go_hdf5_silence_errors()); err != nil {
 			return fmt.Errorf("hdf5: could not call H5E_set_auto(): %v", err)
 		}
 	}
