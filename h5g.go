@@ -12,6 +12,7 @@ import (
 	"unsafe"
 )
 
+// Group is an HDF5 group object, which can contain Datasets or other Groups.
 type Group struct {
 	id C.hid_t
 }
@@ -64,13 +65,18 @@ func openGroup(id C.hid_t, name string, gapl_flag C.hid_t) (*Group, error) {
 	return g, nil
 }
 
-// FIXME
-// Creates a new empty group and links it to a location in the file.
-func (g *Group) CreateGroup(name string, link_flags, grp_c_flags, grp_a_flags int) (*Group, error) {
+// CreateGroup creates a new empty group and links it to a location in the file.
+func (g *Group) CreateGroup(name string) (*Group, error) {
 	return createGroup(g.id, name, C.H5P_DEFAULT, C.H5P_DEFAULT, C.H5P_DEFAULT)
 }
 
-func (g *Group) CreateDataset(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+// CreateDataset creates a new Dataset.
+func (g *Group) CreateDataset(name string, dtype *Datatype, dspace *Dataspace) (*Dataset, error) {
+	return createDataset(g.id, name, dtype, dspace, P_DEFAULT)
+}
+
+// CreateDatasetWith creates a new Dataset with a user-defined PropList.
+func (g *Group) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	return createDataset(g.id, name, dtype, dspace, dcpl)
 }
 
@@ -81,12 +87,12 @@ func (g *Group) finalizer() {
 	}
 }
 
-// Closes the specified group.
-// herr_t H5Gclose(hid_t group_id)
+// Close closes the Group.
 func (g *Group) Close() error {
 	return h5err(C.H5Gclose(g.id))
 }
 
+// Name returns the full name (path) of the Group.
 func (g *Group) Name() string {
 	return getName(g.id)
 }
@@ -95,44 +101,47 @@ func (g *Group) Id() int {
 	return int(g.id)
 }
 
+// File returns the file associated with this Group.
 func (g *Group) File() *File {
 	return getFile(g.id)
 }
 
-// Opens an existing group in a file.
+// OpenGroup opens an existing child group from this Group.
 func (g *Group) OpenGroup(name string) (*Group, error) {
 	return openGroup(g.id, name, P_DEFAULT.id)
 }
 
+// OpenDataset opens a named Dataset.
 func (g *Group) OpenDataset(name string) (*Dataset, error) {
 	return openDataset(g.id, name)
 }
 
-// Opens a named datatype.
-// hid_t H5Topen2( hid_t loc_id, const char * name, hid_t tapl_id )
+// OpenDatatype Opens a named Datatype.
 func (g *Group) OpenDatatype(name string, tapl_id int) (*Datatype, error) {
 	return openDatatype(g.id, name, tapl_id)
 }
 
+// NumObjects returns the number of objects in the Group.
 func (g *Group) NumObjects() (uint, error) {
 	return numObjects(g.id)
 }
 
+// ObjectNameByIndex returns the name of the object at idx.
 func (g *Group) ObjectNameByIndex(idx uint) (string, error) {
 	return objectNameByIndex(g.id, idx)
 }
 
-// Creates a packet table to store fixed-length packets.
+// CreateTable creates a packet table to store fixed-length packets.
 func (g *Group) CreateTable(name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
 	return createTable(g.id, name, dtype, chunkSize, compression)
 }
 
-// Creates a packet table to store fixed-length packets.
+// CreateTableFrom creates a packet table to store fixed-length packets.
 func (g *Group) CreateTableFrom(name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
 	return createTableFrom(g.id, name, dtype, chunkSize, compression)
 }
 
-// Opens an existing packet table.
+// OpenTable opens an existing packet table.
 func (g *Group) OpenTable(name string) (*Table, error) {
 	return openTable(g.id, name)
 }
