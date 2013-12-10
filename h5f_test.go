@@ -82,7 +82,7 @@ func TestFile(t *testing.T) {
 		t.Fatalf("CreateDataspace failed: %s", err)
 	}
 	dsetName := "test_dataset"
-	dset, err := f.CreateDataset(dsetName, T_NATIVE_INT, ds, P_DEFAULT)
+	dset, err := f.CreateDataset(dsetName, T_NATIVE_INT, ds)
 	if err != nil {
 		t.Fatalf("CreateDataset failed: %s", err)
 	}
