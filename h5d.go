@@ -59,11 +59,12 @@ func (s *Dataset) Id() int {
 	return int(s.id)
 }
 
+// File returns the file the dataset is backed by.
 func (s *Dataset) File() *File {
 	return getFile(s.id)
 }
 
-// Releases and terminates access to a dataset.
+// Close releases and terminates access to a dataset.
 func (s *Dataset) Close() error {
 	if s.id > 0 {
 		err := C.H5Dclose(s.id)
@@ -73,7 +74,7 @@ func (s *Dataset) Close() error {
 	return nil
 }
 
-// Returns an identifier for a copy of the dataspace for a dataset.
+// Space returns an identifier for a copy of the dataspace for a dataset.
 func (s *Dataset) Space() *Dataspace {
 	hid := C.H5Dget_space(s.id)
 	if int(hid) > 0 {
@@ -82,20 +83,15 @@ func (s *Dataset) Space() *Dataspace {
 	return nil
 }
 
-// Reads raw data from a dataset into a buffer.
-// herr_t H5Dread(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, void * buf )
+// Read reads raw data from a dataset into a buffer.
 func (s *Dataset) Read(data interface{}, dtype *Datatype) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
 
-	//fmt.Printf(":: read[%s]...\n", v.Kind())
 	switch v.Kind() {
 
 	case reflect.Array:
 		addr = v.UnsafeAddr()
-
-	case reflect.Slice:
-		addr = v.Pointer()
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
@@ -113,8 +109,7 @@ func (s *Dataset) Read(data interface{}, dtype *Datatype) error {
 	return err
 }
 
-// Writes raw data from a buffer to a dataset.
-// herr_t H5Dwrite(hid_t dataset_id, hid_t mem_type_id, hid_t mem_space_id, hid_t file_space_id, hid_t xfer_plist_id, const void * buf )
+// Write writes raw data from a buffer to a dataset.
 func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
@@ -124,9 +119,6 @@ func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 
 	case reflect.Array:
 		addr = v.UnsafeAddr()
-
-	case reflect.Slice:
-		addr = v.Pointer()
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))

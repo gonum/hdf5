@@ -174,7 +174,12 @@ func (f *File) ObjectNameByIndex(idx uint) (string, error) {
 }
 
 // Creates a new dataset at this location.
-func (f *File) CreateDataset(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+func (f *File) CreateDataset(name string, dtype *Datatype, dspace *Dataspace) (*Dataset, error) {
+	return createDataset(f.id, name, dtype, dspace, P_DEFAULT)
+}
+
+// Creates a new dataset at this location.
+func (f *File) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	return createDataset(f.id, name, dtype, dspace, dcpl)
 }
 

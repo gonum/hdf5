@@ -44,18 +44,6 @@ func TestArrayDatatype(t *testing.T) {
 	}
 }
 
-// Smoke test for slice datatypes
-func TestSliceDatatype(t *testing.T) {
-	tests := []interface{}{
-		[]int{1, 2, 3},
-		[]string{"a", "b", "c"},
-	}
-
-	for val := range tests {
-		NewDatatypeFromValue(val)
-	}
-}
-
 func TestStructDatatype(t *testing.T) {
 	test := struct {
 		a int32
