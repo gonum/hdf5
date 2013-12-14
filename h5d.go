@@ -14,11 +14,11 @@ import (
 )
 
 type Dataset struct {
-	id C.hid_t
+	Location
 }
 
 func newDataset(id C.hid_t) *Dataset {
-	d := &Dataset{id: id}
+	d := &Dataset{Location{id}}
 	runtime.SetFinalizer(d, (*Dataset).finalizer)
 	return d
 }
@@ -51,17 +51,8 @@ func (s *Dataset) finalizer() {
 	}
 }
 
-func (s *Dataset) Name() string {
-	return getName(s.id)
-}
-
 func (s *Dataset) Id() int {
 	return int(s.id)
-}
-
-// File returns the file the dataset is backed by.
-func (s *Dataset) File() *File {
-	return getFile(s.id)
 }
 
 // Close releases and terminates access to a dataset.
@@ -113,8 +104,6 @@ func (s *Dataset) Read(data interface{}, dtype *Datatype) error {
 func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 	var addr uintptr
 	v := reflect.ValueOf(data)
-
-	//fmt.Printf(":: write[%s]...\n", v.Kind())
 	switch v.Kind() {
 
 	case reflect.Array:

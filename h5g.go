@@ -14,7 +14,7 @@ import (
 
 // Group is an HDF5 group object, which can contain Datasets or other Groups.
 type Group struct {
-	id C.hid_t
+	Location
 }
 
 func numObjects(id C.hid_t) (uint, error) {
@@ -47,7 +47,7 @@ func createGroup(id C.hid_t, name string, link_flags, grp_c_flags, grp_a_flags i
 	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
-	g := &Group{id: hid}
+	g := &Group{Location{hid}}
 	runtime.SetFinalizer(g, (*Group).finalizer)
 	return g, nil
 }
@@ -60,7 +60,7 @@ func openGroup(id C.hid_t, name string, gapl_flag C.hid_t) (*Group, error) {
 	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
-	g := &Group{id: hid}
+	g := &Group{Location{hid}}
 	runtime.SetFinalizer(g, (*Group).finalizer)
 	return g, nil
 }
@@ -90,20 +90,6 @@ func (g *Group) finalizer() {
 // Close closes the Group.
 func (g *Group) Close() error {
 	return h5err(C.H5Gclose(g.id))
-}
-
-// Name returns the full name (path) of the Group.
-func (g *Group) Name() string {
-	return getName(g.id)
-}
-
-func (g *Group) Id() int {
-	return int(g.id)
-}
-
-// File returns the file associated with this Group.
-func (g *Group) File() *File {
-	return getFile(g.id)
 }
 
 // OpenGroup opens an existing child group from this Group.

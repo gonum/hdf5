@@ -13,7 +13,7 @@ import (
 )
 
 type Datatype struct {
-	id C.hid_t
+	Location
 	rt reflect.Type
 }
 
@@ -84,18 +84,18 @@ func openDatatype(loc_id C.hid_t, name string, tapl_id int) (*Datatype, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	hid := C.H5Topen2(C.hid_t(loc_id), c_name, C.hid_t(tapl_id))
-	err := h5err(C.herr_t(hid))
+	id := C.H5Topen2(C.hid_t(loc_id), c_name, C.hid_t(tapl_id))
+	err := h5err(C.herr_t(id))
 	if err != nil {
 		return nil, err
 	}
-	dt := &Datatype{id: hid}
+	dt := &Datatype{Location{id}, nil}
 	runtime.SetFinalizer(dt, (*Datatype).finalizer)
 	return dt, err
 }
 
 func NewDatatype(id C.hid_t, rt reflect.Type) *Datatype {
-	t := &Datatype{id: id, rt: rt}
+	t := &Datatype{Location{id}, rt}
 	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
@@ -182,7 +182,7 @@ type ArrayType struct {
 }
 
 func new_array_type(id C.hid_t) *ArrayType {
-	t := &ArrayType{Datatype{id: id}}
+	t := &ArrayType{Datatype{Location{id}, nil}}
 	return t
 }
 
@@ -222,12 +222,12 @@ type VarLenType struct {
 }
 
 func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
-	hid := C.H5Tvlen_create(base_type.id)
-	err := h5err(C.herr_t(int(hid)))
+	id := C.H5Tvlen_create(base_type.id)
+	err := h5err(C.herr_t(int(id)))
 	if err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{id: hid}}
+	t := &VarLenType{Datatype{Location{id}, nil}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, err
 }

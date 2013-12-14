@@ -14,7 +14,7 @@ import (
 )
 
 type Dataspace struct {
-	id C.hid_t
+	Location
 }
 
 type SpaceClass C.H5S_class_t
@@ -27,7 +27,7 @@ const (
 )
 
 func newDataspace(id C.hid_t) *Dataspace {
-	ds := &Dataspace{id: id}
+	ds := &Dataspace{Location{id}}
 	runtime.SetFinalizer(ds, (*Dataspace).finalizer)
 	return ds
 }
@@ -69,10 +69,6 @@ func (s *Dataspace) Close() error {
 
 func (s *Dataspace) Id() int {
 	return int(s.id)
-}
-
-func (s *Dataspace) Name() string {
-	return getName(s.id)
 }
 
 // CreateSimpleDataspace creates a new simple dataspace and opens it for access.
