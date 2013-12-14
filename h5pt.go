@@ -15,11 +15,11 @@ import (
 )
 
 type Table struct {
-	id C.hid_t
+	Location
 }
 
 func newPacketTable(id C.hid_t) *Table {
-	t := &Table{id: id}
+	t := &Table{Location{id}}
 	runtime.SetFinalizer(t, (*Table).finalizer)
 	return t
 }

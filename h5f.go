@@ -33,7 +33,7 @@ const (
 
 // a HDF5 file
 type File struct {
-	id C.hid_t
+	Location
 }
 
 func (f *File) finalizer() {
@@ -44,7 +44,7 @@ func (f *File) finalizer() {
 }
 
 func newFile(id C.hid_t) *File {
-	f := &File{id: id}
+	f := &File{Location{id}}
 	runtime.SetFinalizer(f, (*File).finalizer)
 	return f
 }
@@ -78,8 +78,8 @@ func OpenFile(name string, flags int) (*File, error) {
 }
 
 // Returns a new identifier for a previously-opened HDF5 file.
-func (self *File) ReOpen() (*File, error) {
-	hid := C.H5Freopen(self.id)
+func (f *File) ReOpen() (*File, error) {
+	hid := C.H5Freopen(f.id)
 	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
@@ -115,10 +115,6 @@ func (f *File) Flush(scope Scope) error {
 	return h5err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
 }
 
-func (f *File) Name() string {
-	return getName(f.id)
-}
-
 // FIXME
 // Retrieves name of file to which object belongs.
 // ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size )
@@ -145,10 +141,6 @@ func (f *File) CreateGroup(name string) (*Group, error) {
 
 func (f *File) Id() int {
 	return int(f.id)
-}
-
-func (f *File) File() *File {
-	return getFile(f.id)
 }
 
 // Opens an existing group in a file.
