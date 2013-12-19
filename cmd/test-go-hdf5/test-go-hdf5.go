@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/kisielk/go-hdf5"
+	"github.com/sbinet/go-hdf5"
 )
 
 func main() {

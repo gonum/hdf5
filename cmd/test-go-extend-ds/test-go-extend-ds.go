@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kisielk/go-hdf5"
+	"github.com/sbinet/go-hdf5"
 
 	"fmt"
 )

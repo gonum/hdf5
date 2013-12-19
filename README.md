@@ -1,6 +1,6 @@
 go-hdf5
 =======
-[![Build Status](https://travis-ci.org/kisielk/go-hdf5.png?branch=master)](https://travis-ci.org/kisielk/go-hdf5)
+[![Build Status](https://travis-ci.org/sbinet/go-hdf5.png?branch=master)](https://travis-ci.org/binet/go-hdf5)
 
 This is a fork of sbinet's ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 The aim is to provide a more object-like API similar to the C++ and Java APIs of HDF5.
@@ -10,14 +10,14 @@ It is a work in progress and the API has not been finalized yet, so expect break
 Documentation
 -------------
 
-http://godoc.org/github.com/kisielk/go-hdf5
+http://godoc.org/github.com/sbinet/go-hdf5
 
 Example
 -------
 
-- Hello world example: https://github.com/kisielk/go-hdf5/blob/master/cmd/test-go-hdf5/test-go-hdf5.go
+- Hello world example: https://github.com/sbinet/go-hdf5/blob/master/cmd/test-go-hdf5/test-go-hdf5.go
 
-- Writing/reading an ``hdf5`` with compound data: https://github.com/kisielk/go-hdf5/blob/master/cmd/test-go-cpxcmpd/test-go-cpxcmpd.go
+- Writing/reading an ``hdf5`` with compound data: https://github.com/sbinet/go-hdf5/blob/master/cmd/test-go-cpxcmpd/test-go-cpxcmpd.go
 
 Note
 ----
