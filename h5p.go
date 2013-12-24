@@ -15,7 +15,7 @@ import (
 type PropType C.hid_t
 
 type PropList struct {
-	Location
+	IDComponent
 }
 
 var (
@@ -23,7 +23,7 @@ var (
 )
 
 func newPropList(id C.hid_t) *PropList {
-	p := &PropList{Location{id}}
+	p := &PropList{IDComponent{id}}
 	runtime.SetFinalizer(p, (*PropList).finalizer)
 	return p
 }

@@ -33,7 +33,7 @@ const (
 
 // a HDF5 file
 type File struct {
-	Location
+	CommonFG
 }
 
 func (f *File) finalizer() {
@@ -44,7 +44,7 @@ func (f *File) finalizer() {
 }
 
 func newFile(id C.hid_t) *File {
-	f := &File{Location{id}}
+	f := &File{CommonFG{Location{IDComponent{id}}}}
 	runtime.SetFinalizer(f, (*File).finalizer)
 	return f
 }
@@ -134,66 +134,7 @@ func (f *File) FileName() string {
 
 }
 
-// Creates a new empty group and links it to a location in the file.
-func (f *File) CreateGroup(name string) (*Group, error) {
-	return createGroup(f.id, name, C.H5P_DEFAULT, C.H5P_DEFAULT, C.H5P_DEFAULT)
-}
-
-func (f *File) Id() int {
-	return int(f.id)
-}
-
-// Opens an existing group in a file.
-func (f *File) OpenGroup(name string) (*Group, error) {
-	return openGroup(f.id, name, P_DEFAULT.id)
-}
-
-// Opens a named datatype.
-func (f *File) OpenDatatype(name string, tapl_id int) (*Datatype, error) {
-	return openDatatype(f.id, name, tapl_id)
-}
-
-// NumObjects returns the number of objects in the root of the File.
-func (f *File) NumObjects() (uint, error) {
-	return numObjects(f.id)
-}
-
 var cdot = C.CString(".")
-
-// ObjectNameByIndex returns the name of an object given its index.
-func (f *File) ObjectNameByIndex(idx uint) (string, error) {
-	return objectNameByIndex(f.id, idx)
-}
-
-// Creates a new dataset at this location.
-func (f *File) CreateDataset(name string, dtype *Datatype, dspace *Dataspace) (*Dataset, error) {
-	return createDataset(f.id, name, dtype, dspace, P_DEFAULT)
-}
-
-// Creates a new dataset at this location.
-func (f *File) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
-	return createDataset(f.id, name, dtype, dspace, dcpl)
-}
-
-// Creates a new attribute at this location.
-func (f *File) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
-	return createAttribute(f.id, name, dtype, dspace, P_DEFAULT)
-}
-
-// Creates a new attribute at this location.
-func (f *File) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
-	return createAttribute(f.id, name, dtype, dspace, acpl)
-}
-
-// Opens an existing dataset.
-func (f *File) OpenDataset(name string) (*Dataset, error) {
-	return openDataset(f.id, name)
-}
-
-// Opens an existing attribute.
-func (f *File) OpenAttribute(name string) (*Attribute, error) {
-	return openAttribute(f.id, name)
-}
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )

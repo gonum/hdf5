@@ -18,7 +18,7 @@ type Dataset struct {
 }
 
 func newDataset(id C.hid_t) *Dataset {
-	d := &Dataset{Location{id}}
+	d := &Dataset{Location{IDComponent{id}}}
 	runtime.SetFinalizer(d, (*Dataset).finalizer)
 	return d
 }
@@ -27,17 +27,6 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
-		return nil, err
-	}
-	return newDataset(hid), nil
-}
-
-func openDataset(id C.hid_t, name string) (*Dataset, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-
-	hid := C.H5Dopen2(id, c_name, P_DEFAULT.id)
 	if err := h5err(C.herr_t(int(hid))); err != nil {
 		return nil, err
 	}
