@@ -18,6 +18,11 @@ func (c IDComponent) Id() int {
 	return int(c.id)
 }
 
+// A Location embeds IDComponent. Dataset, Datatype and Group are all Locations.
+type Location struct {
+	IDComponent
+}
+
 // Name returns the full name of the IDComponent
 func (c *IDComponent) Name() string {
 	sz := int(C.H5Iget_name(c.id, nil, 0)) + 1
