@@ -22,42 +22,42 @@ const (
 	BAD_ID    IType = C.H5I_BADID
 )
 
-// IDComponent is a simple wrapper around a C hid_t. It has basic methods
+// Identifier is a simple wrapper around a C hid_t. It has basic methods
 // which apply to every type in the go-hdf5 API.
-type IDComponent struct {
+type Identifier struct {
 	id C.hid_t
 }
 
-// A Location embeds IDComponent. Dataset, Datatype and Group are all Locations.
+// A Location embeds Identifier. Dataset, Datatype and Group are all Locations.
 type Location struct {
-	IDComponent
+	Identifier
 }
 
-// Name returns the full name of the IDComponent
-func (c *IDComponent) Name() string {
-	sz := int(C.H5Iget_name(c.id, nil, 0)) + 1
+// Name returns the full name of the Identifier
+func (i *Identifier) Name() string {
+	sz := int(C.H5Iget_name(i.id, nil, 0)) + 1
 	if sz < 0 {
 		return ""
 	}
 	buf := string(make([]byte, sz))
 	c_buf := C.CString(buf)
 	defer C.free(unsafe.Pointer(c_buf))
-	sz = int(C.H5Iget_name(c.id, c_buf, C.size_t(sz)))
+	sz = int(C.H5Iget_name(i.id, c_buf, C.size_t(sz)))
 	if sz < 0 {
 		return ""
 	}
 	return C.GoString(c_buf)
 }
 
-// File returns the file associated with this IDComponent.
-func (c *IDComponent) File() *File {
-	fid := C.H5Iget_file_id(c.id)
+// File returns the file associated with this Identifier.
+func (i *Identifier) File() *File {
+	fid := C.H5Iget_file_id(i.id)
 	if fid < 0 {
 		return nil
 	}
-	return &File{CommonFG{Location{IDComponent{fid}}}}
+	return &File{CommonFG{Location{Identifier{fid}}}}
 }
 
-func (c *IDComponent) Type() IType {
-	return IType(C.H5Iget_type(c.id))
+func (i *Identifier) Type() IType {
+	return IType(C.H5Iget_type(i.id))
 }

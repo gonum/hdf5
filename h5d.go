@@ -18,7 +18,7 @@ type Dataset struct {
 }
 
 func newDataset(id C.hid_t) *Dataset {
-	d := &Dataset{Location{IDComponent{id}}}
+	d := &Dataset{Location{Identifier{id}}}
 	runtime.SetFinalizer(d, (*Dataset).finalizer)
 	return d
 }

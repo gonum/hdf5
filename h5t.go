@@ -89,13 +89,13 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := &Datatype{Location{IDComponent{id}}, nil}
+	dt := &Datatype{Location{Identifier{id}}, nil}
 	runtime.SetFinalizer(dt, (*Datatype).finalizer)
 	return dt, err
 }
 
 func NewDatatype(id C.hid_t, rt reflect.Type) *Datatype {
-	t := &Datatype{Location{IDComponent{id}}, rt}
+	t := &Datatype{Location{Identifier{id}}, rt}
 	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
@@ -181,7 +181,7 @@ type ArrayType struct {
 }
 
 func new_array_type(id C.hid_t) *ArrayType {
-	t := &ArrayType{Datatype{Location{IDComponent{id}}, nil}}
+	t := &ArrayType{Datatype{Location{Identifier{id}}, nil}}
 	return t
 }
 
@@ -226,7 +226,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	if err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{Location{IDComponent{id}}, nil}}
+	t := &VarLenType{Datatype{Location{Identifier{id}}, nil}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, err
 }
