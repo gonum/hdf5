@@ -10,12 +10,22 @@ import (
 	"unsafe"
 )
 
+type IType C.H5I_type_t
+
+const (
+	FILE      IType = C.H5I_FILE
+	GROUP     IType = C.H5I_GROUP
+	DATATYPE  IType = C.H5I_DATATYPE
+	DATASPACE IType = C.H5I_DATASPACE
+	DATASET   IType = C.H5I_DATASET
+	ATTRIBUTE IType = C.H5I_ATTR
+	BAD_ID    IType = C.H5I_BADID
+)
+
+// IDComponent is a simple wrapper around a C hid_t. It has basic methods
+// which apply to every type in the go-hdf5 API.
 type IDComponent struct {
 	id C.hid_t
-}
-
-func (c IDComponent) Id() int {
-	return int(c.id)
 }
 
 // A Location embeds IDComponent. Dataset, Datatype and Group are all Locations.
@@ -46,4 +56,8 @@ func (c *IDComponent) File() *File {
 		return nil
 	}
 	return &File{CommonFG{Location{IDComponent{fid}}}}
+}
+
+func (c *IDComponent) Type() IType {
+	return IType(C.H5Iget_type(c.id))
 }
