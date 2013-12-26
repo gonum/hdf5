@@ -33,8 +33,12 @@ type Location struct {
 	Identifier
 }
 
+func (i Identifier) Id() int {
+	return int(i.id)
+}
+
 // Name returns the full name of the Identifier
-func (i *Identifier) Name() string {
+func (i Identifier) Name() string {
 	sz := int(C.H5Iget_name(i.id, nil, 0)) + 1
 	if sz < 0 {
 		return ""
@@ -50,7 +54,7 @@ func (i *Identifier) Name() string {
 }
 
 // File returns the file associated with this Identifier.
-func (i *Identifier) File() *File {
+func (i Identifier) File() *File {
 	fid := C.H5Iget_file_id(i.id)
 	if fid < 0 {
 		return nil
@@ -58,6 +62,6 @@ func (i *Identifier) File() *File {
 	return &File{CommonFG{Location{Identifier{fid}}}}
 }
 
-func (i *Identifier) Type() IType {
+func (i Identifier) Type() IType {
 	return IType(C.H5Iget_type(i.id))
 }
