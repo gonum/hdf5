@@ -124,3 +124,18 @@ func (s *Dataset) Write(data interface{}, dtype *Datatype) error {
 	err := h5err(rc)
 	return err
 }
+
+// Creates a new attribute at this location.
+func (s *Dataset) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
+	return createAttribute(s.id, name, dtype, dspace, P_DEFAULT)
+}
+
+// Creates a new attribute at this location.
+func (s *Dataset) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(s.id, name, dtype, dspace, acpl)
+}
+
+// Opens an existing attribute.
+func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
+	return openAttribute(s.id, name)
+}

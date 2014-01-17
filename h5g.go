@@ -80,6 +80,16 @@ func (g *Group) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspac
 	return createDataset(g.id, name, dtype, dspace, dcpl)
 }
 
+// Creates a new attribute at this location.
+func (g *Group) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
+	return createAttribute(g.id, name, dtype, dspace, P_DEFAULT)
+}
+
+// Creates a new attribute at this location.
+func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(g.id, name, dtype, dspace, acpl)
+}
+
 func (g *Group) finalizer() {
 	err := g.Close()
 	if err != nil {
@@ -100,6 +110,11 @@ func (g *Group) OpenGroup(name string) (*Group, error) {
 // OpenDataset opens a named Dataset.
 func (g *Group) OpenDataset(name string) (*Dataset, error) {
 	return openDataset(g.id, name)
+}
+
+// OpenAttribute opens a named Attribute.
+func (g *Group) OpenAttribute(name string) (*Attribute, error) {
+	return openAttribute(g.id, name)
 }
 
 // OpenDatatype Opens a named Datatype.
