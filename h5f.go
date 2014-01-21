@@ -175,9 +175,24 @@ func (f *File) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspace
 	return createDataset(f.id, name, dtype, dspace, dcpl)
 }
 
+// Creates a new attribute at this location.
+func (f *File) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
+	return createAttribute(f.id, name, dtype, dspace, P_DEFAULT)
+}
+
+// Creates a new attribute at this location.
+func (f *File) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(f.id, name, dtype, dspace, acpl)
+}
+
 // Opens an existing dataset.
 func (f *File) OpenDataset(name string) (*Dataset, error) {
 	return openDataset(f.id, name)
+}
+
+// Opens an existing attribute.
+func (f *File) OpenAttribute(name string) (*Attribute, error) {
+	return openAttribute(f.id, name)
 }
 
 // Creates a packet table to store fixed-length packets.
