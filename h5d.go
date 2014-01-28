@@ -103,7 +103,6 @@ func (s *Dataset) ReadSubset(data interface{}, dtype *Datatype, memspace, filesp
            filespace_id = filespace.id
         }
         rc := C.H5Dread(s.id, dtype.id, memspace_id, filespace_id, 0, unsafe.Pointer(addr))
-        fmt.Println("***",rc)
 	err := h5err(rc)
 	return err
 }
