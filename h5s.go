@@ -119,6 +119,26 @@ func (s *Dataspace) SetOffset(offset []uint) error {
 	return h5err(err)
 }
 
+// SelectHyperslab creates a subset of the data space.
+func (s *Dataspace) SelectHyperslab(offset, stride, count, block []uint) error {
+        rank := len(offset)
+        if rank == 0 {
+		err := C.H5Soffset_simple(s.id, nil)
+		return h5err(err)
+        }
+	if rank != s.SimpleExtentNDims() {
+		err := errors.New("size of offset does not match extent")
+		return err
+	}
+
+        c_offset := (*C.hsize_t)(unsafe.Pointer(&offset[0]))
+        c_stride := (*C.hsize_t)(unsafe.Pointer(&stride[0]))
+        c_count := (*C.hsize_t)(unsafe.Pointer(&count[0]))
+        c_block := (*C.hsize_t)(unsafe.Pointer(&block[0]))
+	err := C.H5Sselect_hyperslab(s.id, C.H5S_SELECT_SET, c_offset, c_stride, c_count, c_block)
+	return h5err(err)
+}
+
 // SimpleExtentDims returns dataspace dimension size and maximum size.
 func (s *Dataspace) SimpleExtentDims() (dims, maxdims []uint, err error) {
 	rank := s.SimpleExtentNDims()
