@@ -66,8 +66,8 @@ func main() {
 	fmt.Printf(":: file [%s] created (id=%d)\n", FNAME, f.Id())
 
 	// create the memory data type
-	var dtype *hdf5.Datatype = hdf5.NewDatatypeFromValue(s1[0])
-	if dtype == nil {
+	dtype, err := hdf5.NewDatatypeFromValue(s1[0])
+	if err != nil {
 		panic("could not create a dtype")
 	}
 
@@ -80,7 +80,7 @@ func main() {
 
 	// write data to the dataset
 	fmt.Printf(":: dset.Write...\n")
-	err = dset.Write(&s1, dtype)
+	err = dset.Write(&s1)
 	if err != nil {
 		panic(err)
 	}
@@ -102,7 +102,7 @@ func main() {
 
 	// read it back into a new slice
 	s2 := make([]s1_t, LENGTH)
-	dset.Read(s2, dtype)
+	dset.Read(s2)
 
 	// display the fields
 	fmt.Printf(":: data: %v\n", s2)

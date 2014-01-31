@@ -14,7 +14,6 @@ import (
 
 type Datatype struct {
 	Location
-	rt reflect.Type
 }
 
 type TypeClass C.H5T_class_t
@@ -60,11 +59,11 @@ var (
 	_go_ptr_t reflect.Type = reflect.PtrTo(_go_int_t)
 )
 
-type typeClassToType map[TypeClass]reflect.Type
+type typeMap map[TypeClass]reflect.Type
 
 var (
-	// mapping of type-class to go-type
-	_type_cls_to_go_type typeClassToType = typeClassToType{
+	// Mapping of TypeClass to reflect.Type
+	typeClassToGoType typeMap = typeMap{
 		T_NO_CLASS:  nil,
 		T_INTEGER:   _go_int_t,
 		T_FLOAT:     _go_float32_t,
@@ -78,6 +77,14 @@ var (
 		T_VLEN:      _go_slice_t,
 		T_ARRAY:     _go_array_t,
 	}
+
+	parametricTypes typeMap = typeMap{
+		// Only these types can be used with CreateDatatype
+		T_COMPOUND: _go_struct_t,
+		T_ENUM:     _go_int_t,
+		T_OPAQUE:   nil,
+		T_STRING:   _go_string_t,
+	}
 )
 
 func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
@@ -89,29 +96,34 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := &Datatype{Location{Identifier{id}}, nil}
+	dt := &Datatype{Location{Identifier{id}}}
 	runtime.SetFinalizer(dt, (*Datatype).finalizer)
 	return dt, err
 }
 
-func NewDatatype(id C.hid_t, rt reflect.Type) *Datatype {
-	t := &Datatype{Location{Identifier{id}}, rt}
+func NewDatatype(id C.hid_t) *Datatype {
+	t := &Datatype{Location{Identifier{id}}}
 	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
-// Creates a new datatype.
-func CreateDatatype(class TypeClass, size int) (t *Datatype, err error) {
-	t = nil
-	err = nil
+// CreateDatatype creates a new datatype.
+// class must be T_COMPUND, T_OPAQUE, T_ENUM or T_STRING.
+// size is the size of the new datatype in bytes.
+func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
+	_, ok := parametricTypes[class]
+	if !ok {
+		return nil, fmt.Errorf(
+			"invalid TypeClass, want %v, %v, %v or %v, got %v",
+			T_COMPOUND, T_OPAQUE, T_STRING, T_ENUM)
+	}
 
 	hid := C.H5Tcreate(C.H5T_class_t(class), C.size_t(size))
-	err = h5err(C.herr_t(int(hid)))
+	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
-		return
+		return nil, err
 	}
-	t = NewDatatype(hid, _type_cls_to_go_type[class])
-	return
+	return NewDatatype(hid), nil
 }
 
 func (t *Datatype) finalizer() {
@@ -121,7 +133,12 @@ func (t *Datatype) finalizer() {
 	}
 }
 
-// Releases a datatype.
+// GoType returns the reflect.Type associated with the Datatype's TypeClass
+func (t *Datatype) GoType() reflect.Type {
+	return typeClassToGoType[t.Class()]
+}
+
+// Close releases a datatype.
 func (t *Datatype) Close() error {
 	if t.id > 0 {
 		err := h5err(C.H5Tclose(t.id))
@@ -131,7 +148,7 @@ func (t *Datatype) Close() error {
 	return nil
 }
 
-// Determines whether a datatype is a named type or a transient type.
+// Committed determines whether a datatype is a named type or a transient type.
 func (t *Datatype) Committed() bool {
 	o := int(C.H5Tcommitted(t.id))
 	if o > 0 {
@@ -140,15 +157,20 @@ func (t *Datatype) Committed() bool {
 	return false
 }
 
-// Copies an existing datatype.
+// Copy copies an existing datatype.
 func (t *Datatype) Copy() (*Datatype, error) {
-	hid := C.H5Tcopy(t.id)
+	return copyDatatype(t.id)
+}
+
+// copyDatatype should be called by any function wishing to return
+// an existing Datatype from a Dataset or Attribute.
+func copyDatatype(id C.hid_t) (*Datatype, error) {
+	hid := C.H5Tcopy(id)
 	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
-	o := NewDatatype(hid, t.rt)
-	return o, err
+	return NewDatatype(hid), nil
 }
 
 // Determines whether two datatype identifiers refer to the same datatype.
@@ -160,7 +182,7 @@ func (t *Datatype) Equal(o *Datatype) bool {
 	return false
 }
 
-// Locks a datatype.
+// Lock locks a datatype.
 func (t *Datatype) Lock() error {
 	return h5err(C.H5Tlock(t.id))
 }
@@ -180,11 +202,9 @@ type ArrayType struct {
 	Datatype
 }
 
-func new_array_type(id C.hid_t) *ArrayType {
-	t := &ArrayType{Datatype{Location{Identifier{id}}, nil}}
-	return t
-}
-
+// NewArrayType creates a new ArrayType.
+// base_type specifies the element type of the array.
+// dims specify the dimensions of the array.
 func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	ndims := C.uint(len(dims))
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
@@ -194,16 +214,17 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	if err != nil {
 		return nil, err
 	}
-	t := new_array_type(hid)
+	t := &ArrayType{Datatype{Location{Identifier{hid}}}}
+	runtime.SetFinalizer(t, (*ArrayType).finalizer)
 	return t, err
 }
 
-// Returns the rank of an array datatype.
+// NDims returns the rank of an ArrayType.
 func (t *ArrayType) NDims() int {
 	return int(C.H5Tget_array_ndims(t.id))
 }
 
-// Retrieves sizes of array dimensions.
+// ArrayDims returns the array dimensions.
 func (t *ArrayType) ArrayDims() []int {
 	rank := t.NDims()
 	dims := make([]int, rank)
@@ -220,19 +241,20 @@ type VarLenType struct {
 	Datatype
 }
 
+// NewVarLenType creates a new VarLenType.
+// base_type specifies the element type of the VarLenType.
 func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	id := C.H5Tvlen_create(base_type.id)
 	err := h5err(C.herr_t(int(id)))
 	if err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{Location{Identifier{id}}, nil}}
+	t := &VarLenType{Datatype{Location{Identifier{id}}}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, err
 }
 
-// Determines whether datatype is a variable-length string.
-// htri_t H5Tis_variable_str( hid_t dtype_id )
+// IsVariableStr determines whether the VarLenType is a string.
 func (vl *VarLenType) IsVariableStr() bool {
 	o := int(C.H5Tis_variable_str(vl.id))
 	if o > 0 {
@@ -245,53 +267,60 @@ type CompoundType struct {
 	Datatype
 }
 
-// Retrieves the number of elements in a compound or enumeration datatype.
+// NMembers returns the number of elements in a compound or enumeration datatype.
 func (t *CompoundType) NMembers() int {
 	return int(C.H5Tget_nmembers(t.id))
 }
 
-// Returns datatype class of compound datatype member.
+// Class returns the TypeClass of the DataType
+func (t *Datatype) Class() TypeClass {
+	return TypeClass(C.H5Tget_class(t.id))
+}
+
+// MemberClass returns datatype class of compound datatype member.
 func (t *CompoundType) MemberClass(mbr_idx int) TypeClass {
 	return TypeClass(C.H5Tget_member_class(t.id, C.uint(mbr_idx)))
 }
 
-// Retrieves the name of a compound or enumeration datatype member.
+// MemberName returns the name of a compound or enumeration datatype member.
 func (t *CompoundType) MemberName(mbr_idx int) string {
 	c_name := C.H5Tget_member_name(t.id, C.uint(mbr_idx))
 	return C.GoString(c_name)
 }
 
-// Retrieves the index of a compound or enumeration datatype member.
+// MemberIndex returns the index of a compound or enumeration datatype member.
 func (t *CompoundType) MemberIndex(name string) int {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	return int(C.H5Tget_member_index(t.id, c_name))
 }
 
-// Retrieves the offset of a field of a compound datatype.
+// MemberOffset returns the offset of a field of a compound datatype.
 func (t *CompoundType) MemberOffset(mbr_idx int) int {
 	return int(C.H5Tget_member_offset(t.id, C.uint(mbr_idx)))
 }
 
-// Returns the datatype of the specified member.
+// MemberType returns the datatype of the specified member.
 func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	err := h5err(C.herr_t(int(hid)))
 	if err != nil {
 		return nil, err
 	}
-	dt := NewDatatype(hid, t.rt.Field(mbr_idx).Type)
-	return dt, nil
+	return copyDatatype(hid)
 }
 
-// Adds a new member to a compound datatype.
+// Insert adds a new member to a compound datatype.
 func (t *CompoundType) Insert(name string, offset int, field *Datatype) error {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 	return h5err(C.H5Tinsert(t.id, cname, C.size_t(offset), field.id))
 }
 
-// Recursively removes padding from within a compound datatype.
+// Pack recursively removes padding from within a compound datatype.
+// This is analogous to C struct packing and will give a space-efficient
+// type on the disk. However, using this may require type conversions
+// on more machines, so may be a worse option.
 func (t *CompoundType) Pack() error {
 	return h5err(C.H5Tpack(t.id))
 }
@@ -317,94 +346,109 @@ func (t *OpaqueDatatype) Tag() string {
 }
 
 // NewDatatypeFromValue creates  a datatype from a value in an interface.
-func NewDatatypeFromValue(v interface{}) *Datatype {
-	t := reflect.TypeOf(v)
-	return newDataTypeFromType(t)
+func NewDatatypeFromValue(v interface{}) (*Datatype, error) {
+	return NewDataTypeFromType(reflect.TypeOf(v))
 }
 
-func newDataTypeFromType(t reflect.Type) *Datatype {
+// NewDatatypeFromType creates a new Datatype from a reflect.Type.
+func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 
 	var dt *Datatype = nil
+	var err error
 
 	switch t.Kind() {
 
 	case reflect.Int:
-		dt = T_NATIVE_INT // FIXME: .Copy() instead ?
+		dt, err = T_NATIVE_INT.Copy()
 
 	case reflect.Int8:
-		dt = T_NATIVE_INT8
+		dt, err = T_NATIVE_INT8.Copy()
 
 	case reflect.Int16:
-		dt = T_NATIVE_INT16
+		dt, err = T_NATIVE_INT16.Copy()
 
 	case reflect.Int32:
-		dt = T_NATIVE_INT32
+		dt, err = T_NATIVE_INT32.Copy()
 
 	case reflect.Int64:
-		dt = T_NATIVE_INT64
+		dt, err = T_NATIVE_INT64.Copy()
 
 	case reflect.Uint:
-		dt = T_NATIVE_UINT // FIXME: .Copy() instead ?
+		dt, err = T_NATIVE_UINT.Copy()
 
 	case reflect.Uint8:
-		dt = T_NATIVE_UINT8
+		dt, err = T_NATIVE_UINT8.Copy()
 
 	case reflect.Uint16:
-		dt = T_NATIVE_UINT16
+		dt, err = T_NATIVE_UINT16.Copy()
 
 	case reflect.Uint32:
-		dt = T_NATIVE_UINT32
+		dt, err = T_NATIVE_UINT32.Copy()
 
 	case reflect.Uint64:
-		dt = T_NATIVE_UINT64
+		dt, err = T_NATIVE_UINT64.Copy()
 
 	case reflect.Float32:
-		dt = T_NATIVE_FLOAT
+		dt, err = T_NATIVE_FLOAT.Copy()
 
 	case reflect.Float64:
-		dt = T_NATIVE_DOUBLE
+		dt, err = T_NATIVE_DOUBLE.Copy()
 
 	case reflect.String:
-		dt = T_GO_STRING
+		dt, err = T_GO_STRING.Copy()
 
 	case reflect.Array:
-		elem_type := newDataTypeFromType(t.Elem())
+		elem_type, err := NewDataTypeFromType(t.Elem())
+		if err != nil {
+			return nil, err
+		}
+
 		dims := getArrayDims(t)
+
 		adt, err := NewArrayType(elem_type, dims)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
+
 		dt, err = adt.Copy()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 	case reflect.Slice:
-		elem_type := newDataTypeFromType(t.Elem())
+		elem_type, err := NewDataTypeFromType(t.Elem())
+		if err != nil {
+			return nil, err
+		}
+
 		sdt, err := NewVarLenType(elem_type)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
+
 		dt, err = sdt.Copy()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 	case reflect.Struct:
 		sz := int(t.Size())
 		hdf_dt, err := CreateDatatype(T_COMPOUND, sz)
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 		cdt := &CompoundType{*hdf_dt}
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
 			var field_dt *Datatype = nil
-			field_dt = newDataTypeFromType(f.Type)
+			field_dt, err = NewDataTypeFromType(f.Type)
+			if err != nil {
+				return nil, err
+			}
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
-				panic(fmt.Sprintf("pb with field [%d-%s]", i, f.Name))
+				return nil, fmt.Errorf("pb with field [%d-%s]", i, f.Name)
 			}
 			field_name := string(f.Tag)
 			if len(field_name) == 0 {
@@ -412,20 +456,21 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 			}
 			err = cdt.Insert(field_name, offset, field_dt)
 			if err != nil {
-				panic(fmt.Sprintf("pb with field [%d-%s]: %s", i, f.Name, err))
+				return nil, fmt.Errorf("pb with field [%d-%s]: %s", i, f.Name, err)
 			}
 		}
 		cdt.Lock()
 		dt, err = cdt.Copy()
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 
 	default:
+		// Should never happen.
 		panic(fmt.Sprintf("unhandled kind (%v)", t.Kind()))
 	}
 
-	return dt
+	return dt, err
 }
 
 func getArrayDims(dt reflect.Type) []int {

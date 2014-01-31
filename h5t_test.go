@@ -36,7 +36,10 @@ func TestArrayDatatype(t *testing.T) {
 	}
 
 	for dims, val := range tests {
-		dt := NewDatatypeFromValue(val)
+		dt, err := NewDatatypeFromValue(val)
+		if err != nil {
+			t.Fatal(err)
+		}
 		adt := ArrayType{*dt}
 		if adt.NDims() != dims {
 			t.Errorf("wrong number of dimensions: got %d, want %d", adt.NDims(), dims)
@@ -56,7 +59,11 @@ func TestStructDatatype(t *testing.T) {
 
 	// Test that the type can be constructed and that the number of
 	// members is as expected.
-	dt := CompoundType{*NewDatatypeFromValue(test)}
+	dtype, err := NewDatatypeFromValue(test)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dt := CompoundType{*dtype}
 	if dt.NMembers() != 3 {
 		t.Errorf("wrong number of members: got %d, want %d", dt.NMembers(), 3)
 	}

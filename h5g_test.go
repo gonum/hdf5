@@ -82,7 +82,10 @@ func TestGroup(t *testing.T) {
 
 	data := 5
 
-	dtype := NewDatatypeFromValue(data)
+	dtype, err := NewDatatypeFromValue(data)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	dims := []uint{1}
 	dspace, err := CreateSimpleDataspace(dims, dims)
