@@ -23,6 +23,7 @@ Note
 ----
 
 - *Only* version *1.8.x* of ``HDF5`` is supported.
+- In order to use ``HDF5`` functions in more than one goroutine simultaneously, you must build the HDF5 library with threading support. Many binary distributions (RHEL/centos/Fedora packages, etc.) do not have this enabled. Therefore, you must be HDF5 yourself on these systems.
 
 
 Known problems
