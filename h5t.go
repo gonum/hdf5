@@ -124,7 +124,6 @@ func (t *Datatype) finalizer() {
 // Releases a datatype.
 func (t *Datatype) Close() error {
 	if t.id > 0 {
-		fmt.Printf("--- closing dtype [%d]...\n", t.id)
 		err := h5err(C.H5Tclose(t.id))
 		t.id = 0
 		return err
