@@ -95,21 +95,21 @@ func (s *Dataset) ReadSubset(data interface{}, dtype *Datatype, memspace, filesp
 		addr = v.UnsafeAddr()
 	}
 
-        var filespace_id, memspace_id C.hid_t = 0,0
-        if memspace != nil {
-           memspace_id = memspace.id
-        }
-        if filespace != nil {
-           filespace_id = filespace.id
-        }
-        rc := C.H5Dread(s.id, dtype.id, memspace_id, filespace_id, 0, unsafe.Pointer(addr))
+	var filespace_id, memspace_id C.hid_t = 0, 0
+	if memspace != nil {
+		memspace_id = memspace.id
+	}
+	if filespace != nil {
+		filespace_id = filespace.id
+	}
+	rc := C.H5Dread(s.id, dtype.id, memspace_id, filespace_id, 0, unsafe.Pointer(addr))
 	err := h5err(rc)
 	return err
 }
 
 // Read reads raw data from a dataset into a buffer.
 func (s *Dataset) Read(data interface{}, dtype *Datatype) error {
-   return s.ReadSubset(data, dtype, nil, nil)
+	return s.ReadSubset(data, dtype, nil, nil)
 }
 
 // Write writes raw data from a buffer to a dataset.

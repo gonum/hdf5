@@ -57,8 +57,8 @@ func (s *Attribute) Id() int {
 
 // Access the type of an attribute
 func (s *Attribute) GetType() Location {
-   ftype := C.H5Aget_type(s.id)
-   return Location{ftype}
+	ftype := C.H5Aget_type(s.id)
+	return Location{ftype}
 }
 
 // Close releases and terminates access to an attribute.
