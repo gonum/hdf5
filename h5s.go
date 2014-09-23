@@ -131,10 +131,19 @@ func (s *Dataspace) SelectHyperslab(offset, stride, count, block []uint) error {
 		return err
 	}
 
-	c_offset := (*C.hsize_t)(unsafe.Pointer(&offset[0]))
-	c_stride := (*C.hsize_t)(unsafe.Pointer(&stride[0]))
-	c_count := (*C.hsize_t)(unsafe.Pointer(&count[0]))
-	c_block := (*C.hsize_t)(unsafe.Pointer(&block[0]))
+	var c_offset, c_stride, c_count, c_block *C.hsize_t
+	if offset != nil {
+		c_offset = (*C.hsize_t)(unsafe.Pointer(&offset[0]))
+	}
+	if stride != nil {
+		c_stride = (*C.hsize_t)(unsafe.Pointer(&stride[0]))
+	}
+	if count != nil {
+		c_count = (*C.hsize_t)(unsafe.Pointer(&count[0]))
+	}
+	if block != nil {
+		c_block = (*C.hsize_t)(unsafe.Pointer(&block[0]))
+	}
 	err := C.H5Sselect_hyperslab(s.id, C.H5S_SELECT_SET, c_offset, c_stride, c_count, c_block)
 	return h5err(err)
 }
