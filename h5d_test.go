@@ -41,7 +41,7 @@ func createDataset1(t *testing.T) error {
 }
 
 /**
- * TestSubset based on the h5_subset.c sample with the HDF5 C library.
+ * TestReadSubset based on the h5_subset.c sample with the HDF5 C library.
  * Original copyright notice:
  *
  * HDF5 (Hierarchical Data Format 5) Software Library and Utilities
@@ -52,7 +52,7 @@ func createDataset1(t *testing.T) error {
  ****
  * Write some test data then read back a subset.
  */
-func TestSubset(t *testing.T) {
+func TestReadSubset(t *testing.T) {
 	DisplayErrors(true)
 	defer DisplayErrors(false)
 	defer os.Remove(FNAME)
@@ -101,5 +101,70 @@ func TestSubset(t *testing.T) {
 	expected := [10]uint16{26, 27, 31, 32, 36, 37, 41, 42, 46, 47}
 	if data != expected {
 		t.Fatal("Loaded data does not match expected.", data, expected)
+	}
+}
+
+func TestWriteSubset(t *testing.T) {
+	DisplayErrors(true)
+	defer DisplayErrors(false)
+	defer os.Remove(FNAME)
+
+	fdims := []uint{12, 4, 6}
+	fspace, err := CreateSimpleDataspace(fdims, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mdims := []uint{2, 6}
+	mspace, err := CreateSimpleDataspace(mdims, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	if err != nil {
+		t.Fatalf("CreateFile failed: %s\n", err)
+	}
+	defer f.Close()
+
+	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, fspace)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	offset := []uint{6, 0, 0}
+	stride := []uint{3, 1, 1}
+	count := []uint{mdims[0], 1, mdims[1]}
+	if err = fspace.SelectHyperslab(offset, stride, count, nil); err != nil {
+		t.Fatal(err)
+	}
+
+	data := make([]uint16, mdims[0]*mdims[1])
+
+	if err = dset.WriteSubset(&data[0], T_NATIVE_USHORT, mspace, fspace); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSelectHyperslab(t *testing.T) {
+	DisplayErrors(true)
+	defer DisplayErrors(false)
+
+	dims := []uint{12, 4}
+	dspace, err := CreateSimpleDataspace(dims, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	offset, stride, count, block := []uint{1, 2}, []uint{2, 1}, []uint{4, 2}, []uint{1, 1}
+	if err = dspace.SelectHyperslab(offset, stride, count, block); err != nil {
+		t.Fatal(err)
+	}
+	if err = dspace.SelectHyperslab(offset, nil, count, block); err != nil {
+		t.Fatal(err)
+	}
+	if err = dspace.SelectHyperslab(offset, stride, count, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err = dspace.SelectHyperslab(offset, nil, count, nil); err != nil {
+		t.Fatal(err)
 	}
 }

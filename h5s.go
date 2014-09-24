@@ -131,15 +131,11 @@ func (s *Dataspace) SelectHyperslab(offset, stride, count, block []uint) error {
 		return err
 	}
 
-	var c_offset, c_stride, c_count, c_block *C.hsize_t
-	if offset != nil {
-		c_offset = (*C.hsize_t)(unsafe.Pointer(&offset[0]))
-	}
+	c_offset := (*C.hsize_t)(unsafe.Pointer(&offset[0]))
+	c_count := (*C.hsize_t)(unsafe.Pointer(&count[0]))
+	var c_stride, c_block *C.hsize_t
 	if stride != nil {
 		c_stride = (*C.hsize_t)(unsafe.Pointer(&stride[0]))
-	}
-	if count != nil {
-		c_count = (*C.hsize_t)(unsafe.Pointer(&count[0]))
 	}
 	if block != nil {
 		c_block = (*C.hsize_t)(unsafe.Pointer(&block[0]))
