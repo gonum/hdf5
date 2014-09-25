@@ -1,6 +1,7 @@
 go-hdf5
 =======
-[![Build Status](https://travis-ci.org/sbinet/go-hdf5.png?branch=master)](https://travis-ci.org/binet/go-hdf5)
+[![Build Status](https://drone.io/github.com/sbinet/go-hdf5/status.png)](https://drone.io/github.com/sbinet/go-hdf5/latest)
+[![GoDoc](https://godoc.org/github.com/sbinet/go-hdf5?status.svg)](https://godoc.org/github.com/sbinet/go-hdf5)
 
 This is a fork of sbinet's ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 The aim is to provide a more object-like API similar to the C++ and Java APIs of HDF5.
