@@ -60,18 +60,25 @@ func (t *Table) Id() int {
 func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	c_start := C.hsize_t(start)
 	c_nrecords := C.size_t(nrecords)
-	rt := reflect.TypeOf(data)
-	rv := reflect.ValueOf(data)
+	rv := reflect.Indirect(reflect.ValueOf(data))
+	rt := rv.Type()
 	c_data := unsafe.Pointer(nil)
 	switch rt.Kind() {
 	case reflect.Array:
-		if rv.Cap() < nrecords {
-			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
+		if rv.Len() < nrecords {
+			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Len()))
 		}
 		c_data = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 
+	case reflect.Slice:
+		if rv.Len() < nrecords {
+			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Len()))
+		}
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
+		c_data = unsafe.Pointer(slice.Data)
+
 	default:
-		panic(fmt.Sprintf("unhandled kind (%s), need array", rt.Kind()))
+		panic(fmt.Sprintf("unhandled kind (%s), need slice or array", rt.Kind()))
 	}
 	err := C.H5PTread_packets(t.id, c_start, c_nrecords, c_data)
 	return h5err(err)
@@ -79,29 +86,34 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 
 // Append appends packets to the end of a packet table.
 func (t *Table) Append(data interface{}) error {
-	rt := reflect.TypeOf(data)
-	v := reflect.ValueOf(data)
+	rv := reflect.Indirect(reflect.ValueOf(data))
+	rt := rv.Type()
 	c_nrecords := C.size_t(0)
 	c_data := unsafe.Pointer(nil)
 
 	switch rt.Kind() {
 
 	case reflect.Array:
-		c_nrecords = C.size_t(v.Len())
-		c_data = unsafe.Pointer(v.UnsafeAddr())
+		c_nrecords = C.size_t(rv.Len())
+		c_data = unsafe.Pointer(rv.UnsafeAddr())
+
+	case reflect.Slice:
+		c_nrecords = C.size_t(rv.Len())
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
+		c_data = unsafe.Pointer(slice.Data)
 
 	case reflect.String:
-		c_nrecords = C.size_t(v.Len())
-		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		c_nrecords = C.size_t(rv.Len())
+		str := (*reflect.StringHeader)(unsafe.Pointer(rv.UnsafeAddr()))
 		c_data = unsafe.Pointer(str.Data)
 
 	case reflect.Ptr:
 		c_nrecords = C.size_t(1)
-		c_data = unsafe.Pointer(v.Elem().UnsafeAddr())
+		c_data = unsafe.Pointer(rv.Elem().UnsafeAddr())
 
 	default:
 		c_nrecords = C.size_t(1)
-		c_data = unsafe.Pointer(v.UnsafeAddr())
+		c_data = unsafe.Pointer(rv.UnsafeAddr())
 	}
 
 	err := C.H5PTappend(t.id, c_nrecords, c_data)
@@ -118,6 +130,12 @@ func (t *Table) Next(data interface{}) error {
 	case reflect.Array:
 		if rv.Cap() <= 0 {
 			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
+		}
+		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
+		n = C.size_t(rv.Cap())
+	case reflect.Slice:
+		if rv.Cap() <= 0 {
+			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
 		}
 		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 		n = C.size_t(rv.Cap())
