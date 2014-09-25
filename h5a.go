@@ -18,7 +18,7 @@ type Attribute struct {
 }
 
 func newAttribute(id C.hid_t) *Attribute {
-	d := &Attribute{Location{id}}
+	d := &Attribute{Location{Identifier{id}}}
 	runtime.SetFinalizer(d, (*Attribute).finalizer)
 	return d
 }
@@ -58,7 +58,7 @@ func (s *Attribute) Id() int {
 // Access the type of an attribute
 func (s *Attribute) GetType() Location {
 	ftype := C.H5Aget_type(s.id)
-	return Location{ftype}
+	return Location{Identifier{ftype}}
 }
 
 // Close releases and terminates access to an attribute.
