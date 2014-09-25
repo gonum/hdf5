@@ -3,10 +3,7 @@ go-hdf5
 [![Build Status](https://drone.io/github.com/sbinet/go-hdf5/status.png)](https://drone.io/github.com/sbinet/go-hdf5/latest)
 [![GoDoc](https://godoc.org/github.com/sbinet/go-hdf5?status.svg)](https://godoc.org/github.com/sbinet/go-hdf5)
 
-This is a fork of sbinet's ``cgo`` bindings for the ``C-API`` of ``hdf5``.
-The aim is to provide a more object-like API similar to the C++ and Java APIs of HDF5.
-
-It is a work in progress and the API has not been finalized yet, so expect breakage.
+Naive ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 
 Documentation
 -------------
