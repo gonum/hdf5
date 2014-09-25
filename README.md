@@ -31,3 +31,4 @@ Known problems
 --------------
 
 - the ``h5pt`` packet table interface is broken.
+- support for structs with slices and strings as fields is broken
