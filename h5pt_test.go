@@ -1,13 +1,15 @@
 package hdf5
 
-import "os"
+import (
+	"os"
+	"reflect"
+)
 import "testing"
 
 const (
-	FNAME      string = "ex_table_01.h5"
-	TABLE_NAME string = "table"
-	NFIELDS    int    = 5
-	NRECORDS   int    = 8
+	fname    string = "ex_table_01.h5"
+	tname    string = "table"
+	nrecords int    = 8
 )
 
 type particle struct {
@@ -44,19 +46,19 @@ func TestTable(t *testing.T) {
 	// 	{"seven", 70, 70, 7.0, 70., []int{0, 0}, [2][2]int{{7, 0}, {0, 7}}},
 	// }
 
-	chunk_size := 10
+	chunkSize := 10
 	compress := 0
 
 	// create a new file using default properties
-	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
 		t.Fatalf("CreateFile failed: %s", err)
 	}
-	defer os.Remove(FNAME)
+	defer os.Remove(fname)
 	defer f.Close()
 
 	// create a fixed-length packet table within the file
-	table, err := f.CreateTableFrom(TABLE_NAME, particle_t{}, chunk_size, compress)
+	table, err := f.CreateTableFrom(tname, particle{}, chunkSize, compress)
 	if err != nil {
 		t.Fatalf("CreateTableFrom failed: %s", err)
 	}

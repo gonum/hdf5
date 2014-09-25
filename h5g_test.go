@@ -6,11 +6,11 @@ import (
 )
 
 func TestGroup(t *testing.T) {
-	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
 		t.Fatalf("CreateFile failed: %s", err)
 	}
-	defer os.Remove(FNAME)
+	defer os.Remove(fname)
 	defer f.Close()
 
 	g1, err := f.CreateGroup("foo")

@@ -61,13 +61,13 @@ func TestStructDatatype(t *testing.T) {
 		t.Errorf("wrong number of members: got %d, want %d", dt.NMembers(), 3)
 	}
 
-	member_classes := []TypeClass{
+	memberClasses := []TypeClass{
 		T_INTEGER,
 		T_STRING,
 		T_COMPOUND,
 	}
 	// Test the member classes, and also test that they can be constructed
-	for idx, class := range member_classes {
+	for idx, class := range memberClasses {
 		if dt.MemberClass(idx) != class {
 			t.Errorf("wrong TypeClass: got %v, want %v", dt.MemberClass(idx), class)
 		}
@@ -78,8 +78,8 @@ func TestStructDatatype(t *testing.T) {
 	}
 
 	// Test the member names
-	member_names := []string{"a", "b", "c"}
-	for idx, name := range member_names {
+	memberNames := []string{"a", "b", "c"}
+	for idx, name := range memberNames {
 		if dt.MemberName(idx) != name {
 			t.Errorf("wrong name: got %q, want %q", dt.MemberName(idx), name)
 		}
@@ -90,8 +90,8 @@ func TestStructDatatype(t *testing.T) {
 
 	// Pack the datatype, otherwise offsets are implementation defined
 	dt.Pack()
-	member_offsets := []int{0, 4, 12}
-	for idx, offset := range member_offsets {
+	memberOffsets := []int{0, 4, 12}
+	for idx, offset := range memberOffsets {
 		if dt.MemberOffset(idx) != offset {
 			t.Errorf("wrong offset: got %d, want %d", dt.MemberOffset(idx), offset)
 		}

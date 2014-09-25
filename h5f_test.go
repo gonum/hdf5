@@ -6,24 +6,24 @@ import (
 )
 
 func TestFile(t *testing.T) {
-	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
 		t.Fatalf("CreateFile failed: %s", err)
 	}
-	defer os.Remove(FNAME)
+	defer os.Remove(fname)
 	defer f.Close()
 
-	if fileName := f.FileName(); fileName != FNAME {
-		t.Fatalf("FileName() have %v, want %v", fileName, FNAME)
+	if fileName := f.FileName(); fileName != fname {
+		t.Fatalf("FileName() have %v, want %v", fileName, fname)
 	}
 	// The file is also the root group
 	if name := f.Name(); name != "/" {
-		t.Fatalf("Name() have %v, want %v", name, FNAME)
+		t.Fatalf("Name() have %v, want %v", name, fname)
 	}
 	if err := f.Flush(F_SCOPE_GLOBAL); err != nil {
 		t.Fatalf("Flush() failed: %s", err)
 	}
-	if !IsHDF5(FNAME) {
+	if !IsHDF5(fname) {
 		t.Fatalf("IsHDF5 returned false")
 	}
 	if n, err := f.NumObjects(); err != nil {
@@ -110,7 +110,7 @@ func TestFile(t *testing.T) {
 }
 
 func TestClosedFile(t *testing.T) {
-	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
 		t.Fatalf("CreateFile failed: %s", err)
 	}
@@ -119,12 +119,12 @@ func TestClosedFile(t *testing.T) {
 	f.Close()
 
 	f2Name := f2.FileName()
-	if f2Name != FNAME {
+	if f2Name != fname {
 		t.Fatalf("f2 FileName() have %v, want %v", f2Name, fName)
 	}
 	f2.Close()
 
-	os.Remove(FNAME)
+	os.Remove(fname)
 	f3 := f.File()
 	if f3 != nil {
 		t.Fatalf("expected file to be nil")

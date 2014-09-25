@@ -7,7 +7,7 @@ import (
 
 func createDataset1(t *testing.T) error {
 	// create a file with a single 5x20 dataset
-	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
 		t.Fatalf("CreateFile failed: %s", err)
 		return err
@@ -55,14 +55,14 @@ func createDataset1(t *testing.T) error {
 func TestReadSubset(t *testing.T) {
 	DisplayErrors(true)
 	defer DisplayErrors(false)
-	defer os.Remove(FNAME)
+	defer os.Remove(fname)
 	err := createDataset1(t)
 	if err != nil {
 		return
 	}
 
 	// load a subset of the data
-	f, err := OpenFile(FNAME, F_ACC_RDONLY)
+	f, err := OpenFile(fname, F_ACC_RDONLY)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestReadSubset(t *testing.T) {
 func TestWriteSubset(t *testing.T) {
 	DisplayErrors(true)
 	defer DisplayErrors(false)
-	defer os.Remove(FNAME)
+	defer os.Remove(fname)
 
 	fdims := []uint{12, 4, 6}
 	fspace, err := CreateSimpleDataspace(fdims, nil)
@@ -120,7 +120,7 @@ func TestWriteSubset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	f, err := CreateFile(FNAME, F_ACC_TRUNC)
+	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
 		t.Fatalf("CreateFile failed: %s\n", err)
 	}
