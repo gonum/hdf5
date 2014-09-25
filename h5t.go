@@ -379,6 +379,17 @@ func newDataTypeFromType(t reflect.Type) *Datatype {
 			panic(err)
 		}
 
+	case reflect.Slice:
+		elem_type := newDataTypeFromType(t.Elem())
+		sdt, err := NewVarLenType(elem_type)
+		if err != nil {
+			panic(err)
+		}
+		dt, err = sdt.Copy()
+		if err != nil {
+			panic(err)
+		}
+
 	case reflect.Struct:
 		sz := int(t.Size())
 		hdf_dt, err := CreateDatatype(T_COMPOUND, sz)
