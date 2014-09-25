@@ -2,6 +2,7 @@ package hdf5
 
 import (
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -90,17 +91,39 @@ func TestReadSubset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// create a buffer for the data
-	var data [10]uint16
 
-	// read the subset
-	err = dset.ReadSubset(&data[0], memspace, filespace)
-	if err != nil {
-		t.Fatal(err)
-	}
 	expected := [10]uint16{26, 27, 31, 32, 36, 37, 41, 42, 46, 47}
-	if data != expected {
-		t.Fatal("Loaded data does not match expected.", data, expected)
+
+	// test array
+	{
+		// create a buffer for the data
+		data := [10]uint16{}
+
+		// read the subset
+		err = dset.ReadSubset(&data, memspace, filespace)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(data, expected) {
+			t.Fatalf("ReadSubset-array error\ngot= %#v\nwant=%#v\n", data, expected)
+		}
+	}
+
+	// test slice
+	{
+		// create a buffer for the data
+		data := make([]uint16, 10)
+
+		// read the subset
+		err = dset.ReadSubset(&data, memspace, filespace)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(data, expected[:]) {
+			t.Fatalf("ReadSubset-slice error\ngot= %#v\nwant=%#v\n", data, expected[:])
+		}
 	}
 }
 
@@ -140,7 +163,7 @@ func TestWriteSubset(t *testing.T) {
 
 	data := make([]uint16, mdims[0]*mdims[1])
 
-	if err = dset.WriteSubset(&data[0], mspace, fspace); err != nil {
+	if err = dset.WriteSubset(&data, mspace, fspace); err != nil {
 		t.Fatal(err)
 	}
 }

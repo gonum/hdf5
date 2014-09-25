@@ -24,6 +24,10 @@ func newDataset(id C.hid_t) *Dataset {
 }
 
 func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+	dtype, err := dtype.Copy() // For safety
+	if err != nil {
+		return nil, err
+	}
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
@@ -66,23 +70,27 @@ func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) e
 		return err
 	}
 
-	var addr uintptr
-	v := reflect.ValueOf(data)
+	var addr unsafe.Pointer
+	v := reflect.Indirect(reflect.ValueOf(data))
 
 	switch v.Kind() {
 
 	case reflect.Array:
-		addr = v.UnsafeAddr()
+		addr = unsafe.Pointer(v.UnsafeAddr())
+
+	case reflect.Slice:
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		addr = unsafe.Pointer(slice.Data)
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = str.Data
+		addr = unsafe.Pointer(str.Data)
 
 	case reflect.Ptr:
-		addr = v.Pointer()
+		addr = unsafe.Pointer(v.Pointer())
 
 	default:
-		addr = v.UnsafeAddr()
+		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
 	var filespace_id, memspace_id C.hid_t = 0, 0
@@ -92,7 +100,7 @@ func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) e
 	if filespace != nil {
 		filespace_id = filespace.id
 	}
-	rc := C.H5Dread(s.id, dtype.id, memspace_id, filespace_id, 0, unsafe.Pointer(addr))
+	rc := C.H5Dread(s.id, dtype.id, memspace_id, filespace_id, 0, addr)
 	err = h5err(rc)
 	return err
 }
@@ -109,22 +117,27 @@ func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) 
 		return err
 	}
 
-	var addr uintptr
-	v := reflect.ValueOf(data)
+	addr := unsafe.Pointer(nil)
+	v := reflect.Indirect(reflect.ValueOf(data))
+
 	switch v.Kind() {
 
 	case reflect.Array:
-		addr = v.UnsafeAddr()
+		addr = unsafe.Pointer(v.UnsafeAddr())
+
+	case reflect.Slice:
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(v.UnsafeAddr()))
+		addr = unsafe.Pointer(slice.Data)
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = str.Data
+		addr = unsafe.Pointer(str.Data)
 
 	case reflect.Ptr:
-		addr = v.Pointer()
+		addr = unsafe.Pointer(v.Pointer())
 
 	default:
-		addr = v.Pointer()
+		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
 	var filespace_id, memspace_id C.hid_t = 0, 0
@@ -134,7 +147,7 @@ func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) 
 	if filespace != nil {
 		filespace_id = filespace.id
 	}
-	rc := C.H5Dwrite(s.id, dtype.id, memspace_id, filespace_id, 0, unsafe.Pointer(addr))
+	rc := C.H5Dwrite(s.id, dtype.id, memspace_id, filespace_id, 0, addr)
 	err = h5err(rc)
 	return err
 }
