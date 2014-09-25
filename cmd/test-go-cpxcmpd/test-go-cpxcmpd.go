@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// create the dataset
-	dset, err := f.CreateDataset(DATASET, dtype, space, hdf5.P_DEFAULT)
+	dset, err := f.CreateDataset(DATASET, dtype, space)
 	if err != nil {
 		panic(err)
 	}
