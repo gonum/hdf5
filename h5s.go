@@ -14,7 +14,7 @@ import (
 )
 
 type Dataspace struct {
-	Location
+	Identifier
 }
 
 type SpaceClass C.H5S_class_t
@@ -27,7 +27,7 @@ const (
 )
 
 func newDataspace(id C.hid_t) *Dataspace {
-	ds := &Dataspace{Location{id}}
+	ds := &Dataspace{Identifier{id}}
 	runtime.SetFinalizer(ds, (*Dataspace).finalizer)
 	return ds
 }

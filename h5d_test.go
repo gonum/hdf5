@@ -32,7 +32,7 @@ func createDataset1(t *testing.T) error {
 		return err
 	}
 
-	err = dset.Write(&data[0], T_NATIVE_USHORT)
+	err = dset.Write(&data[0])
 	if err != nil {
 		t.Fatal(err)
 		return err
@@ -94,7 +94,7 @@ func TestReadSubset(t *testing.T) {
 	var data [10]uint16
 
 	// read the subset
-	err = dset.ReadSubset(&data[0], T_NATIVE_USHORT, memspace, filespace)
+	err = dset.ReadSubset(&data[0], memspace, filespace)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,7 +140,7 @@ func TestWriteSubset(t *testing.T) {
 
 	data := make([]uint16, mdims[0]*mdims[1])
 
-	if err = dset.WriteSubset(&data[0], T_NATIVE_USHORT, mspace, fspace); err != nil {
+	if err = dset.WriteSubset(&data[0], mspace, fspace); err != nil {
 		t.Fatal(err)
 	}
 }

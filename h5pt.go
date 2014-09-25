@@ -18,7 +18,7 @@ type Table struct {
 }
 
 func newPacketTable(id C.hid_t) *Table {
-	t := &Table{Location{id}}
+	t := &Table{Location{Identifier{id}}}
 	runtime.SetFinalizer(t, (*Table).finalizer)
 	return t
 }
@@ -172,8 +172,7 @@ func (t *Table) Type() (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	dt := NewDatatype(hid, nil)
-	return dt, err
+	return copyDatatype(hid)
 }
 
 func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
@@ -192,16 +191,20 @@ func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compressio
 }
 
 func createTableFrom(id C.hid_t, name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
+	var err error
 	switch dt := dtype.(type) {
 	case reflect.Type:
-		hdfDtype := newDataTypeFromType(dt)
-		return createTable(id, name, hdfDtype, chunkSize, compression)
+		if hdfDtype, err := NewDataTypeFromType(dt); err == nil {
+			return createTable(id, name, hdfDtype, chunkSize, compression)
+		}
 	case *Datatype:
 		return createTable(id, name, dt, chunkSize, compression)
 	default:
-		hdfDtype := newDataTypeFromType(reflect.TypeOf(dtype))
-		return createTable(id, name, hdfDtype, chunkSize, compression)
+		if hdfDtype, err := NewDataTypeFromType(reflect.TypeOf(dtype)); err == nil {
+			return createTable(id, name, hdfDtype, chunkSize, compression)
+		}
 	}
+	return nil, err
 }
 
 func openTable(id C.hid_t, name string) (*Table, error) {
