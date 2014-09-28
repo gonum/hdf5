@@ -63,12 +63,12 @@ func (s *Dataspace) Copy() (*Dataspace, error) {
 
 // Close releases and terminates access to a dataspace.
 func (s *Dataspace) Close() error {
-	if s.id > 0 {
-		err := h5err(C.H5Sclose(s.id))
-		s.id = 0
-		return err
+	if s.id == 0 {
+		return nil
 	}
-	return nil
+	err := h5err(C.H5Sclose(s.id))
+	s.id = 0
+	return err
 }
 
 func (s *Dataspace) Id() int {

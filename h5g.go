@@ -67,7 +67,12 @@ func (g *Group) finalizer() {
 
 // Close closes the Group.
 func (g *Group) Close() error {
-	return h5err(C.H5Gclose(g.id))
+	if g.id == 0 {
+		return nil
+	}
+	err := h5err(C.H5Gclose(g.id))
+	g.id = 0
+	return err
 }
 
 // OpenGroup opens an existing child group from this Group.

@@ -63,12 +63,12 @@ func (s *Attribute) GetType() Location {
 
 // Close releases and terminates access to an attribute.
 func (s *Attribute) Close() error {
-	if s.id > 0 {
-		err := C.H5Aclose(s.id)
-		s.id = 0
-		return h5err(err)
+	if s.id == 0 {
+		return nil
 	}
-	return nil
+	err := h5err(C.H5Aclose(s.id))
+	s.id = 0
+	return err
 }
 
 // Space returns an identifier for a copy of the dataspace for a attribute.
