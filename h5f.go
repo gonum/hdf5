@@ -101,11 +101,11 @@ func IsHDF5(name string) bool {
 
 // Terminates access to an HDF5 file.
 func (f *File) Close() error {
-	var err error = nil
-	if f.id > 0 {
-		err = h5err(C.H5Fclose(f.id))
-		f.id = 0
+	if f.id == 0 {
+		return nil
 	}
+	err := h5err(C.H5Fclose(f.id))
+	f.id = 0
 	return err
 }
 

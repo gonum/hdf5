@@ -49,8 +49,12 @@ func NewPropList(cls_id PropType) (*PropList, error) {
 
 // Close terminates access to a PropList.
 func (p *PropList) Close() error {
-	err := C.H5Pclose(p.id)
-	return h5err(err)
+	if p.id == 0 {
+		return nil
+	}
+	err := h5err(C.H5Pclose(p.id))
+	p.id = 0
+	return err
 }
 
 // Copy copies an existing PropList to create a new PropList.
