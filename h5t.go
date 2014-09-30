@@ -113,9 +113,12 @@ func NewDatatype(id C.hid_t) *Datatype {
 func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	_, ok := parametricTypes[class]
 	if !ok {
-		return nil, fmt.Errorf(
-			"invalid TypeClass, want %v, %v, %v or %v, got %v",
-			T_COMPOUND, T_OPAQUE, T_STRING, T_ENUM)
+		return nil,
+			fmt.Errorf(
+				"invalid TypeClass, want %v, %v, %v or %v, got %v",
+				T_COMPOUND, T_OPAQUE, T_STRING, T_ENUM,
+				class,
+			)
 	}
 
 	hid := C.H5Tcreate(C.H5T_class_t(class), C.size_t(size))
