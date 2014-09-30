@@ -95,9 +95,7 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	dt := &Datatype{Location{Identifier{id}}}
-	runtime.SetFinalizer(dt, (*Datatype).finalizer)
-	return dt, nil
+	return NewDatatype(id), nil
 }
 
 // NewDatatype creates a Datatype from an hdf5 id.
