@@ -82,51 +82,51 @@ func (s *Attribute) Space() *Dataspace {
 
 // Read reads raw data from a attribute into a buffer.
 func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
-	var addr uintptr
+	var addr unsafe.Pointer
 	v := reflect.ValueOf(data)
 
 	switch v.Kind() {
 
 	case reflect.Array:
-		addr = v.UnsafeAddr()
+		addr = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = str.Data
+		addr = unsafe.Pointer(str.Data)
 
 	case reflect.Ptr:
-		addr = v.Pointer()
+		addr = unsafe.Pointer(v.Pointer())
 
 	default:
-		addr = v.UnsafeAddr()
+		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	rc := C.H5Aread(s.id, dtype.id, unsafe.Pointer(addr))
+	rc := C.H5Aread(s.id, dtype.id, addr)
 	err := h5err(rc)
 	return err
 }
 
 // Write writes raw data from a buffer to an attribute.
 func (s *Attribute) Write(data interface{}, dtype *Datatype) error {
-	var addr uintptr
+	var addr unsafe.Pointer
 	v := reflect.ValueOf(data)
 	switch v.Kind() {
 
 	case reflect.Array:
-		addr = v.UnsafeAddr()
+		addr = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.String:
 		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = str.Data
+		addr = unsafe.Pointer(str.Data)
 
 	case reflect.Ptr:
-		addr = v.Pointer()
+		addr = unsafe.Pointer(v.Pointer())
 
 	default:
-		addr = v.Pointer()
+		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	rc := C.H5Awrite(s.id, dtype.id, unsafe.Pointer(addr))
+	rc := C.H5Awrite(s.id, dtype.id, addr)
 	err := h5err(rc)
 	return err
 }
