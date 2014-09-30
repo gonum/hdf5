@@ -39,12 +39,10 @@ func (p *PropList) finalizer() {
 // NewPropList creates a new PropList as an instance of a property list class.
 func NewPropList(cls_id PropType) (*PropList, error) {
 	hid := C.H5Pcreate(C.hid_t(cls_id))
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	p := newPropList(hid)
-	return p, err
+	return newPropList(hid), nil
 }
 
 // Close terminates access to a PropList.
@@ -60,10 +58,8 @@ func (p *PropList) Close() error {
 // Copy copies an existing PropList to create a new PropList.
 func (p *PropList) Copy() (*PropList, error) {
 	hid := C.H5Pcopy(p.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	o := newPropList(hid)
-	return o, err
+	return newPropList(hid), nil
 }

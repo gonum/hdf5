@@ -35,8 +35,7 @@ func newDataspace(id C.hid_t) *Dataspace {
 // CreateDataspace creates a new dataspace of a specified type.
 func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	ds := newDataspace(hid)
@@ -53,12 +52,10 @@ func (s *Dataspace) finalizer() {
 // Copy creates an exact copy of a dataspace.
 func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	o := newDataspace(hid)
-	return o, err
+	return newDataspace(hid), nil
 }
 
 // Close releases and terminates access to a dataspace.

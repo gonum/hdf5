@@ -27,7 +27,7 @@ func createAttribute(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Acreate2(id, c_name, dtype.id, dspace.id, acpl.id, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newAttribute(hid), nil
@@ -38,7 +38,7 @@ func openAttribute(id C.hid_t, name string) (*Attribute, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Aopen(id, c_name, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newAttribute(hid), nil

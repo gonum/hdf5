@@ -1,8 +1,6 @@
 package hdf5
 
 // #include "hdf5.h"
-// #include <stdlib.h>
-// #include <string.h>
 import "C"
 
 import (
@@ -19,19 +17,26 @@ func init() {
 }
 
 // hdferror wraps hdf5 int-based error codes
-type hdferror struct {
+type h5error struct {
 	code int
 }
 
-func (h *hdferror) Error() string {
-	return fmt.Sprintf("**hdf5 error** code=%d", h.code)
+func (h h5error) Error() string {
+	return fmt.Sprintf("code %d", h.code)
 }
 
 func h5err(herr C.herr_t) error {
-	if herr >= C.herr_t(0) {
-		return nil
+	if herr < 0 {
+		return h5error{code: int(herr)}
 	}
-	return &hdferror{code: int(herr)}
+	return nil
+}
+
+func checkID(hid C.hid_t) error {
+	if hid < 0 {
+		return h5error{code: int(hid)}
+	}
+	return nil
 }
 
 // Close flushes all data to disk, closes all open identifiers, and cleans up memory.

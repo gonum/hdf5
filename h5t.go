@@ -92,13 +92,12 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	id := C.H5Topen2(C.hid_t(c.id), c_name, C.hid_t(tapl_id))
-	err := h5err(C.herr_t(id))
-	if err != nil {
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	dt := &Datatype{Location{Identifier{id}}}
 	runtime.SetFinalizer(dt, (*Datatype).finalizer)
-	return dt, err
+	return dt, nil
 }
 
 // NewDatatype creates a Datatype from an hdf5 id.
@@ -123,8 +122,7 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	}
 
 	hid := C.H5Tcreate(C.H5T_class_t(class), C.size_t(size))
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
@@ -170,8 +168,7 @@ func (t *Datatype) Copy() (*Datatype, error) {
 // an existing Datatype from a Dataset or Attribute.
 func copyDatatype(id C.hid_t) (*Datatype, error) {
 	hid := C.H5Tcopy(id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
@@ -214,13 +211,12 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	hid := C.H5Tarray_create2(base_type.id, ndims, c_dims)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	t := &ArrayType{Datatype{Location{Identifier{hid}}}}
 	runtime.SetFinalizer(t, (*ArrayType).finalizer)
-	return t, err
+	return t, nil
 }
 
 // NDims returns the rank of an ArrayType.
@@ -249,13 +245,12 @@ type VarLenType struct {
 // base_type specifies the element type of the VarLenType.
 func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	id := C.H5Tvlen_create(base_type.id)
-	err := h5err(C.herr_t(int(id)))
-	if err != nil {
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Location{Identifier{id}}}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
-	return t, err
+	return t, nil
 }
 
 // IsVariableStr determines whether the VarLenType is a string.
@@ -307,8 +302,7 @@ func (t *CompoundType) MemberOffset(mbr_idx int) int {
 // MemberType returns the datatype of the specified member.
 func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return copyDatatype(hid)

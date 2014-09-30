@@ -24,7 +24,7 @@ func DisplayErrors(on bool) error {
 		err = h5err(C._go_hdf5_silence_errors())
 	}
 	if err != nil {
-		return fmt.Errorf("hdf5: could not call H5E_set_auto(): %v", err)
+		return fmt.Errorf("hdf5: could not call H5E_set_auto(): %s", err)
 	}
 	return nil
 }

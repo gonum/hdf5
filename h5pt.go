@@ -25,8 +25,7 @@ func newPacketTable(id C.hid_t) *Table {
 }
 
 func (t *Table) finalizer() {
-	err := t.Close()
-	if err != nil {
+	if err := t.Close(); err != nil {
 		panic(fmt.Sprintf("error closing packet table: %s", err))
 	}
 }
@@ -169,8 +168,7 @@ func (t *Table) SetIndex(index int) error {
 // Type returns an identifier for a copy of the datatype for a dataset.
 func (t *Table) Type() (*Datatype, error) {
 	hid := C.H5Dget_type(t.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return copyDatatype(hid)
@@ -183,12 +181,10 @@ func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compressio
 	chunk := C.hsize_t(chunkSize)
 	compr := C.int(compression)
 	hid := C.H5PTcreate_fl(id, c_name, dtype.id, chunk, compr)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	table := newPacketTable(hid)
-	return table, err
+	return newPacketTable(hid), nil
 }
 
 func createTableFrom(id C.hid_t, name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
@@ -213,10 +209,8 @@ func openTable(id C.hid_t, name string) (*Table, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5PTopen(id, c_name)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	table := newPacketTable(hid)
-	return table, err
+	return newPacketTable(hid), nil
 }

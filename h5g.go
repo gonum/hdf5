@@ -30,7 +30,7 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 	link_flags := C.hid_t(C.H5P_DEFAULT)
 	grp_c_flags := C.hid_t(C.H5P_DEFAULT)
 	hid := C.H5Gcreate2(g.id, c_name, link_flags, grp_c_flags, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Location{Identifier{hid}}}}
@@ -81,7 +81,7 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Gopen2(g.id, c_name, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Location{Identifier{hid}}}}
@@ -95,7 +95,7 @@ func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Dopen2(g.id, c_name, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newDataset(hid), nil
