@@ -219,13 +219,17 @@ func (t *ArrayType) NDims() int {
 func (t *ArrayType) ArrayDims() []int {
 	rank := t.NDims()
 	dims := make([]int, rank)
-	// fixme: int/hsize_t size!
-	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+	hdims := make([]C.hsize_t, rank)
+	slice := (*reflect.SliceHeader)(unsafe.Pointer(&hdims))
+	c_dims := (*C.hsize_t)(unsafe.Pointer(slice.Data))
 	c_rank := int(C.H5Tget_array_dims2(t.id, c_dims))
-	if c_rank == rank {
-		return dims
+	if c_rank != rank {
+		return nil
 	}
-	return nil
+	for i, n := range hdims {
+		dims[i] = int(n)
+	}
+	return dims
 }
 
 type VarLenType struct {
