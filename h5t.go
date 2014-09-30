@@ -275,6 +275,7 @@ func (t *CompoundType) MemberClass(mbr_idx int) TypeClass {
 // MemberName returns the name of a compound or enumeration datatype member.
 func (t *CompoundType) MemberName(mbr_idx int) string {
 	c_name := C.H5Tget_member_name(t.id, C.uint(mbr_idx))
+	defer C.free(unsafe.Pointer(c_name))
 	return C.GoString(c_name)
 }
 
@@ -329,6 +330,7 @@ func (t *OpaqueDatatype) SetTag(tag string) error {
 func (t *OpaqueDatatype) Tag() string {
 	cname := C.H5Tget_tag(t.id)
 	if cname != nil {
+		defer C.free(unsafe.Pointer(cname))
 		return C.GoString(cname)
 	}
 	return ""
