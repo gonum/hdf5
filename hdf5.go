@@ -9,7 +9,7 @@ import (
 	"fmt"
 )
 
-// initialize the hdf5 library
+// init initializes the hdf5 library
 func init() {
 	err := h5err(C.H5open())
 	if err != nil {
@@ -18,7 +18,7 @@ func init() {
 	}
 }
 
-// utils
+// hdferror wraps hdf5 int-based error codes
 type hdferror struct {
 	code int
 }
@@ -40,6 +40,7 @@ func Close() error {
 	return h5err(C.H5close())
 }
 
+// Version represents the currently used hdf5 library version
 type Version struct {
 	Major   uint
 	Minor   uint
@@ -63,11 +64,12 @@ func LibVersion() (Version, error) {
 	return v, err
 }
 
-// Garbage collects on all free-lists of all types.
+// GarbageCollect collects garbage on all free-lists of all types.
 func GarbageCollect() error {
 	return h5err(C.H5garbage_collect())
 }
 
+// Object represents an hdf5 object.
 type Object interface {
 	Name() string
 	Id() int
