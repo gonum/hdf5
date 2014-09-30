@@ -45,9 +45,8 @@ func openAttribute(id C.hid_t, name string) (*Attribute, error) {
 }
 
 func (s *Attribute) finalizer() {
-	err := s.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing attr: %s", err))
+	if err := s.Close(); err != nil {
+		panic(fmt.Errorf("error closing attr: %s", err))
 	}
 }
 

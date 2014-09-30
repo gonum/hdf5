@@ -59,9 +59,8 @@ func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Datasp
 }
 
 func (g *Group) finalizer() {
-	err := g.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing group: %s", err))
+	if err := g.Close(); err != nil {
+		panic(fmt.Errorf("error closing group: %s", err))
 	}
 }
 

@@ -38,9 +38,8 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 }
 
 func (s *Dataset) finalizer() {
-	err := s.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing dset: %s", err))
+	if err := s.Close(); err != nil {
+		panic(fmt.Errorf("error closing dset: %s", err))
 	}
 }
 

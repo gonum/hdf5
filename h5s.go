@@ -43,9 +43,8 @@ func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 }
 
 func (s *Dataspace) finalizer() {
-	err := s.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing dspace: %s", err))
+	if err := s.Close(); err != nil {
+		panic(fmt.Errorf("error closing dspace: %s", err))
 	}
 }
 

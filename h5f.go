@@ -37,9 +37,8 @@ type File struct {
 }
 
 func (f *File) finalizer() {
-	err := f.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing file: %s", err))
+	if err := f.Close(); err != nil {
+		panic(fmt.Errorf("error closing file: %s", err))
 	}
 }
 

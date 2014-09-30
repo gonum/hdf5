@@ -29,11 +29,9 @@ func newPropList(id C.hid_t) *PropList {
 }
 
 func (p *PropList) finalizer() {
-	err := p.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing PropList: %s", err))
+	if err := p.Close(); err != nil {
+		panic(fmt.Errorf("error closing PropList: %s", err))
 	}
-	return
 }
 
 // NewPropList creates a new PropList as an instance of a property list class.

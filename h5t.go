@@ -129,9 +129,8 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 }
 
 func (t *Datatype) finalizer() {
-	err := t.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing datatype: %s", err))
+	if err := t.Close(); err != nil {
+		panic(fmt.Errorf("error closing datatype: %s", err))
 	}
 }
 
@@ -465,7 +464,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 
 	default:
 		// Should never happen.
-		panic(fmt.Sprintf("unhandled kind (%v)", t.Kind()))
+		panic(fmt.Errorf("unhandled kind (%v)", t.Kind()))
 	}
 
 	return dt, err

@@ -26,7 +26,7 @@ func newPacketTable(id C.hid_t) *Table {
 
 func (t *Table) finalizer() {
 	if err := t.Close(); err != nil {
-		panic(fmt.Sprintf("error closing packet table: %s", err))
+		panic(fmt.Errorf("error closing packet table: %s", err))
 	}
 }
 
@@ -65,19 +65,19 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	switch rt.Kind() {
 	case reflect.Array:
 		if rv.Len() < nrecords {
-			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Len()))
+			panic(fmt.Errorf("not enough capacity in array (cap=%d)", rv.Len()))
 		}
 		c_data = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 
 	case reflect.Slice:
 		if rv.Len() < nrecords {
-			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Len()))
+			panic(fmt.Errorf("not enough capacity in slice (cap=%d)", rv.Len()))
 		}
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
 		c_data = unsafe.Pointer(slice.Data)
 
 	default:
-		panic(fmt.Sprintf("unhandled kind (%s), need slice or array", rt.Kind()))
+		panic(fmt.Errorf("unhandled kind (%s), need slice or array", rt.Kind()))
 	}
 	err := C.H5PTread_packets(t.id, c_start, c_nrecords, c_data)
 	return h5err(err)
@@ -128,18 +128,18 @@ func (t *Table) Next(data interface{}) error {
 	switch rt.Kind() {
 	case reflect.Array:
 		if rv.Cap() <= 0 {
-			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
+			panic(fmt.Errorf("not enough capacity in array (cap=%d)", rv.Cap()))
 		}
 		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 		n = C.size_t(rv.Cap())
 	case reflect.Slice:
 		if rv.Cap() <= 0 {
-			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
+			panic(fmt.Errorf("not enough capacity in slice (cap=%d)", rv.Cap()))
 		}
 		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 		n = C.size_t(rv.Cap())
 	default:
-		panic(fmt.Sprintf("unsupported kind (%s), need slice or array", rt.Kind()))
+		panic(fmt.Errorf("unsupported kind (%s), need slice or array", rt.Kind()))
 	}
 	err := C.H5PTget_next(t.id, n, cdata)
 	return h5err(err)
