@@ -13,6 +13,7 @@ import (
 	"unsafe"
 )
 
+// Table is an hdf5 packet-table.
 type Table struct {
 	Location
 }
