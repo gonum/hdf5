@@ -126,8 +126,6 @@ package hdf5
  hid_t _go_hdf5_H5T_NATIVE_UINT32() { return H5T_NATIVE_UINT32; }
  hid_t _go_hdf5_H5T_NATIVE_INT64() { return H5T_NATIVE_INT64; }
  hid_t _go_hdf5_H5T_NATIVE_UINT64() { return H5T_NATIVE_UINT64; }
-
- //#include "cgo_h5t_conv.h"
 */
 import "C"
 
