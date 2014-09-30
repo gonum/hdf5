@@ -44,11 +44,7 @@ func (t *Table) Close() error {
 
 // IsValid returns whether or not an indentifier points to a packet table.
 func (t *Table) IsValid() bool {
-	o := int(C.H5PTis_valid(t.id))
-	if o < 0 {
-		return false
-	}
-	return true
+	return C.H5PTis_valid(t.id) >= 0
 }
 
 func (t *Table) Id() int {

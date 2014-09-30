@@ -151,11 +151,7 @@ func (t *Datatype) Close() error {
 
 // Committed determines whether a datatype is a named type or a transient type.
 func (t *Datatype) Committed() bool {
-	o := int(C.H5Tcommitted(t.id))
-	if o > 0 {
-		return true
-	}
-	return false
+	return C.H5Tcommitted(t.id) > 0
 }
 
 // Copy copies an existing datatype.
@@ -175,11 +171,7 @@ func copyDatatype(id C.hid_t) (*Datatype, error) {
 
 // Determines whether two datatype identifiers refer to the same datatype.
 func (t *Datatype) Equal(o *Datatype) bool {
-	v := int(C.H5Tequal(t.id, o.id))
-	if v > 0 {
-		return true
-	}
-	return false
+	return C.H5Tequal(t.id, o.id) > 0
 }
 
 // Lock locks a datatype.
@@ -254,11 +246,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 
 // IsVariableStr determines whether the VarLenType is a string.
 func (vl *VarLenType) IsVariableStr() bool {
-	o := int(C.H5Tis_variable_str(vl.id))
-	if o > 0 {
-		return true
-	}
-	return false
+	return C.H5Tis_variable_str(vl.id) > 0
 }
 
 type CompoundType struct {

@@ -88,11 +88,7 @@ func IsHDF5(name string) bool {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	o := int(C.H5Fis_hdf5(c_name))
-	if o > 0 {
-		return true
-	}
-	return false
+	return C.H5Fis_hdf5(c_name) > 0
 }
 
 // Terminates access to an HDF5 file.
