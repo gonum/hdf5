@@ -87,6 +87,7 @@ var (
 	}
 )
 
+// OpenDatatype opens a named datatype.
 func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -167,7 +168,7 @@ func copyDatatype(id C.hid_t) (*Datatype, error) {
 	return NewDatatype(hid), nil
 }
 
-// Determines whether two datatype identifiers refer to the same datatype.
+// Equal determines whether two datatype identifiers refer to the same datatype.
 func (t *Datatype) Equal(o *Datatype) bool {
 	return C.H5Tequal(t.id, o.id) > 0
 }
@@ -317,14 +318,14 @@ type OpaqueDatatype struct {
 	Datatype
 }
 
-// Tags an opaque datatype.
+// SetTag tags an opaque datatype.
 func (t *OpaqueDatatype) SetTag(tag string) error {
 	ctag := C.CString(tag)
 	defer C.free(unsafe.Pointer(ctag))
 	return h5err(C.H5Tset_tag(t.id, ctag))
 }
 
-// Gets the tag associated with an opaque datatype.
+// Tag returns the tag associated with an opaque datatype.
 func (t *OpaqueDatatype) Tag() string {
 	cname := C.H5Tget_tag(t.id)
 	if cname != nil {

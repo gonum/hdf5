@@ -48,12 +48,12 @@ func (g *CommonFG) CreateDatasetWith(name string, dtype *Datatype, dspace *Datas
 	return createDataset(g.id, name, dtype, dspace, dcpl)
 }
 
-// Creates a new attribute at this location.
+// CreateAttribute creates a new attribute at this location.
 func (g *Group) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
 	return createAttribute(g.id, name, dtype, dspace, P_DEFAULT)
 }
 
-// Creates a new attribute at this location.
+// CreateAttributeWith creates a new attribute at this location with a user-defined PropList.
 func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	return createAttribute(g.id, name, dtype, dspace, acpl)
 }
