@@ -295,7 +295,7 @@ func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return copyDatatype(hid)
+	return NewDatatype(hid), nil
 }
 
 // Insert adds a new member to a compound datatype.
@@ -399,10 +399,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			return nil, err
 		}
 
-		dt, err = adt.Copy()
-		if err != nil {
-			return nil, err
-		}
+		dt = &adt.Datatype
 
 	case reflect.Slice:
 		elem_type, err := NewDataTypeFromType(t.Elem())
@@ -415,10 +412,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			return nil, err
 		}
 
-		dt, err = sdt.Copy()
-		if err != nil {
-			return nil, err
-		}
+		dt = &sdt.Datatype
 
 	case reflect.Struct:
 		sz := int(t.Size())
@@ -448,11 +442,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 				return nil, fmt.Errorf("pb with field [%d-%s]: %s", i, f.Name, err)
 			}
 		}
-		cdt.Lock()
-		dt, err = cdt.Copy()
-		if err != nil {
-			return nil, err
-		}
+		dt = &cdt.Datatype
 
 	default:
 		// Should never happen.

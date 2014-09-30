@@ -177,5 +177,5 @@ func (s *Dataset) Datatype() (*Datatype, error) {
 	if dtype_id < 0 {
 		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
 	}
-	return copyDatatype(dtype_id)
+	return NewDatatype(dtype_id), nil
 }
