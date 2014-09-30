@@ -65,6 +65,7 @@ func (s *Dataset) Space() *Dataspace {
 // ReadSubset reads a subset of raw data from a dataset into a buffer.
 func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) error {
 	dtype, err := s.Datatype()
+	defer dtype.Close()
 	if err != nil {
 		return err
 	}
@@ -112,6 +113,7 @@ func (s *Dataset) Read(data interface{}) error {
 // WriteSubset writes a subset of raw data from a buffer to a dataset.
 func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) error {
 	dtype, err := s.Datatype()
+	defer dtype.Close()
 	if err != nil {
 		return err
 	}
