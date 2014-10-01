@@ -87,18 +87,16 @@ var (
 	}
 )
 
+// OpenDatatype opens a named datatype.
 func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
 	id := C.H5Topen2(C.hid_t(c.id), c_name, C.hid_t(tapl_id))
-	err := h5err(C.herr_t(id))
-	if err != nil {
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	dt := &Datatype{Location{Identifier{id}}}
-	runtime.SetFinalizer(dt, (*Datatype).finalizer)
-	return dt, err
+	return NewDatatype(id), nil
 }
 
 // NewDatatype creates a Datatype from an hdf5 id.
@@ -123,17 +121,15 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	}
 
 	hid := C.H5Tcreate(C.H5T_class_t(class), C.size_t(size))
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
 }
 
 func (t *Datatype) finalizer() {
-	err := t.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing datatype: %s", err))
+	if err := t.Close(); err != nil {
+		panic(fmt.Errorf("error closing datatype: %s", err))
 	}
 }
 
@@ -154,11 +150,7 @@ func (t *Datatype) Close() error {
 
 // Committed determines whether a datatype is a named type or a transient type.
 func (t *Datatype) Committed() bool {
-	o := int(C.H5Tcommitted(t.id))
-	if o > 0 {
-		return true
-	}
-	return false
+	return C.H5Tcommitted(t.id) > 0
 }
 
 // Copy copies an existing datatype.
@@ -170,20 +162,15 @@ func (t *Datatype) Copy() (*Datatype, error) {
 // an existing Datatype from a Dataset or Attribute.
 func copyDatatype(id C.hid_t) (*Datatype, error) {
 	hid := C.H5Tcopy(id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
 }
 
-// Determines whether two datatype identifiers refer to the same datatype.
+// Equal determines whether two datatype identifiers refer to the same datatype.
 func (t *Datatype) Equal(o *Datatype) bool {
-	v := int(C.H5Tequal(t.id, o.id))
-	if v > 0 {
-		return true
-	}
-	return false
+	return C.H5Tequal(t.id, o.id) > 0
 }
 
 // Lock locks a datatype.
@@ -214,13 +201,12 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	hid := C.H5Tarray_create2(base_type.id, ndims, c_dims)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	t := &ArrayType{Datatype{Location{Identifier{hid}}}}
 	runtime.SetFinalizer(t, (*ArrayType).finalizer)
-	return t, err
+	return t, nil
 }
 
 // NDims returns the rank of an ArrayType.
@@ -232,13 +218,17 @@ func (t *ArrayType) NDims() int {
 func (t *ArrayType) ArrayDims() []int {
 	rank := t.NDims()
 	dims := make([]int, rank)
-	// fixme: int/hsize_t size!
-	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+	hdims := make([]C.hsize_t, rank)
+	slice := (*reflect.SliceHeader)(unsafe.Pointer(&hdims))
+	c_dims := (*C.hsize_t)(unsafe.Pointer(slice.Data))
 	c_rank := int(C.H5Tget_array_dims2(t.id, c_dims))
-	if c_rank == rank {
-		return dims
+	if c_rank != rank {
+		return nil
 	}
-	return nil
+	for i, n := range hdims {
+		dims[i] = int(n)
+	}
+	return dims
 }
 
 type VarLenType struct {
@@ -249,22 +239,17 @@ type VarLenType struct {
 // base_type specifies the element type of the VarLenType.
 func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	id := C.H5Tvlen_create(base_type.id)
-	err := h5err(C.herr_t(int(id)))
-	if err != nil {
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Location{Identifier{id}}}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
-	return t, err
+	return t, nil
 }
 
 // IsVariableStr determines whether the VarLenType is a string.
 func (vl *VarLenType) IsVariableStr() bool {
-	o := int(C.H5Tis_variable_str(vl.id))
-	if o > 0 {
-		return true
-	}
-	return false
+	return C.H5Tis_variable_str(vl.id) > 0
 }
 
 type CompoundType struct {
@@ -289,6 +274,7 @@ func (t *CompoundType) MemberClass(mbr_idx int) TypeClass {
 // MemberName returns the name of a compound or enumeration datatype member.
 func (t *CompoundType) MemberName(mbr_idx int) string {
 	c_name := C.H5Tget_member_name(t.id, C.uint(mbr_idx))
+	defer C.free(unsafe.Pointer(c_name))
 	return C.GoString(c_name)
 }
 
@@ -307,11 +293,10 @@ func (t *CompoundType) MemberOffset(mbr_idx int) int {
 // MemberType returns the datatype of the specified member.
 func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return copyDatatype(hid)
+	return NewDatatype(hid), nil
 }
 
 // Insert adds a new member to a compound datatype.
@@ -333,17 +318,18 @@ type OpaqueDatatype struct {
 	Datatype
 }
 
-// Tags an opaque datatype.
+// SetTag tags an opaque datatype.
 func (t *OpaqueDatatype) SetTag(tag string) error {
 	ctag := C.CString(tag)
 	defer C.free(unsafe.Pointer(ctag))
 	return h5err(C.H5Tset_tag(t.id, ctag))
 }
 
-// Gets the tag associated with an opaque datatype.
+// Tag returns the tag associated with an opaque datatype.
 func (t *OpaqueDatatype) Tag() string {
 	cname := C.H5Tget_tag(t.id)
 	if cname != nil {
+		defer C.free(unsafe.Pointer(cname))
 		return C.GoString(cname)
 	}
 	return ""
@@ -414,10 +400,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			return nil, err
 		}
 
-		dt, err = adt.Copy()
-		if err != nil {
-			return nil, err
-		}
+		dt = &adt.Datatype
 
 	case reflect.Slice:
 		elem_type, err := NewDataTypeFromType(t.Elem())
@@ -430,10 +413,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			return nil, err
 		}
 
-		dt, err = sdt.Copy()
-		if err != nil {
-			return nil, err
-		}
+		dt = &sdt.Datatype
 
 	case reflect.Struct:
 		sz := int(t.Size())
@@ -463,15 +443,11 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 				return nil, fmt.Errorf("pb with field [%d-%s]: %s", i, f.Name, err)
 			}
 		}
-		cdt.Lock()
-		dt, err = cdt.Copy()
-		if err != nil {
-			return nil, err
-		}
+		dt = &cdt.Datatype
 
 	default:
 		// Should never happen.
-		panic(fmt.Sprintf("unhandled kind (%v)", t.Kind()))
+		panic(fmt.Errorf("unhandled kind (%v)", t.Kind()))
 	}
 
 	return dt, err

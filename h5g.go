@@ -30,7 +30,7 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 	link_flags := C.hid_t(C.H5P_DEFAULT)
 	grp_c_flags := C.hid_t(C.H5P_DEFAULT)
 	hid := C.H5Gcreate2(g.id, c_name, link_flags, grp_c_flags, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Location{Identifier{hid}}}}
@@ -48,20 +48,19 @@ func (g *CommonFG) CreateDatasetWith(name string, dtype *Datatype, dspace *Datas
 	return createDataset(g.id, name, dtype, dspace, dcpl)
 }
 
-// Creates a new attribute at this location.
+// CreateAttribute creates a new attribute at this location.
 func (g *Group) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
 	return createAttribute(g.id, name, dtype, dspace, P_DEFAULT)
 }
 
-// Creates a new attribute at this location.
+// CreateAttributeWith creates a new attribute at this location with a user-defined PropList.
 func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	return createAttribute(g.id, name, dtype, dspace, acpl)
 }
 
 func (g *Group) finalizer() {
-	err := g.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing group: %s", err))
+	if err := g.Close(); err != nil {
+		panic(fmt.Errorf("error closing group: %s", err))
 	}
 }
 
@@ -81,7 +80,7 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Gopen2(g.id, c_name, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Location{Identifier{hid}}}}
@@ -95,7 +94,7 @@ func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5Dopen2(g.id, c_name, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newDataset(hid), nil

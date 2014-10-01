@@ -37,9 +37,8 @@ type File struct {
 }
 
 func (f *File) finalizer() {
-	err := f.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing file: %s", err))
+	if err := f.Close(); err != nil {
+		panic(fmt.Errorf("error closing file: %s", err))
 	}
 }
 
@@ -56,9 +55,8 @@ func CreateFile(name string, flags int) (*File, error) {
 
 	// FIXME: file props
 	hid := C.H5Fcreate(c_name, C.uint(flags), P_DEFAULT.id, P_DEFAULT.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
-		return nil, err
+	if err := checkID(hid); err != nil {
+		return nil, fmt.Errorf("error creating hdf5 file: %s", err)
 	}
 	return newFile(hid), nil
 }
@@ -70,9 +68,8 @@ func OpenFile(name string, flags int) (*File, error) {
 
 	// FIXME: file props
 	hid := C.H5Fopen(c_name, C.uint(flags), P_DEFAULT.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
-		return nil, err
+	if err := checkID(hid); err != nil {
+		return nil, fmt.Errorf("error opening hdf5 file: %s", err)
 	}
 	return newFile(hid), nil
 }
@@ -80,9 +77,8 @@ func OpenFile(name string, flags int) (*File, error) {
 // Returns a new identifier for a previously-opened HDF5 file.
 func (f *File) ReOpen() (*File, error) {
 	hid := C.H5Freopen(f.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
-		return nil, err
+	if err := checkID(hid); err != nil {
+		return nil, fmt.Errorf("error reopening hdf5 file: %s", err)
 	}
 	return newFile(hid), nil
 }
@@ -92,11 +88,7 @@ func IsHDF5(name string) bool {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	o := int(C.H5Fis_hdf5(c_name))
-	if o > 0 {
-		return true
-	}
-	return false
+	return C.H5Fis_hdf5(c_name) > 0
 }
 
 // Terminates access to an HDF5 file.

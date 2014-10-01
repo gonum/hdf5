@@ -25,9 +25,8 @@ func newPacketTable(id C.hid_t) *Table {
 }
 
 func (t *Table) finalizer() {
-	err := t.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing packet table: %s", err))
+	if err := t.Close(); err != nil {
+		panic(fmt.Errorf("error closing packet table: %s", err))
 	}
 }
 
@@ -45,11 +44,7 @@ func (t *Table) Close() error {
 
 // IsValid returns whether or not an indentifier points to a packet table.
 func (t *Table) IsValid() bool {
-	o := int(C.H5PTis_valid(t.id))
-	if o < 0 {
-		return false
-	}
-	return true
+	return C.H5PTis_valid(t.id) >= 0
 }
 
 func (t *Table) Id() int {
@@ -66,19 +61,19 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	switch rt.Kind() {
 	case reflect.Array:
 		if rv.Len() < nrecords {
-			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Len()))
+			panic(fmt.Errorf("not enough capacity in array (cap=%d)", rv.Len()))
 		}
 		c_data = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 
 	case reflect.Slice:
 		if rv.Len() < nrecords {
-			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Len()))
+			panic(fmt.Errorf("not enough capacity in slice (cap=%d)", rv.Len()))
 		}
 		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
 		c_data = unsafe.Pointer(slice.Data)
 
 	default:
-		panic(fmt.Sprintf("unhandled kind (%s), need slice or array", rt.Kind()))
+		panic(fmt.Errorf("unhandled kind (%s), need slice or array", rt.Kind()))
 	}
 	err := C.H5PTread_packets(t.id, c_start, c_nrecords, c_data)
 	return h5err(err)
@@ -129,18 +124,18 @@ func (t *Table) Next(data interface{}) error {
 	switch rt.Kind() {
 	case reflect.Array:
 		if rv.Cap() <= 0 {
-			panic(fmt.Sprintf("not enough capacity in array (cap=%d)", rv.Cap()))
+			panic(fmt.Errorf("not enough capacity in array (cap=%d)", rv.Cap()))
 		}
 		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 		n = C.size_t(rv.Cap())
 	case reflect.Slice:
 		if rv.Cap() <= 0 {
-			panic(fmt.Sprintf("not enough capacity in slice (cap=%d)", rv.Cap()))
+			panic(fmt.Errorf("not enough capacity in slice (cap=%d)", rv.Cap()))
 		}
 		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
 		n = C.size_t(rv.Cap())
 	default:
-		panic(fmt.Sprintf("unsupported kind (%s), need slice or array", rt.Kind()))
+		panic(fmt.Errorf("unsupported kind (%s), need slice or array", rt.Kind()))
 	}
 	err := C.H5PTget_next(t.id, n, cdata)
 	return h5err(err)
@@ -169,11 +164,10 @@ func (t *Table) SetIndex(index int) error {
 // Type returns an identifier for a copy of the datatype for a dataset.
 func (t *Table) Type() (*Datatype, error) {
 	hid := C.H5Dget_type(t.id)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return copyDatatype(hid)
+	return NewDatatype(hid), nil
 }
 
 func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
@@ -183,12 +177,10 @@ func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compressio
 	chunk := C.hsize_t(chunkSize)
 	compr := C.int(compression)
 	hid := C.H5PTcreate_fl(id, c_name, dtype.id, chunk, compr)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	table := newPacketTable(hid)
-	return table, err
+	return newPacketTable(hid), nil
 }
 
 func createTableFrom(id C.hid_t, name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
@@ -213,10 +205,8 @@ func openTable(id C.hid_t, name string) (*Table, error) {
 	defer C.free(unsafe.Pointer(c_name))
 
 	hid := C.H5PTopen(id, c_name)
-	err := h5err(C.herr_t(int(hid)))
-	if err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	table := newPacketTable(hid)
-	return table, err
+	return newPacketTable(hid), nil
 }

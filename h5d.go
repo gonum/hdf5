@@ -31,16 +31,15 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Dcreate2(id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
-	if err := h5err(C.herr_t(int(hid))); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newDataset(hid), nil
 }
 
 func (s *Dataset) finalizer() {
-	err := s.Close()
-	if err != nil {
-		panic(fmt.Sprintf("error closing dset: %s", err))
+	if err := s.Close(); err != nil {
+		panic(fmt.Errorf("error closing dset: %s", err))
 	}
 }
 
@@ -66,6 +65,7 @@ func (s *Dataset) Space() *Dataspace {
 // ReadSubset reads a subset of raw data from a dataset into a buffer.
 func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) error {
 	dtype, err := s.Datatype()
+	defer dtype.Close()
 	if err != nil {
 		return err
 	}
@@ -113,6 +113,7 @@ func (s *Dataset) Read(data interface{}) error {
 // WriteSubset writes a subset of raw data from a buffer to a dataset.
 func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) error {
 	dtype, err := s.Datatype()
+	defer dtype.Close()
 	if err != nil {
 		return err
 	}
@@ -178,5 +179,5 @@ func (s *Dataset) Datatype() (*Datatype, error) {
 	if dtype_id < 0 {
 		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
 	}
-	return copyDatatype(dtype_id)
+	return NewDatatype(dtype_id), nil
 }

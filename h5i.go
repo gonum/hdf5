@@ -33,6 +33,7 @@ type Location struct {
 	Identifier
 }
 
+// Id returns the int value of an identifier.
 func (i Identifier) Id() int {
 	return int(i.id)
 }
@@ -62,6 +63,7 @@ func (i Identifier) File() *File {
 	return &File{CommonFG{Location{Identifier{fid}}}}
 }
 
+// Type returns the type of the identifier.
 func (i Identifier) Type() IType {
 	return IType(C.H5Iget_type(i.id))
 }
