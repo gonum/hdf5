@@ -102,7 +102,10 @@ func main() {
 
 	// read it back into a new slice
 	s2 := make([]s1_t, LENGTH)
-	dset.Read(s2)
+	err = dset.Read(&s2)
+	if err != nil {
+		panic(err)
+	}
 
 	// display the fields
 	fmt.Printf(":: data: %v\n", s2)
