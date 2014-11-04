@@ -2,107 +2,118 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 
-	"github.com/sbinet/go-hdf5"
+	hdf5 "github.com/sbinet/go-hdf5"
 )
 
 const (
-	FNAME      string = "ex_table_01.h5"
-	TABLE_NAME string = "table"
-	NFIELDS    int    = 5
-	NRECORDS   int    = 8
+	fname    string = "ex_table_01.h5"
+	tname    string = "table"
+	nrecords int    = 8
 )
 
-type particle_t struct {
-	name        string  //"Name"
-	lati        int     "Latitude"
-	longi       int     "Longitude"
-	pressure    float32 "Pressure"
-	temperature float64 "Temperature"
-	isthep      []int
-	jmohep      [2][2]int
+type particle struct {
+	// name        string  `hdf5:"Name"`      // FIXME(sbinet)
+	lati        int32   `hdf5:"Latitude"`
+	longi       int64   `hdf5:"Longitude"`
+	pressure    float32 `hdf5:"Pressure"`
+	temperature float64 `hdf5:"Temperature"`
+	// isthep      []int                     // FIXME(sbinet)
+	// jmohep [2][2]int64                    // FIXME(sbinet)
 }
 
 func main() {
 
 	// define an array of particles
-	p_data := []particle_t{
-		{"zero", 0, 0, 0.0, 0., []int{0, 0}, [2][2]int{{0, 0}, {0, 0}}},
-		{"one", 10, 10, 1.0, 10., []int{0, 0}, [2][2]int{{1, 0}, {0, 1}}},
-		{"two", 20, 20, 2.0, 20., []int{0, 0}, [2][2]int{{2, 0}, {0, 2}}},
-		{"three", 30, 30, 3.0, 30., []int{0, 0}, [2][2]int{{3, 0}, {0, 3}}},
-		{"four", 40, 40, 4.0, 40., []int{0, 0}, [2][2]int{{4, 0}, {0, 4}}},
-		{"five", 50, 50, 5.0, 50., []int{0, 0}, [2][2]int{{5, 0}, {0, 5}}},
-		{"six", 60, 60, 6.0, 60., []int{0, 0}, [2][2]int{{6, 0}, {0, 6}}},
-		{"seven", 70, 70, 7.0, 70., []int{0, 0}, [2][2]int{{7, 0}, {0, 7}}},
+	particles := []particle{
+		{0, 0, 0.0, 0.},
+		{10, 10, 1.0, 10.},
+		{20, 20, 2.0, 20.},
+		{30, 30, 3.0, 30.},
+		{40, 40, 4.0, 40.},
+		{50, 50, 5.0, 50.},
+		{60, 60, 6.0, 60.},
+		{70, 70, 7.0, 70.},
 	}
+	// particles := []particle{
+	// 	{"zero", 0, 0, 0.0, 0., []int{0, 0}, [2][2]int{{0, 0}, {0, 0}}},
+	// 	{"one", 10, 10, 1.0, 10., []int{0, 0}, [2][2]int{{1, 0}, {0, 1}}},
+	// 	{"two", 20, 20, 2.0, 20., []int{0, 0}, [2][2]int{{2, 0}, {0, 2}}},
+	// 	{"three", 30, 30, 3.0, 30., []int{0, 0}, [2][2]int{{3, 0}, {0, 3}}},
+	// 	{"four", 40, 40, 4.0, 40., []int{0, 0}, [2][2]int{{4, 0}, {0, 4}}},
+	// 	{"five", 50, 50, 5.0, 50., []int{0, 0}, [2][2]int{{5, 0}, {0, 5}}},
+	// 	{"six", 60, 60, 6.0, 60., []int{0, 0}, [2][2]int{{6, 0}, {0, 6}}},
+	// 	{"seven", 70, 70, 7.0, 70., []int{0, 0}, [2][2]int{{7, 0}, {0, 7}}},
+	// }
 
-	chunk_size := 10
+	chunkSize := 10
 	compress := 0
 
 	// create a new file using default properties
-	f, err := hdf5.CreateFile(FNAME, hdf5.F_ACC_TRUNC)
+	f, err := hdf5.CreateFile(fname, hdf5.F_ACC_TRUNC)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("CreateFile failed: %s", err))
 	}
 	defer f.Close()
-	fmt.Printf(":: file [%s] created (id=%d)\n", FNAME, f.Id())
+	fmt.Printf(":: file [%s] created (id=%d)\n", fname, f.Id())
 
 	// create a fixed-length packet table within the file
-	table, err := f.CreateTableFrom(
-		TABLE_NAME, particle_t{}, chunk_size, compress)
+	table, err := f.CreateTableFrom(tname, particle{}, chunkSize, compress)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("CreateTableFrom failed: %s", err))
 	}
 	defer table.Close()
-	fmt.Printf(":: table [%s] created (id=%d)\n", TABLE_NAME, table.Id())
+	fmt.Printf(":: table [%s] created (id=%d)\n", tname, table.Id())
 
 	if !table.IsValid() {
 		panic("table is invalid")
 	}
 
 	// write one packet to the packet table
-	err = table.Append(p_data[0])
-	if err != nil {
-		panic(err)
+	if err = table.Append(&particles[0]); err != nil {
+		panic(fmt.Errorf("Append failed with single packet: %s", err))
 	}
 
 	// write several packets
-	err = table.Append(p_data[1:])
-	if err != nil {
-		panic(err)
+	parts := particles[1:]
+	if err = table.Append(&parts); err != nil {
+		panic(fmt.Errorf("Append failed with multiple packets: %s", err))
 	}
 
 	// get the number of packets
 	n, err := table.NumPackets()
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("NumPackets failed: %s", err))
 	}
-	// should be NRECORDS
 	fmt.Printf(":: nbr entries: %d\n", n)
-	if n != NRECORDS {
-		panic("inconsistent number of entries")
+	if n != nrecords {
+		panic(fmt.Errorf(
+			"Wrong number of packets reported, expected %d but got %d",
+			nrecords, n,
+		))
 	}
 
 	// iterate through packets
 	for i := 0; i != n; i++ {
-		//p := []particle_t{{}}
-		p := make([]particle_t, 1)
-		err := table.Next(p)
-		if err != nil {
-			panic(err)
+		p := make([]particle, 1)
+		if err := table.Next(&p); err != nil {
+			panic(fmt.Errorf("Next failed: %s", err))
 		}
 		fmt.Printf(":: data[%d]: %v\n", i, p)
 	}
 
 	// reset index
 	table.CreateIndex()
-	dst_buf := make([]particle_t, NRECORDS)
-	err = table.ReadPackets(0, NRECORDS, dst_buf)
-	if err != nil {
-		panic(err)
+	parts = make([]particle, nrecords)
+	if err = table.ReadPackets(0, nrecords, &parts); err != nil {
+		panic(fmt.Errorf("ReadPackets failed: %s", err))
 	}
-	fmt.Printf(":: whole data: %v\n", dst_buf)
 
+	if !reflect.DeepEqual(parts, particles) {
+		panic(fmt.Errorf("particles differ.\ngot= %#v\nwant=%#v\n", parts, particles))
+	}
+
+	fmt.Printf(":: whole data: %v\n", parts)
 	fmt.Printf(":: bye.\n")
 }

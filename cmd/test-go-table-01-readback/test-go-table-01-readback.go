@@ -3,77 +3,91 @@ package main
 import (
 	"fmt"
 
-	"github.com/sbinet/go-hdf5"
+	hdf5 "github.com/sbinet/go-hdf5"
 )
 
 const (
-	FNAME      string = "ex_table_01.h5"
-	TABLE_NAME string = "table"
-	NFIELDS    int    = 5
-	NRECORDS   int    = 8
+	fname    string = "ex_table_01.h5"
+	tname    string = "table"
+	nfields  int    = 5
+	nrecords int    = 8
 )
 
-type particle_t struct {
-	name        string  //"Name"
-	lati        int     "Latitude"
-	longi       int     "Longitude"
-	pressure    float32 "Pressure"
-	temperature float64 "Temperature"
+type particle struct {
+	// name        string  `hdf5:"Name"`      // FIXME(sbinet)
+	lati        int32   `hdf5:"Latitude"`
+	longi       int64   `hdf5:"Longitude"`
+	pressure    float32 `hdf5:"Pressure"`
+	temperature float64 `hdf5:"Temperature"`
+	// isthep      []int                     // FIXME(sbinet)
+	// jmohep [2][2]int64                    // FIXME(sbinet)
 }
 
-func (p *particle_t) Equal(o *particle_t) bool {
-	return p.name == o.name && p.lati == o.lati && p.longi == o.longi && p.pressure == o.pressure && p.temperature == o.temperature
+func (p *particle) Equal(o *particle) bool {
+	return p.lati == o.lati && p.longi == o.longi && p.pressure == o.pressure && p.temperature == o.temperature
 }
 
 func main() {
 
 	// define an array of particles
-	p_data := []particle_t{
-		{"zero", 0, 0, 0.0, 0.},
-		{"one", 10, 10, 1.0, 10.},
-		{"two", 20, 20, 2.0, 20.},
-		{"three", 30, 30, 3.0, 30.},
-		{"four", 40, 40, 4.0, 40.},
-		{"five", 50, 50, 5.0, 50.},
-		{"six", 60, 60, 6.0, 60.},
-		{"seven", 70, 70, 7.0, 70.},
+	particles := []particle{
+		{0, 0, 0.0, 0.},
+		{10, 10, 1.0, 10.},
+		{20, 20, 2.0, 20.},
+		{30, 30, 3.0, 30.},
+		{40, 40, 4.0, 40.},
+		{50, 50, 5.0, 50.},
+		{60, 60, 6.0, 60.},
+		{70, 70, 7.0, 70.},
 	}
-	fmt.Printf(":: reference data: %v\n", p_data)
+
+	// define an array of particles
+	// p_data := []particle_t{
+	// 	{"zero", 0, 0, 0.0, 0.},
+	// 	{"one", 10, 10, 1.0, 10.},
+	// 	{"two", 20, 20, 2.0, 20.},
+	// 	{"three", 30, 30, 3.0, 30.},
+	// 	{"four", 40, 40, 4.0, 40.},
+	// 	{"five", 50, 50, 5.0, 50.},
+	// 	{"six", 60, 60, 6.0, 60.},
+	// 	{"seven", 70, 70, 7.0, 70.},
+	// }
+
+	fmt.Printf(":: reference data: %v\n", particles)
 
 	// open a file
-	f, err := hdf5.OpenFile(FNAME, hdf5.F_ACC_RDONLY)
+	f, err := hdf5.OpenFile(fname, hdf5.F_ACC_RDONLY)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf(":: file [%s] opened (id=%d)\n", f.Name(), f.Id())
 
 	// create a fixed-length packet table within the file
-	table, err := f.OpenTable(TABLE_NAME)
+	table, err := f.OpenTable(tname)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf(":: table [%s] opened (id=%d)\n", TABLE_NAME, 3)
+	fmt.Printf(":: table [%s] opened (id=%d)\n", tname, 3)
 
 	// iterate through packets
-	for i := 0; i != NRECORDS; i++ {
+	for i := 0; i != nrecords; i++ {
 		//p := []particle_t{{}}
-		p := make([]particle_t, 1)
-		p[0].name = "+++++++    +"
-		err := table.Next(p)
+		p := make([]particle, 1)
+		err := table.Next(&p)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf(":: data[%d]: %v -> [%v]\n", i, p, p[0].Equal(&p_data[i]))
+		fmt.Printf(":: data[%d]: %v -> [%v]\n", i, p, p[0].Equal(&particles[i]))
 	}
 
 	// reset index
 	table.CreateIndex()
-	dst_buf := make([]particle_t, NRECORDS)
-	err = table.ReadPackets(0, NRECORDS, dst_buf)
+	parts := make([]particle, nrecords)
+	err = table.ReadPackets(0, nrecords, &parts)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf(":: whole data: %v\n", dst_buf)
+	fmt.Printf(":: whole data: %v\n", parts)
 
 	fmt.Printf(":: bye.\n")
 }

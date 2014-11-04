@@ -91,7 +91,7 @@ func TestTable(t *testing.T) {
 	// iterate through packets
 	for i := 0; i != n; i++ {
 		p := make([]particle, 1)
-		if err := table.Next(p); err != nil {
+		if err := table.Next(&p); err != nil {
 			t.Fatalf("Next failed: %s", err)
 		}
 	}
