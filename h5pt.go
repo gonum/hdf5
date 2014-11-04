@@ -115,10 +115,16 @@ func (t *Table) Append(data interface{}) error {
 	return h5err(err)
 }
 
-// Next reads packets from a packet table starting at the current index.
+// Next reads packets from a packet table starting at the current index into the value pointed at by data.
+// i.e. data is a pointer to an array or a slice.
 func (t *Table) Next(data interface{}) error {
 	rt := reflect.TypeOf(data)
-	rv := reflect.ValueOf(data)
+	if rt.Kind() != reflect.Ptr {
+		return fmt.Errorf("hdf5: invalid value type. got=%v, want pointer", rt.Kind())
+	}
+	rt = rt.Elem()
+	rv := reflect.Indirect(reflect.ValueOf(data))
+
 	n := C.size_t(0)
 	cdata := unsafe.Pointer(nil)
 	switch rt.Kind() {
@@ -126,14 +132,17 @@ func (t *Table) Next(data interface{}) error {
 		if rv.Cap() <= 0 {
 			panic(fmt.Errorf("not enough capacity in array (cap=%d)", rv.Cap()))
 		}
-		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
+		cdata = unsafe.Pointer(rv.UnsafeAddr())
 		n = C.size_t(rv.Cap())
+
 	case reflect.Slice:
 		if rv.Cap() <= 0 {
 			panic(fmt.Errorf("not enough capacity in slice (cap=%d)", rv.Cap()))
 		}
-		cdata = unsafe.Pointer(rv.Index(0).UnsafeAddr())
+		slice := (*reflect.SliceHeader)(unsafe.Pointer(rv.UnsafeAddr()))
+		cdata = unsafe.Pointer(slice.Data)
 		n = C.size_t(rv.Cap())
+
 	default:
 		panic(fmt.Errorf("unsupported kind (%s), need slice or array", rt.Kind()))
 	}
