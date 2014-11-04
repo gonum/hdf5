@@ -7,16 +7,16 @@ import (
 )
 
 const (
-	FNAME   string = "SDScompound.h5"
-	DATASET string = "ArrayOfStructures"
-	MEMBER1 string = "A_name"
-	MEMBER2 string = "B_name"
-	MEMBER3 string = "C_name"
-	LENGTH  uint   = 10
-	RANK    int    = 1
+	fname  string = "SDScompound.h5"
+	dsname string = "ArrayOfStructures"
+	mbr1   string = "A_name"
+	mbr2   string = "B_name"
+	mbr3   string = "C_name"
+	length uint   = 10
+	rank   int    = 1
 )
 
-type s1_t struct {
+type s1Type struct {
 	a int
 	b float32
 	c float64
@@ -24,7 +24,7 @@ type s1_t struct {
 	e string
 }
 
-type s2_t struct {
+type s2Type struct {
 	c float64
 	a int
 }
@@ -37,9 +37,9 @@ func main() {
 	// 	s1[i] = s1_t{a:i, b:float32(i*i), c:1./(float64(i)+1)}
 	// }
 	// fmt.Printf(":: data: %v\n", s1)
-	s1 := [LENGTH]s1_t{}
-	for i := 0; i < int(LENGTH); i++ {
-		s1[i] = s1_t{
+	s1 := [length]s1Type{}
+	for i := 0; i < int(length); i++ {
+		s1[i] = s1Type{
 			a: i,
 			b: float32(i * i),
 			c: 1. / (float64(i) + 1),
@@ -51,19 +51,19 @@ func main() {
 	fmt.Printf(":: data: %v\n", s1)
 
 	// create data space
-	dims := []uint{LENGTH}
+	dims := []uint{length}
 	space, err := hdf5.CreateSimpleDataspace(dims, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	// create the file
-	f, err := hdf5.CreateFile(FNAME, hdf5.F_ACC_TRUNC)
+	f, err := hdf5.CreateFile(fname, hdf5.F_ACC_TRUNC)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	fmt.Printf(":: file [%s] created (id=%d)\n", FNAME, f.Id())
+	fmt.Printf(":: file [%s] created (id=%d)\n", fname, f.Id())
 
 	// create the memory data type
 	dtype, err := hdf5.NewDatatypeFromValue(s1[0])
@@ -72,7 +72,7 @@ func main() {
 	}
 
 	// create the dataset
-	dset, err := f.CreateDataset(DATASET, dtype, space)
+	dset, err := f.CreateDataset(dsname, dtype, space)
 	if err != nil {
 		panic(err)
 	}
@@ -91,17 +91,17 @@ func main() {
 	f.Close()
 
 	// open the file and the dataset
-	f, err = hdf5.OpenFile(FNAME, hdf5.F_ACC_RDONLY)
+	f, err = hdf5.OpenFile(fname, hdf5.F_ACC_RDONLY)
 	if err != nil {
 		panic(err)
 	}
-	dset, err = f.OpenDataset(DATASET)
+	dset, err = f.OpenDataset(dsname)
 	if err != nil {
 		panic(err)
 	}
 
 	// read it back into a new slice
-	s2 := make([]s1_t, LENGTH)
+	s2 := make([]s1Type, length)
 	err = dset.Read(&s2)
 	if err != nil {
 		panic(err)
