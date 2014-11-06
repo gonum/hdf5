@@ -256,6 +256,18 @@ type CompoundType struct {
 	Datatype
 }
 
+// NewCompoundType creates a new CompoundType.
+// size is the size in bytes of the compound datatype.
+func NewCompoundType(size int) (*CompoundType, error) {
+	id := C.H5Tcreate(C.H5T_class_t(T_COMPOUND), C.size_t(size))
+	if err := checkID(id); err != nil {
+		return nil, err
+	}
+	t := &CompoundType{Datatype{Location{Identifier{id}}}}
+	runtime.SetFinalizer(t, (*CompoundType).finalizer)
+	return t, nil
+}
+
 // NMembers returns the number of elements in a compound or enumeration datatype.
 func (t *CompoundType) NMembers() int {
 	return int(C.H5Tget_nmembers(t.id))
@@ -417,11 +429,10 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 
 	case reflect.Struct:
 		sz := int(t.Size())
-		hdf_dt, err := CreateDatatype(T_COMPOUND, sz)
+		cdt, err := NewCompoundType(sz)
 		if err != nil {
 			return nil, err
 		}
-		cdt := &CompoundType{*hdf_dt}
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
