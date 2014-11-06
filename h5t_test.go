@@ -1,7 +1,9 @@
 package hdf5
 
 import (
+	"runtime"
 	"testing"
+	"time"
 )
 
 func TestSimpleDatatypes(t *testing.T) {
@@ -103,4 +105,20 @@ func TestStructDatatype(t *testing.T) {
 			t.Errorf("wrong offset: got %d, want %d", dt.MemberOffset(idx), offset)
 		}
 	}
+}
+
+func TestCloseBehavior(t *testing.T) {
+	var s struct {
+		a int
+		b float64
+	}
+	dtype, err := NewDatatypeFromValue(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dtype.Close()
+
+	// Sleep to ensure GC runs before returning
+	runtime.GC()
+	time.Sleep(100 * time.Millisecond)
 }
