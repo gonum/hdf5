@@ -13,9 +13,9 @@ http://godoc.org/github.com/sbinet/go-hdf5
 Example
 -------
 
-- Hello world example: https://github.com/sbinet/go-hdf5/blob/master/cmd/test-go-hdf5/test-go-hdf5.go
+- Hello world example: https://github.com/sbinet/go-hdf5/blob/master/cmd/test-go-hdf5/main.go
 
-- Writing/reading an ``hdf5`` with compound data: https://github.com/sbinet/go-hdf5/blob/master/cmd/test-go-cpxcmpd/test-go-cpxcmpd.go
+- Writing/reading an ``hdf5`` with compound data: https://github.com/sbinet/go-hdf5/blob/master/cmd/test-go-cpxcmpd/main.go
 
 Note
 ----
