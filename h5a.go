@@ -108,15 +108,16 @@ func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
 // Write writes raw data from a buffer to an attribute.
 func (s *Attribute) Write(data interface{}, dtype *Datatype) error {
 	var addr unsafe.Pointer
-	v := reflect.ValueOf(data)
+	v := reflect.Indirect(reflect.ValueOf(data))
 	switch v.Kind() {
 
 	case reflect.Array:
 		addr = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.String:
-		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = unsafe.Pointer(str.Data)
+		str := C.CString(v.Interface().(string))
+		defer C.free(unsafe.Pointer(str))
+		addr = unsafe.Pointer(&str)
 
 	case reflect.Ptr:
 		addr = unsafe.Pointer(v.Pointer())
