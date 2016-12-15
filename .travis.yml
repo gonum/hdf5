@@ -1,0 +1,27 @@
+language: go
+go:
+  - 1.5
+  - 1.6
+  - 1.7
+  - tip
+
+sudo: false
+
+addons:
+  apt:
+    packages:
+      - libhdf5-dev
+      - libhdf5-serial-dev
+
+notifications:
+  email:
+    recipients:
+      - binet@cern.ch
+    on_success: change
+    on_failure: always
+
+script:
+ - go get -d -t -v ./...
+ - go install -v ./...
+ - go test -v ./...
+
