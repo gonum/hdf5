@@ -10,8 +10,11 @@ sudo: false
 addons:
   apt:
     packages:
-      - libhdf5-dev
       - libhdf5-serial-dev
+
+env:
+  global:
+    - GODEBUG=cgocheck=0
 
 notifications:
   email:
