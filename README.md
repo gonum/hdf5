@@ -1,9 +1,11 @@
 go-hdf5
 =======
-[![Build Status](https://drone.io/github.com/sbinet/go-hdf5/status.png)](https://drone.io/github.com/sbinet/go-hdf5/latest)
+[![Build Status](https://secure.travis-ci.org/sbinet/go-hdf5.png)](http://travis-ci.org/sbinet/go-hdf5)
 [![GoDoc](https://godoc.org/github.com/sbinet/go-hdf5?status.svg)](https://godoc.org/github.com/sbinet/go-hdf5)
 
 Naive ``cgo`` bindings for the ``C-API`` of ``hdf5``.
+
+**NOTE** that starting with Go >= 1.6, one needs to run with `GODEBUG=cgocheck=0` to disable the new stricter `CGo` rules.
 
 Documentation
 -------------
