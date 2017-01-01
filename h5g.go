@@ -18,7 +18,7 @@ import (
 
 // CommonFG is for methods common to both File and Group
 type CommonFG struct {
-	Location
+	Identifier
 }
 
 // Group is an HDF5 container object. It can contain any Location.
@@ -37,7 +37,7 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	group := &Group{CommonFG{Location{Identifier{hid}}}}
+	group := &Group{CommonFG{Identifier{hid}}}
 	runtime.SetFinalizer(group, (*Group).finalizer)
 	return group, nil
 }
@@ -87,7 +87,7 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	group := &Group{CommonFG{Location{Identifier{hid}}}}
+	group := &Group{CommonFG{Identifier{hid}}}
 	runtime.SetFinalizer(group, (*Group).finalizer)
 	return group, nil
 }

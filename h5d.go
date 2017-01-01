@@ -18,11 +18,11 @@ import (
 )
 
 type Dataset struct {
-	Location
+	Identifier
 }
 
 func newDataset(id C.hid_t) *Dataset {
-	d := &Dataset{Location{Identifier{id}}}
+	d := &Dataset{Identifier{id}}
 	runtime.SetFinalizer(d, (*Dataset).finalizer)
 	return d
 }

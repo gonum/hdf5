@@ -47,7 +47,7 @@ func (f *File) finalizer() {
 }
 
 func newFile(id C.hid_t) *File {
-	f := &File{CommonFG{Location{Identifier{id}}}}
+	f := &File{CommonFG{Identifier{id}}}
 	runtime.SetFinalizer(f, (*File).finalizer)
 	return f
 }
