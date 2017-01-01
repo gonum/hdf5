@@ -5,6 +5,8 @@
 
 Naive ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 
+**WIP: No stable API for this package yet.**
+
 **NOTE** that starting with Go >= 1.6, one needs to run with `GODEBUG=cgocheck=0` to disable the new stricter `CGo` rules.
 
 ## Example
