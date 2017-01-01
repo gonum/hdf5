@@ -17,7 +17,7 @@ import (
 )
 
 type Datatype struct {
-	Location
+	Identifier
 }
 
 type TypeClass C.H5T_class_t
@@ -105,7 +105,7 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 
 // NewDatatype creates a Datatype from an hdf5 id.
 func NewDatatype(id C.hid_t) *Datatype {
-	t := &Datatype{Location{Identifier{id}}}
+	t := &Datatype{Identifier{id}}
 	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
@@ -208,7 +208,7 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	t := &ArrayType{Datatype{Location{Identifier{hid}}}}
+	t := &ArrayType{Datatype{Identifier{hid}}}
 	runtime.SetFinalizer(t, (*ArrayType).finalizer)
 	return t, nil
 }
@@ -246,7 +246,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{Location{Identifier{id}}}}
+	t := &VarLenType{Datatype{Identifier{id}}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, nil
 }
@@ -267,7 +267,7 @@ func NewCompoundType(size int) (*CompoundType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &CompoundType{Datatype{Location{Identifier{id}}}}
+	t := &CompoundType{Datatype{Identifier{id}}}
 	runtime.SetFinalizer(t, (*CompoundType).finalizer)
 	return t, nil
 }

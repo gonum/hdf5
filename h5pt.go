@@ -19,11 +19,11 @@ import (
 
 // Table is an hdf5 packet-table.
 type Table struct {
-	Location
+	Identifier
 }
 
 func newPacketTable(id C.hid_t) *Table {
-	t := &Table{Location{Identifier{id}}}
+	t := &Table{Identifier{id}}
 	runtime.SetFinalizer(t, (*Table).finalizer)
 	return t
 }

@@ -32,11 +32,6 @@ type Identifier struct {
 	id C.hid_t
 }
 
-// A Location embeds Identifier. Dataset, Datatype and Group are all Locations.
-type Location struct {
-	Identifier
-}
-
 // Id returns the int value of an identifier.
 func (i Identifier) Id() int {
 	return int(i.id)
@@ -64,7 +59,7 @@ func (i Identifier) File() *File {
 	if fid < 0 {
 		return nil
 	}
-	return &File{CommonFG{Location{Identifier{fid}}}}
+	return &File{CommonFG{Identifier{fid}}}
 }
 
 // Type returns the type of the identifier.
