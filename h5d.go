@@ -179,15 +179,13 @@ func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 
 //H5_DLL hid_t H5Dget_space(hid_t dset_id);
 func (s *Dataset) H5Dget_space() (*Dataspace, error) {
-	dspace_id := (C.H5Dget_space(s.id))
+	dspace_id := C.H5Dget_space(s.id)
 	ds := newDataspace(dspace_id)
 	if ds.id < 0 {
 		return (ds), fmt.Errorf("couldn't open dataspace from Dataset %q", s.Name())
 	}
 	return (ds), nil
 }
-
-//H5_DLL herr_t H5Dget_space_status(hid_t dset_id, H5D_space_status_t *allocation);
 
 // Datatype returns the HDF5 Datatype of the Dataset
 //H5_DLL hid_t H5Dget_type(hid_t dset_id);
