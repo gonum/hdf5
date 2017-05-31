@@ -177,11 +177,71 @@ func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 	return openAttribute(s.id, name)
 }
 
+//H5_DLL hid_t H5Dget_space(hid_t dset_id);
+func (s *Dataset) H5Dget_space() (*Dataspace, error) {
+	dspace_id := (C.H5Dget_space(s.id))
+	ds := newDataspace(dspace_id)
+	if ds.id < 0 {
+		return (ds), fmt.Errorf("couldn't open dataspace from Dataset %q", s.Name())
+	}
+	return (ds), nil
+}
+
+//H5_DLL herr_t H5Dget_space_status(hid_t dset_id, H5D_space_status_t *allocation);
+
 // Datatype returns the HDF5 Datatype of the Dataset
+//H5_DLL hid_t H5Dget_type(hid_t dset_id);
 func (s *Dataset) Datatype() (*Datatype, error) {
 	dtype_id := C.H5Dget_type(s.id)
 	if dtype_id < 0 {
 		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
 	}
 	return NewDatatype(dtype_id), nil
+}
+
+//H5_DLL hid_t H5Dget_create_plist(hid_t dset_id);
+func (s *Dataset) H5Dget_create_plist() (C.hid_t, error) {
+	plist_id := (C.H5Dget_create_plist(s.id))
+	if plist_id < 0 {
+		return (plist_id), fmt.Errorf("couldn't open access_plist from Dataset %q", s.Name())
+	}
+	return (plist_id), nil
+}
+
+//H5_DLL hid_t H5Dget_access_plist(hid_t dset_id);
+func (s *Dataset) H5Dget_access_plist() (C.hid_t, error) {
+	plist_id := C.H5Dget_access_plist(s.id)
+	if plist_id < 0 {
+		return (plist_id), fmt.Errorf("couldn't open access_plist from Dataset %q", s.Name())
+	}
+	return (plist_id), nil
+}
+
+//H5_DLL hsize_t H5Dget_storage_size(hid_t dset_id);
+func (s *Dataset) H5Dget_storage_size() (C.hsize_t, error) {
+	ds_size := C.H5Dget_storage_size(s.id)
+	if ds_size < 0 {
+		return (ds_size), fmt.Errorf("couldn't get size from Dataset %q", s.Name())
+	}
+	return (ds_size), nil
+}
+
+//H5_DLL herr_t H5Dset_extent(hid_t dset_id, const hsize_t size[]);
+func (s *Dataset) H5Dset_extent(dims []uint) error {
+	return h5err(C.H5Dset_extent(s.id, (*C.hsize_t)(unsafe.Pointer(&dims[0]))))
+}
+
+//H5_DLL herr_t H5Dflush(hid_t dset_id);
+func (s *Dataset) H5Dflush() error {
+	return h5err(C.H5Dflush(s.id))
+}
+
+//H5_DLL herr_t H5Drefresh(hid_t dset_id);
+func (s *Dataset) H5Drefresh() error {
+	return h5err(C.H5Drefresh(s.id))
+}
+
+//H5_DLL herr_t H5Ddebug(hid_t dset_id);
+func (s *Dataset) H5Ddebug() error {
+	return h5err(C.H5Ddebug(s.id))
 }

@@ -12,6 +12,7 @@ import "C"
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"runtime"
 	"unsafe"
 )
@@ -434,6 +435,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 	case reflect.Struct:
 		sz := int(t.Size())
 		cdt, err := NewCompoundType(sz)
+		re := regexp.MustCompile(`hdf5:\s+\"([a-zA-Z_]+[a-zA-Z0-9_]+)\"`)
 		if err != nil {
 			return nil, err
 		}
@@ -452,6 +454,11 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			field_name := string(f.Tag)
 			if len(field_name) == 0 {
 				field_name = f.Name
+			} else {
+				match := re.FindStringSubmatch(field_name)
+				if len(match) > 0 {
+					field_name = match[1]
+				}
 			}
 			err = cdt.Insert(field_name, offset, field_dt)
 			if err != nil {
