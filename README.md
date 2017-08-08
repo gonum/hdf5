@@ -1,7 +1,7 @@
 # hdf5
 
 [![Build Status](https://secure.travis-ci.org/gonum/hdf5.png)](http://travis-ci.org/gonum/hdf5)
-[![GoDoc](https://godoc.org/github.com/gonum/hdf5?status.svg)](https://godoc.org/github.com/gonum/hdf5)
+[![GoDoc](https://godoc.org/gonum.org/v1/hdf5?status.svg)](https://godoc.org/gonum.org/v1/hdf5)
 
 Naive ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 
@@ -11,9 +11,9 @@ Naive ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 
 ## Example
 
-- Hello world example: https://github.com/gonum/hdf5/blob/master/cmd/test-go-hdf5/main.go
+- Hello world example: [cmd/test-go-hdf5/main.go](https://github.com/gonum/hdf5/blob/master/cmd/test-go-hdf5/main.go)
 
-- Writing/reading an ``hdf5`` with compound data: https://github.com/gonum/hdf5/blob/master/cmd/test-go-cpxcmpd/main.go
+- Writing/reading an ``hdf5`` with compound data: [cmd/test-go-cpxcmpd/main.go](https://github.com/gonum/hdf5/blob/master/cmd/test-go-cpxcmpd/main.go)
 
 ## Note
 

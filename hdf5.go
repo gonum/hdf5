@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package hdf5 provides access to the HDF5 C library.
-package hdf5
+package hdf5 // import "gonum.org/v1/hdf5"
 
 // #include "hdf5.h"
 import "C"
