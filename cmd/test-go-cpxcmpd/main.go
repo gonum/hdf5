@@ -76,7 +76,7 @@ func main() {
 	}
 
 	// create the dataset
-	dset, err := f.CreateDataset(dsname, dtype, space)
+	dset, err := f.CreateDataSet(dsname, dtype, space)
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +99,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	dset, err = f.OpenDataset(dsname)
+	dset, err = f.OpenDataSet(dsname)
 	if err != nil {
 		panic(err)
 	}

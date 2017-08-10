@@ -97,17 +97,17 @@ func TestGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	dset, err := g3.CreateDataset("dset", dtype, dspace)
+	dset, err := g3.CreateDataSet("dset", dtype, dspace)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dset2, err := g3.OpenDataset("dset")
+	dset2, err := g3.OpenDataSet("dset")
 	if dset.Name() != dset2.Name() {
 		t.Error("expected dataset names to be equal")
 	}
 
-	dset2, err = g3.OpenDataset("bs")
+	dset2, err = g3.OpenDataSet("bs")
 	if err == nil {
 		t.Errorf("opened dataset that was never created: %v", dset2)
 	}

@@ -80,22 +80,22 @@ func TestFile(t *testing.T) {
 		t.Fatalf("expected error")
 	}
 
-	// Test a Dataset
+	// Test a DataSet
 	ds, err := CreateDataspace(S_SCALAR)
 	if err != nil {
 		t.Fatalf("CreateDataspace failed: %s", err)
 	}
 	dsetName := "test_dataset"
-	dset, err := f.CreateDataset(dsetName, T_NATIVE_INT, ds)
+	dset, err := f.CreateDataSet(dsetName, T_NATIVE_INT, ds)
 	if err != nil {
-		t.Fatalf("CreateDataset failed: %s", err)
+		t.Fatalf("CreateDataSet failed: %s", err)
 	}
 	if name := dset.Name(); name != "/"+dsetName {
-		t.Fatalf("Dataset Name() have %v, want /%v", name, dsetName)
+		t.Fatalf("DataSet Name() have %v, want /%v", name, dsetName)
 	}
 	dFile := dset.File()
 	if dFile.Name() != f.Name() {
-		t.Fatalf("Dataset File() have %v, want %v", dFile.Name(), f.Name())
+		t.Fatalf("DataSet File() have %v, want %v", dFile.Name(), f.Name())
 	}
 
 	if n, err := f.NumObjects(); err != nil {

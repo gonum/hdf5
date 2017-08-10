@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func createDataset1(t *testing.T) error {
+func createDataSet1(t *testing.T) error {
 	// create a file with a single 5x20 dataset
 	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
@@ -31,7 +31,7 @@ func createDataset1(t *testing.T) error {
 		return err
 	}
 
-	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, dspace)
+	dset, err := f.CreateDataSet("dset", T_NATIVE_USHORT, dspace)
 	if err != nil {
 		t.Fatal(err)
 		return err
@@ -61,7 +61,7 @@ func TestReadSubset(t *testing.T) {
 	DisplayErrors(true)
 	defer DisplayErrors(false)
 	defer os.Remove(fname)
-	err := createDataset1(t)
+	err := createDataSet1(t)
 	if err != nil {
 		return
 	}
@@ -73,7 +73,7 @@ func TestReadSubset(t *testing.T) {
 	}
 	defer f.Close()
 
-	dset, err := f.OpenDataset("dset")
+	dset, err := f.OpenDataSet("dset")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func TestWriteSubset(t *testing.T) {
 	}
 	defer f.Close()
 
-	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, fspace)
+	dset, err := f.CreateDataSet("dset", T_NATIVE_USHORT, fspace)
 	if err != nil {
 		t.Fatal(err)
 	}

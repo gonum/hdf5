@@ -27,9 +27,9 @@ func TestWriteAttribute(t *testing.T) {
 	}
 	defer scalar.Close()
 
-	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, scalar)
+	dset, err := f.CreateDataSet("dset", T_NATIVE_USHORT, scalar)
 	if err != nil {
-		t.Fatalf("CreateDataset failed: %s\n", err)
+		t.Fatalf("CreateDataSet failed: %s\n", err)
 	}
 	defer dset.Close()
 

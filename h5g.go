@@ -42,14 +42,14 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 	return group, nil
 }
 
-// CreateDataset creates a new Dataset.
-func (g *CommonFG) CreateDataset(name string, dtype *DataType, dspace *Dataspace) (*Dataset, error) {
-	return createDataset(g.id, name, dtype, dspace, P_DEFAULT)
+// CreateDataSet creates a new DataSet.
+func (g *CommonFG) CreateDataSet(name string, dtype *DataType, dspace *Dataspace) (*DataSet, error) {
+	return createDataSet(g.id, name, dtype, dspace, P_DEFAULT)
 }
 
-// CreateDatasetWith creates a new Dataset with a user-defined PropList.
-func (g *CommonFG) CreateDatasetWith(name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
-	return createDataset(g.id, name, dtype, dspace, dcpl)
+// CreateDataSetWith creates a new DataSet with a user-defined PropList.
+func (g *CommonFG) CreateDataSetWith(name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*DataSet, error) {
+	return createDataSet(g.id, name, dtype, dspace, dcpl)
 }
 
 // CreateAttribute creates a new attribute at this location.
@@ -92,8 +92,8 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 	return group, nil
 }
 
-// OpenDataset opens a named Dataset.
-func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
+// OpenDataSet opens a named DataSet.
+func (g *CommonFG) OpenDataSet(name string) (*DataSet, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -101,7 +101,7 @@ func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return newDataset(hid), nil
+	return newDataSet(hid), nil
 }
 
 // NumObjects returns the number of objects in the Group.

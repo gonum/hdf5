@@ -163,7 +163,7 @@ func (t *DataType) Copy() (*DataType, error) {
 }
 
 // copyDataType should be called by any function wishing to return
-// an existing DataType from a Dataset or Attribute.
+// an existing DataType from a DataSet or Attribute.
 func copyDataType(id C.hid_t) (*DataType, error) {
 	hid := C.H5Tcopy(id)
 	if err := checkID(hid); err != nil {

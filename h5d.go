@@ -17,17 +17,17 @@ import (
 	"unsafe"
 )
 
-type Dataset struct {
+type DataSet struct {
 	Identifier
 }
 
-func newDataset(id C.hid_t) *Dataset {
-	d := &Dataset{Identifier{id}}
-	runtime.SetFinalizer(d, (*Dataset).finalizer)
+func newDataSet(id C.hid_t) *DataSet {
+	d := &DataSet{Identifier{id}}
+	runtime.SetFinalizer(d, (*DataSet).finalizer)
 	return d
 }
 
-func createDataset(id C.hid_t, name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+func createDataSet(id C.hid_t, name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*DataSet, error) {
 	dtype, err := dtype.Copy() // For safety
 	if err != nil {
 		return nil, err
@@ -38,17 +38,17 @@ func createDataset(id C.hid_t, name string, dtype *DataType, dspace *Dataspace, 
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return newDataset(hid), nil
+	return newDataSet(hid), nil
 }
 
-func (s *Dataset) finalizer() {
+func (s *DataSet) finalizer() {
 	if err := s.Close(); err != nil {
 		panic(fmt.Errorf("error closing dset: %s", err))
 	}
 }
 
 // Close releases and terminates access to a dataset.
-func (s *Dataset) Close() error {
+func (s *DataSet) Close() error {
 	if s.id == 0 {
 		return nil
 	}
@@ -58,7 +58,7 @@ func (s *Dataset) Close() error {
 }
 
 // Space returns an identifier for a copy of the dataspace for a dataset.
-func (s *Dataset) Space() *Dataspace {
+func (s *DataSet) Space() *Dataspace {
 	hid := C.H5Dget_space(s.id)
 	if int(hid) > 0 {
 		return newDataspace(hid)
@@ -67,7 +67,7 @@ func (s *Dataset) Space() *Dataspace {
 }
 
 // ReadSubset reads a subset of raw data from a dataset into a buffer.
-func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) error {
+func (s *DataSet) ReadSubset(data interface{}, memspace, filespace *Dataspace) error {
 	dtype, err := s.DataType()
 	defer dtype.Close()
 	if err != nil {
@@ -110,12 +110,12 @@ func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) e
 }
 
 // Read reads raw data from a dataset into a buffer.
-func (s *Dataset) Read(data interface{}) error {
+func (s *DataSet) Read(data interface{}) error {
 	return s.ReadSubset(data, nil, nil)
 }
 
 // WriteSubset writes a subset of raw data from a buffer to a dataset.
-func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) error {
+func (s *DataSet) WriteSubset(data interface{}, memspace, filespace *Dataspace) error {
 	dtype, err := s.DataType()
 	defer dtype.Close()
 	if err != nil {
@@ -158,30 +158,30 @@ func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) 
 }
 
 // Write writes raw data from a buffer to a dataset.
-func (s *Dataset) Write(data interface{}) error {
+func (s *DataSet) Write(data interface{}) error {
 	return s.WriteSubset(data, nil, nil)
 }
 
 // Creates a new attribute at this location.
-func (s *Dataset) CreateAttribute(name string, dtype *DataType, dspace *Dataspace) (*Attribute, error) {
+func (s *DataSet) CreateAttribute(name string, dtype *DataType, dspace *Dataspace) (*Attribute, error) {
 	return createAttribute(s.id, name, dtype, dspace, P_DEFAULT)
 }
 
 // Creates a new attribute at this location.
-func (s *Dataset) CreateAttributeWith(name string, dtype *DataType, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+func (s *DataSet) CreateAttributeWith(name string, dtype *DataType, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	return createAttribute(s.id, name, dtype, dspace, acpl)
 }
 
 // Opens an existing attribute.
-func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
+func (s *DataSet) OpenAttribute(name string) (*Attribute, error) {
 	return openAttribute(s.id, name)
 }
 
-// DataType returns the HDF5 DataType of the Dataset
-func (s *Dataset) DataType() (*DataType, error) {
+// DataType returns the HDF5 DataType of the DataSet
+func (s *DataSet) DataType() (*DataType, error) {
 	dtype_id := C.H5Dget_type(s.id)
 	if dtype_id < 0 {
-		return nil, fmt.Errorf("couldn't open DataType from Dataset %q", s.Name())
+		return nil, fmt.Errorf("couldn't open DataType from DataSet %q", s.Name())
 	}
 	return NewDataType(dtype_id), nil
 }
