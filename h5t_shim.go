@@ -261,6 +261,7 @@ var (
 
 //
 var h5t_VARIABLE int64 = C.H5T_VARIABLE
+var H5S_UNLIMITED int64 = C.H5S_UNLIMITED
 
 func makeGoStringDatatype() *Datatype {
 	dt, err := T_C_S1.Copy()

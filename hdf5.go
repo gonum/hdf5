@@ -21,6 +21,14 @@ func init() {
 	}
 }
 
+func H5open() {
+	err := h5err(C.H5open())
+	if err != nil {
+		err_str := fmt.Sprintf("pb calling H5open(): %s", err)
+		panic(err_str)
+	}
+}
+
 // hdferror wraps hdf5 int-based error codes
 type h5error struct {
 	code int
