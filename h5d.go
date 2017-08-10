@@ -27,7 +27,7 @@ func newDataset(id C.hid_t) *Dataset {
 	return d
 }
 
-func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+func createDataset(id C.hid_t, name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	dtype, err := dtype.Copy() // For safety
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (s *Dataset) Space() *Dataspace {
 
 // ReadSubset reads a subset of raw data from a dataset into a buffer.
 func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) error {
-	dtype, err := s.Datatype()
+	dtype, err := s.DataType()
 	defer dtype.Close()
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func (s *Dataset) Read(data interface{}) error {
 
 // WriteSubset writes a subset of raw data from a buffer to a dataset.
 func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) error {
-	dtype, err := s.Datatype()
+	dtype, err := s.DataType()
 	defer dtype.Close()
 	if err != nil {
 		return err
@@ -163,12 +163,12 @@ func (s *Dataset) Write(data interface{}) error {
 }
 
 // Creates a new attribute at this location.
-func (s *Dataset) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
+func (s *Dataset) CreateAttribute(name string, dtype *DataType, dspace *Dataspace) (*Attribute, error) {
 	return createAttribute(s.id, name, dtype, dspace, P_DEFAULT)
 }
 
 // Creates a new attribute at this location.
-func (s *Dataset) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+func (s *Dataset) CreateAttributeWith(name string, dtype *DataType, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	return createAttribute(s.id, name, dtype, dspace, acpl)
 }
 
@@ -177,11 +177,11 @@ func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 	return openAttribute(s.id, name)
 }
 
-// Datatype returns the HDF5 Datatype of the Dataset
-func (s *Dataset) Datatype() (*Datatype, error) {
+// DataType returns the HDF5 DataType of the Dataset
+func (s *Dataset) DataType() (*DataType, error) {
 	dtype_id := C.H5Dget_type(s.id)
 	if dtype_id < 0 {
-		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
+		return nil, fmt.Errorf("couldn't open DataType from Dataset %q", s.Name())
 	}
-	return NewDatatype(dtype_id), nil
+	return NewDataType(dtype_id), nil
 }

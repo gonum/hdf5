@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestSimpleDatatypes(t *testing.T) {
+func TestSimpleDataTypes(t *testing.T) {
 	// Smoke tests for the simple datatypes
 	tests := []interface{}{
 		int(0),
@@ -29,12 +29,12 @@ func TestSimpleDatatypes(t *testing.T) {
 	}
 
 	for test := range tests {
-		NewDatatypeFromValue(test)
+		NewDataTypeFromValue(test)
 	}
 }
 
 // Test for array datatypes. Checks that the number of dimensions is correct.
-func TestArrayDatatype(t *testing.T) {
+func TestArrayDataType(t *testing.T) {
 	tests := map[int]interface{}{
 		1: [8]int{1, 1, 2, 3, 5, 8, 13},
 		2: [2][2]int{{1, 2}, {3, 4}},
@@ -42,7 +42,7 @@ func TestArrayDatatype(t *testing.T) {
 	}
 
 	for dims, val := range tests {
-		dt, err := NewDatatypeFromValue(val)
+		dt, err := NewDataTypeFromValue(val)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -53,7 +53,7 @@ func TestArrayDatatype(t *testing.T) {
 	}
 }
 
-func TestStructDatatype(t *testing.T) {
+func TestStructDataType(t *testing.T) {
 	test := struct {
 		a int32
 		b string
@@ -65,7 +65,7 @@ func TestStructDatatype(t *testing.T) {
 
 	// Test that the type can be constructed and that the number of
 	// members is as expected.
-	dtype, err := NewDatatypeFromValue(test)
+	dtype, err := NewDataTypeFromValue(test)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestCloseBehavior(t *testing.T) {
 		a int
 		b float64
 	}
-	dtype, err := NewDatatypeFromValue(s)
+	dtype, err := NewDataTypeFromValue(s)
 	if err != nil {
 		t.Fatal(err)
 	}

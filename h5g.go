@@ -43,22 +43,22 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 }
 
 // CreateDataset creates a new Dataset.
-func (g *CommonFG) CreateDataset(name string, dtype *Datatype, dspace *Dataspace) (*Dataset, error) {
+func (g *CommonFG) CreateDataset(name string, dtype *DataType, dspace *Dataspace) (*Dataset, error) {
 	return createDataset(g.id, name, dtype, dspace, P_DEFAULT)
 }
 
 // CreateDatasetWith creates a new Dataset with a user-defined PropList.
-func (g *CommonFG) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
+func (g *CommonFG) CreateDatasetWith(name string, dtype *DataType, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
 	return createDataset(g.id, name, dtype, dspace, dcpl)
 }
 
 // CreateAttribute creates a new attribute at this location.
-func (g *Group) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
+func (g *Group) CreateAttribute(name string, dtype *DataType, dspace *Dataspace) (*Attribute, error) {
 	return createAttribute(g.id, name, dtype, dspace, P_DEFAULT)
 }
 
 // CreateAttributeWith creates a new attribute at this location with a user-defined PropList.
-func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+func (g *Group) CreateAttributeWith(name string, dtype *DataType, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	return createAttribute(g.id, name, dtype, dspace, acpl)
 }
 
@@ -129,7 +129,7 @@ func (g *CommonFG) ObjectNameByIndex(idx uint) (string, error) {
 }
 
 // CreateTable creates a packet table to store fixed-length packets.
-func (g *Group) CreateTable(name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
+func (g *Group) CreateTable(name string, dtype *DataType, chunkSize, compression int) (*Table, error) {
 	return createTable(g.id, name, dtype, chunkSize, compression)
 }
 

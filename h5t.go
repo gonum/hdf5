@@ -16,7 +16,7 @@ import (
 	"unsafe"
 )
 
-type Datatype struct {
+type DataType struct {
 	Identifier
 }
 
@@ -83,7 +83,7 @@ var (
 	}
 
 	parametricTypes typeMap = typeMap{
-		// Only these types can be used with CreateDatatype
+		// Only these types can be used with CreateDataType
 		T_COMPOUND: _go_struct_t,
 		T_ENUM:     _go_int_t,
 		T_OPAQUE:   nil,
@@ -91,8 +91,8 @@ var (
 	}
 )
 
-// OpenDatatype opens a named datatype.
-func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
+// OpenDataType opens a named datatype.
+func OpenDataType(c CommonFG, name string, tapl_id int) (*DataType, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -100,20 +100,20 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	return NewDatatype(id), nil
+	return NewDataType(id), nil
 }
 
-// NewDatatype creates a Datatype from an hdf5 id.
-func NewDatatype(id C.hid_t) *Datatype {
-	t := &Datatype{Identifier{id}}
-	runtime.SetFinalizer(t, (*Datatype).finalizer)
+// NewDataType creates a DataType from an hdf5 id.
+func NewDataType(id C.hid_t) *DataType {
+	t := &DataType{Identifier{id}}
+	runtime.SetFinalizer(t, (*DataType).finalizer)
 	return t
 }
 
-// CreateDatatype creates a new datatype.
+// CreateDataType creates a new datatype.
 // class must be T_COMPUND, T_OPAQUE, T_ENUM or T_STRING.
 // size is the size of the new datatype in bytes.
-func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
+func CreateDataType(class TypeClass, size int) (*DataType, error) {
 	_, ok := parametricTypes[class]
 	if !ok {
 		return nil,
@@ -128,22 +128,22 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return NewDatatype(hid), nil
+	return NewDataType(hid), nil
 }
 
-func (t *Datatype) finalizer() {
+func (t *DataType) finalizer() {
 	if err := t.Close(); err != nil {
 		panic(fmt.Errorf("error closing datatype: %s", err))
 	}
 }
 
-// GoType returns the reflect.Type associated with the Datatype's TypeClass
-func (t *Datatype) GoType() reflect.Type {
+// GoType returns the reflect.Type associated with the DataType's TypeClass
+func (t *DataType) GoType() reflect.Type {
 	return typeClassToGoType[t.Class()]
 }
 
 // Close releases a datatype.
-func (t *Datatype) Close() error {
+func (t *DataType) Close() error {
 	if t.id == 0 {
 		return nil
 	}
@@ -153,54 +153,54 @@ func (t *Datatype) Close() error {
 }
 
 // Committed determines whether a datatype is a named type or a transient type.
-func (t *Datatype) Committed() bool {
+func (t *DataType) Committed() bool {
 	return C.H5Tcommitted(t.id) > 0
 }
 
 // Copy copies an existing datatype.
-func (t *Datatype) Copy() (*Datatype, error) {
-	return copyDatatype(t.id)
+func (t *DataType) Copy() (*DataType, error) {
+	return copyDataType(t.id)
 }
 
-// copyDatatype should be called by any function wishing to return
-// an existing Datatype from a Dataset or Attribute.
-func copyDatatype(id C.hid_t) (*Datatype, error) {
+// copyDataType should be called by any function wishing to return
+// an existing DataType from a Dataset or Attribute.
+func copyDataType(id C.hid_t) (*DataType, error) {
 	hid := C.H5Tcopy(id)
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return NewDatatype(hid), nil
+	return NewDataType(hid), nil
 }
 
 // Equal determines whether two datatype identifiers refer to the same datatype.
-func (t *Datatype) Equal(o *Datatype) bool {
+func (t *DataType) Equal(o *DataType) bool {
 	return C.H5Tequal(t.id, o.id) > 0
 }
 
 // Lock locks a datatype.
-func (t *Datatype) Lock() error {
+func (t *DataType) Lock() error {
 	return h5err(C.H5Tlock(t.id))
 }
 
-// Size returns the size of the Datatype.
-func (t *Datatype) Size() uint {
+// Size returns the size of the DataType.
+func (t *DataType) Size() uint {
 	return uint(C.H5Tget_size(t.id))
 }
 
-// SetSize sets the total size of a Datatype.
-func (t *Datatype) SetSize(sz uint) error {
+// SetSize sets the total size of a DataType.
+func (t *DataType) SetSize(sz uint) error {
 	err := C.H5Tset_size(t.id, C.size_t(sz))
 	return h5err(err)
 }
 
 type ArrayType struct {
-	Datatype
+	DataType
 }
 
 // NewArrayType creates a new ArrayType.
 // base_type specifies the element type of the array.
 // dims specify the dimensions of the array.
-func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
+func NewArrayType(base_type *DataType, dims []int) (*ArrayType, error) {
 	ndims := C.uint(len(dims))
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
@@ -208,7 +208,7 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	t := &ArrayType{Datatype{Identifier{hid}}}
+	t := &ArrayType{DataType{Identifier{hid}}}
 	runtime.SetFinalizer(t, (*ArrayType).finalizer)
 	return t, nil
 }
@@ -236,17 +236,17 @@ func (t *ArrayType) ArrayDims() []int {
 }
 
 type VarLenType struct {
-	Datatype
+	DataType
 }
 
 // NewVarLenType creates a new VarLenType.
 // base_type specifies the element type of the VarLenType.
-func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
+func NewVarLenType(base_type *DataType) (*VarLenType, error) {
 	id := C.H5Tvlen_create(base_type.id)
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{Identifier{id}}}
+	t := &VarLenType{DataType{Identifier{id}}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, nil
 }
@@ -257,7 +257,7 @@ func (vl *VarLenType) IsVariableStr() bool {
 }
 
 type CompoundType struct {
-	Datatype
+	DataType
 }
 
 // NewCompoundType creates a new CompoundType.
@@ -267,7 +267,7 @@ func NewCompoundType(size int) (*CompoundType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &CompoundType{Datatype{Identifier{id}}}
+	t := &CompoundType{DataType{Identifier{id}}}
 	runtime.SetFinalizer(t, (*CompoundType).finalizer)
 	return t, nil
 }
@@ -278,7 +278,7 @@ func (t *CompoundType) NMembers() int {
 }
 
 // Class returns the TypeClass of the DataType
-func (t *Datatype) Class() TypeClass {
+func (t *DataType) Class() TypeClass {
 	return TypeClass(C.H5Tget_class(t.id))
 }
 
@@ -307,16 +307,16 @@ func (t *CompoundType) MemberOffset(mbr_idx int) int {
 }
 
 // MemberType returns the datatype of the specified member.
-func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
+func (t *CompoundType) MemberType(mbr_idx int) (*DataType, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return NewDatatype(hid), nil
+	return NewDataType(hid), nil
 }
 
 // Insert adds a new member to a compound datatype.
-func (t *CompoundType) Insert(name string, offset int, field *Datatype) error {
+func (t *CompoundType) Insert(name string, offset int, field *DataType) error {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 	return h5err(C.H5Tinsert(t.id, cname, C.size_t(offset), field.id))
@@ -330,19 +330,19 @@ func (t *CompoundType) Pack() error {
 	return h5err(C.H5Tpack(t.id))
 }
 
-type OpaqueDatatype struct {
-	Datatype
+type OpaqueDataType struct {
+	DataType
 }
 
 // SetTag tags an opaque datatype.
-func (t *OpaqueDatatype) SetTag(tag string) error {
+func (t *OpaqueDataType) SetTag(tag string) error {
 	ctag := C.CString(tag)
 	defer C.free(unsafe.Pointer(ctag))
 	return h5err(C.H5Tset_tag(t.id, ctag))
 }
 
 // Tag returns the tag associated with an opaque datatype.
-func (t *OpaqueDatatype) Tag() string {
+func (t *OpaqueDataType) Tag() string {
 	cname := C.H5Tget_tag(t.id)
 	if cname != nil {
 		defer C.free(unsafe.Pointer(cname))
@@ -351,15 +351,15 @@ func (t *OpaqueDatatype) Tag() string {
 	return ""
 }
 
-// NewDatatypeFromValue creates  a datatype from a value in an interface.
-func NewDatatypeFromValue(v interface{}) (*Datatype, error) {
+// NewDataTypeFromValue creates  a datatype from a value in an interface.
+func NewDataTypeFromValue(v interface{}) (*DataType, error) {
 	return NewDataTypeFromType(reflect.TypeOf(v))
 }
 
-// NewDatatypeFromType creates a new Datatype from a reflect.Type.
-func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
+// NewDataTypeFromType creates a new DataType from a reflect.Type.
+func NewDataTypeFromType(t reflect.Type) (*DataType, error) {
 
-	var dt *Datatype = nil
+	var dt *DataType = nil
 	var err error
 
 	switch t.Kind() {
@@ -416,7 +416,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			return nil, err
 		}
 
-		dt = &adt.Datatype
+		dt = &adt.DataType
 
 	case reflect.Slice:
 		elem_type, err := NewDataTypeFromType(t.Elem())
@@ -429,7 +429,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			return nil, err
 		}
 
-		dt = &sdt.Datatype
+		dt = &sdt.DataType
 
 	case reflect.Struct:
 		sz := int(t.Size())
@@ -440,7 +440,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
-			var field_dt *Datatype = nil
+			var field_dt *DataType = nil
 			field_dt, err = NewDataTypeFromType(f.Type)
 			if err != nil {
 				return nil, err
@@ -458,7 +458,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 				return nil, fmt.Errorf("pb with field [%d-%s]: %s", i, f.Name, err)
 			}
 		}
-		dt = &cdt.Datatype
+		dt = &cdt.DataType
 
 	default:
 		// Should never happen.
