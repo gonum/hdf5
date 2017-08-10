@@ -51,7 +51,7 @@ func TestWriteAttribute(t *testing.T) {
 	for name, v := range attrs {
 		dtype, err := NewDataTypeFromType(v.Type)
 		if err != nil {
-			t.Fatalf("NewDatatypeFromValue failed: %s\n", err)
+			t.Fatalf("NewDataTypeFromValue failed: %s\n", err)
 		}
 		defer dtype.Close()
 

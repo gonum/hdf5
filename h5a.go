@@ -27,7 +27,7 @@ func newAttribute(id C.hid_t) *Attribute {
 	return d
 }
 
-func createAttribute(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
+func createAttribute(id C.hid_t, name string, dtype *DataType, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	hid := C.H5Acreate2(id, c_name, dtype.id, dspace.id, acpl.id, P_DEFAULT.id)
@@ -84,7 +84,7 @@ func (s *Attribute) Space() *Dataspace {
 }
 
 // Read reads raw data from a attribute into a buffer.
-func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
+func (s *Attribute) Read(data interface{}, dtype *DataType) error {
 	var addr unsafe.Pointer
 	v := reflect.ValueOf(data)
 
@@ -110,7 +110,7 @@ func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
 }
 
 // Write writes raw data from a buffer to an attribute.
-func (s *Attribute) Write(data interface{}, dtype *Datatype) error {
+func (s *Attribute) Write(data interface{}, dtype *DataType) error {
 	var addr unsafe.Pointer
 	v := reflect.Indirect(reflect.ValueOf(data))
 	switch v.Kind() {

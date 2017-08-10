@@ -173,15 +173,15 @@ func (t *Table) SetIndex(index int) error {
 }
 
 // Type returns an identifier for a copy of the datatype for a dataset.
-func (t *Table) Type() (*Datatype, error) {
+func (t *Table) Type() (*DataType, error) {
 	hid := C.H5Dget_type(t.id)
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return NewDatatype(hid), nil
+	return NewDataType(hid), nil
 }
 
-func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
+func createTable(id C.hid_t, name string, dtype *DataType, chunkSize, compression int) (*Table, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
@@ -201,7 +201,7 @@ func createTableFrom(id C.hid_t, name string, dtype interface{}, chunkSize, comp
 		if hdfDtype, err := NewDataTypeFromType(dt); err == nil {
 			return createTable(id, name, hdfDtype, chunkSize, compression)
 		}
-	case *Datatype:
+	case *DataType:
 		return createTable(id, name, dt, chunkSize, compression)
 	default:
 		if hdfDtype, err := NewDataTypeFromType(reflect.TypeOf(dtype)); err == nil {

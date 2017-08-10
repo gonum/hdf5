@@ -134,7 +134,7 @@ var cdot = C.CString(".")
 
 // Creates a packet table to store fixed-length packets.
 // hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
-func (f *File) CreateTable(name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
+func (f *File) CreateTable(name string, dtype *DataType, chunkSize, compression int) (*Table, error) {
 	return createTable(f.id, name, dtype, chunkSize, compression)
 }
 

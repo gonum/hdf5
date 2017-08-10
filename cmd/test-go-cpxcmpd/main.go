@@ -70,7 +70,7 @@ func main() {
 	fmt.Printf(":: file [%s] created (id=%d)\n", fname, f.Id())
 
 	// create the memory data type
-	dtype, err := hdf5.NewDatatypeFromValue(s1[0])
+	dtype, err := hdf5.NewDataTypeFromValue(s1[0])
 	if err != nil {
 		panic("could not create a dtype")
 	}

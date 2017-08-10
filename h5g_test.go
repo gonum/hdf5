@@ -86,7 +86,7 @@ func TestGroup(t *testing.T) {
 
 	data := 5
 
-	dtype, err := NewDatatypeFromValue(data)
+	dtype, err := NewDataTypeFromValue(data)
 	if err != nil {
 		t.Fatal(err)
 	}
