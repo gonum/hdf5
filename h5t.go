@@ -188,7 +188,7 @@ func (t *Datatype) Size() uint {
 }
 
 // SetSize sets the total size of a Datatype.
-func (t *Datatype) SetSize(sz uint) error {
+func (t *Datatype) SetSize(sz int) error {
 	err := C.H5Tset_size(t.id, C.size_t(sz))
 	return h5err(err)
 }

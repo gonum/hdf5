@@ -130,6 +130,8 @@ package hdf5
  hid_t _H5T_NATIVE_UINT32() { return H5T_NATIVE_UINT32; }
  hid_t _H5T_NATIVE_INT64() { return H5T_NATIVE_INT64; }
  hid_t _H5T_NATIVE_UINT64() { return H5T_NATIVE_UINT64; }
+
+ size_t size_t_H5T_VARIABLE() { return H5T_VARIABLE; }
 */
 import "C"
 
@@ -260,14 +262,14 @@ var (
 )
 
 //
-var h5t_VARIABLE int64 = C.H5T_VARIABLE
+var h5t_VARIABLE = int(C.size_t_H5T_VARIABLE())
 
 func makeGoStringDatatype() *Datatype {
 	dt, err := T_C_S1.Copy()
 	if err != nil {
 		panic(err)
 	}
-	err = dt.SetSize(uint(h5t_VARIABLE))
+	err = dt.SetSize(h5t_VARIABLE)
 	if err != nil {
 		panic(err)
 	}
