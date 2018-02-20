@@ -41,6 +41,9 @@ const (
 // list of go types
 var (
 	_go_string_t reflect.Type = reflect.TypeOf(string(""))
+
+	_go_boolean_t reflect.Type = reflect.TypeOf(bool(false))
+
 	_go_int_t    reflect.Type = reflect.TypeOf(int(0))
 	_go_int8_t   reflect.Type = reflect.TypeOf(int8(0))
 	_go_int16_t  reflect.Type = reflect.TypeOf(int16(0))
@@ -402,6 +405,9 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 
 	case reflect.String:
 		dt, err = T_GO_STRING.Copy()
+
+	case reflect.Bool:
+		dt, err = T_NATIVE_HBOOL.Copy()
 
 	case reflect.Array:
 		elem_type, err := NewDataTypeFromType(t.Elem())
