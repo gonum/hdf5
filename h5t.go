@@ -466,6 +466,9 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 		}
 		dt = &cdt.Datatype
 
+	case reflect.Ptr:
+		return NewDataTypeFromType(t.Elem())
+
 	default:
 		// Should never happen.
 		panic(fmt.Errorf("unhandled kind (%v)", t.Kind()))
