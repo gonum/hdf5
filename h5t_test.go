@@ -26,10 +26,13 @@ func TestSimpleDatatypes(t *testing.T) {
 		float32(0),
 		float64(0),
 		string(""),
+		bool(true),
 	}
 
 	for test := range tests {
 		NewDatatypeFromValue(test)
+		// Test again for usage with ptrs
+		NewDatatypeFromValue(&test)
 	}
 }
 
@@ -65,48 +68,62 @@ func TestStructDatatype(t *testing.T) {
 
 	// Test that the type can be constructed and that the number of
 	// members is as expected.
+	var dtypes []*Datatype
+
+	// "Regular" value
 	dtype, err := NewDatatypeFromValue(test)
 	if err != nil {
 		t.Fatal(err)
 	}
-	dt := CompoundType{*dtype}
-	if dt.NMembers() != 3 {
-		t.Errorf("wrong number of members: got %d, want %d", dt.NMembers(), 3)
-	}
+	dtypes = append(dtypes, dtype)
 
-	memberClasses := []TypeClass{
-		T_INTEGER,
-		T_STRING,
-		T_COMPOUND,
+	// pointer to value
+	dtype, err = NewDatatypeFromValue(test)
+	if err != nil {
+		t.Fatal(err)
 	}
-	// Test the member classes, and also test that they can be constructed
-	for idx, class := range memberClasses {
-		if dt.MemberClass(idx) != class {
-			t.Errorf("wrong TypeClass: got %v, want %v", dt.MemberClass(idx), class)
-		}
-		_, err := dt.MemberType(idx)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
+	dtypes = append(dtypes, dtype)
 
-	// Test the member names
-	memberNames := []string{"a", "b", "c"}
-	for idx, name := range memberNames {
-		if dt.MemberName(idx) != name {
-			t.Errorf("wrong name: got %q, want %q", dt.MemberName(idx), name)
+	for _, dtype := range dtypes {
+		dt := CompoundType{*dtype}
+		if dt.NMembers() != 3 {
+			t.Errorf("wrong number of members: got %d, want %d", dt.NMembers(), 3)
 		}
-		if dt.MemberIndex(name) != idx {
-			t.Errorf("wrong index: got %d, want %d", dt.MemberIndex(name), idx)
-		}
-	}
 
-	// Pack the datatype, otherwise offsets are implementation defined
-	dt.Pack()
-	memberOffsets := []int{0, 4, 12}
-	for idx, offset := range memberOffsets {
-		if dt.MemberOffset(idx) != offset {
-			t.Errorf("wrong offset: got %d, want %d", dt.MemberOffset(idx), offset)
+		memberClasses := []TypeClass{
+			T_INTEGER,
+			T_STRING,
+			T_COMPOUND,
+		}
+		// Test the member classes, and also test that they can be constructed
+		for idx, class := range memberClasses {
+			if dt.MemberClass(idx) != class {
+				t.Errorf("wrong TypeClass: got %v, want %v", dt.MemberClass(idx), class)
+			}
+			_, err := dt.MemberType(idx)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		// Test the member names
+		memberNames := []string{"a", "b", "c"}
+		for idx, name := range memberNames {
+			if dt.MemberName(idx) != name {
+				t.Errorf("wrong name: got %q, want %q", dt.MemberName(idx), name)
+			}
+			if dt.MemberIndex(name) != idx {
+				t.Errorf("wrong index: got %d, want %d", dt.MemberIndex(name), idx)
+			}
+		}
+
+		// Pack the datatype, otherwise offsets are implementation defined
+		dt.Pack()
+		memberOffsets := []int{0, 4, 12}
+		for idx, offset := range memberOffsets {
+			if dt.MemberOffset(idx) != offset {
+				t.Errorf("wrong offset: got %d, want %d", dt.MemberOffset(idx), offset)
+			}
 		}
 	}
 }
