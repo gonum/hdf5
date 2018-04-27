@@ -19,10 +19,10 @@ const (
 
 type particle struct {
 	// name        string  `hdf5:"Name"`      // FIXME(sbinet)
-	lati        int32   `hdf5:"Latitude"`
-	longi       int64   `hdf5:"Longitude"`
-	pressure    float32 `hdf5:"Pressure"`
-	temperature float64 `hdf5:"Temperature"`
+	Lati        int32   `hdf5:"Latitude"`
+	Longi       int64   `hdf5:"Longitude"`
+	Pressure    float32 `hdf5:"Pressure"`
+	Temperature float64 `hdf5:"Temperature"`
 	// isthep      []int                     // FIXME(sbinet)
 	// jmohep [2][2]int64                    // FIXME(sbinet)
 }

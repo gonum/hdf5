@@ -18,6 +18,26 @@ import (
 	"unsafe"
 )
 
+// appendData is a wrapper type for information necessary to create and
+// subsequently write an in memory object to a PacketTable using Append().
+type appendData struct {
+	ptr        unsafe.Pointer
+	memSize    C.size_t
+	offset     C.size_t
+	numRecords C.size_t
+	strs       []unsafe.Pointer
+}
+
+func (ad *appendData) free() {
+	C.free(ad.ptr)
+	ad.ptr = nil
+
+	for _, str := range ad.strs {
+		C.free(str)
+		str = nil
+	}
+}
+
 // Table is an hdf5 packet-table.
 type Table struct {
 	Identifier
@@ -82,170 +102,147 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	return h5err(err)
 }
 
-func extractStructValues(rv reflect.Value, rt reflect.Type) (ptr unsafe.Pointer, err error) {
-	// Initially the memory will be allocated to 64 bytes. If more is required
-	// later, this will be increased.
-	memSize := C.size_t(64)
-	ptr = C.malloc(memSize)
-
-	for i := 0; i < rv.NumField(); i++ {
-		var dataPtr unsafe.Pointer
-		var dataSize C.size_t
-		f := rv.Field(i)
-		ft := f.Type().Kind()
-		offset := C.size_t(rt.Field(i).Offset)
-
-		switch ft {
-		case reflect.Int8:
-			val := C.int8_t(int8(f.Int()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Uint8:
-			val := C.uint8_t(uint8(f.Uint()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Int16:
-			val := C.uint8_t(int16(f.Int()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Uint16:
-			val := C.uint8_t(uint16(f.Uint()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Int32:
-			val := C.uint8_t(int32(f.Int()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Uint32:
-			val := C.uint8_t(uint32(f.Uint()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Int64:
-			val := C.int64_t(int64(f.Int()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Uint64:
-			val := C.uint64_t(uint64(f.Uint()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Float32:
-			val := C.float(float32(f.Float()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Float64:
-			val := C.double(float64(f.Float()))
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		case reflect.Bool:
-			val := C.uchar(0)
-			if f.Bool() {
-				val = 1
-			}
-			dataPtr = unsafe.Pointer(&val)
-			dataSize = C.size_t(unsafe.Sizeof(val))
-		default:
-			err = fmt.Errorf("hdf5: Could not append struct member %s "+
-				"to PacketTable", ft)
-			return nil, err
-		}
-
-		// If the earlier allocated memory is not enough, we will increase it
-		// by another 64 bytes.
-		if memSize < (dataSize + offset) {
-			memSize += 64
-			ptr = C.realloc(ptr, memSize)
-			C.memset(unsafe.Pointer(uintptr(ptr)+uintptr(offset)), 0, 64)
-		}
-		C.memcpy(unsafe.Pointer(uintptr(ptr)+uintptr(offset)), dataPtr, dataSize)
-	}
-
-	return ptr, nil
-}
-
-// Append appends packets to the end of a packet table.
-func (t *Table) Append(data interface{}) (err error) {
+// extractValues extracts the values to be appended to a packet table and adds
+// them to the appendData structure.
+//
+// Struct values must only have exported fields, otherwise extractValues will
+// panic.
+func extractValues(ad *appendData, data interface{}) error {
 	rv := reflect.Indirect(reflect.ValueOf(data))
-	rp := reflect.Indirect(reflect.ValueOf(&data))
 	rt := rv.Type()
-	cNrecords := C.size_t(1)
-	cData := unsafe.Pointer(nil)
+
+	var dataPtr unsafe.Pointer
+	var dataSize C.size_t
 
 	switch rt.Kind() {
 	case reflect.Slice, reflect.Array:
 		for i := 0; i < rv.Len(); i++ {
-			if err = t.Append(rv.Index(i).Interface()); err != nil {
+			if err := extractValues(ad, rv.Index(i).Interface()); err != nil {
 				return err
 			}
 		}
+		ad.numRecords = C.size_t(rv.Len())
 		return nil
 
 	case reflect.Struct:
-		if cData, err = extractStructValues(rv, rt); err != nil {
-			return err
+		offset := ad.offset
+		for i := 0; i < rv.NumField(); i++ {
+			sfv := rv.Field(i).Interface()
+			// In order to keep the struct offset always correct
+			ad.offset = offset + C.size_t(rt.Field(i).Offset)
+			if err := extractValues(ad, sfv); err != nil {
+				return err
+			}
+			// Reset the offset to the correct array sized
+			ad.offset = offset + C.size_t(rt.Size())
 		}
-		defer C.free(cData)
+		ad.numRecords = 1
+		return nil
 
 	case reflect.String:
+		ad.numRecords = 1
 		stringData := C.CString(rv.String())
-		defer C.free(unsafe.Pointer(stringData))
-		cData = unsafe.Pointer(&stringData)
+		ad.strs = append(ad.strs, unsafe.Pointer(stringData))
+		dataPtr = unsafe.Pointer(&stringData)
+		dataSize = C.size_t(unsafe.Sizeof(dataPtr))
 
 	case reflect.Ptr:
-		ptrVal := rp.Elem()
-		cData = unsafe.Pointer(&ptrVal)
-
-	case reflect.Bool:
-		val := C.uchar(0)
-		if data.(bool) {
-			val = 1
-		}
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		return extractValues(ad, rv.Elem())
 
 	case reflect.Int8:
-		val := C.int8_t(data.(int8))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.int8_t(rv.Int())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 1
 
 	case reflect.Uint8:
-		val := C.uint8_t(data.(uint8))
-		cData = unsafe.Pointer(&val)
-
-	case reflect.Uint16:
-		val := C.uint16_t(data.(uint16))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.uint8_t(rv.Uint())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 1
 
 	case reflect.Int16:
-		val := C.int16_t(data.(int16))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.int16_t(rv.Int())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 2
+
+	case reflect.Uint16:
+		ad.numRecords = 1
+		val := C.uint16_t(rv.Uint())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 2
 
 	case reflect.Int32:
-		val := C.int32_t(data.(int32))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.int32_t(rv.Int())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 4
 
 	case reflect.Uint32:
-		val := C.uint32_t(data.(uint32))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.uint32_t(rv.Uint())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 4
 
 	case reflect.Int64:
-		val := C.int64_t(data.(int64))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.int64_t(rv.Int())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 8
 
 	case reflect.Uint64:
-		val := C.uint64_t(data.(uint64))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.uint64_t(rv.Uint())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 8
 
 	case reflect.Float32:
-		val := C.float(data.(float32))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.float(rv.Float())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 4
 
 	case reflect.Float64:
-		val := C.double(data.(float64))
-		cData = unsafe.Pointer(&val)
+		ad.numRecords = 1
+		val := C.double(rv.Float())
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 8
+
+	case reflect.Bool:
+		ad.numRecords = 1
+		val := C.uchar(0)
+		if rv.Bool() {
+			val = 1
+		}
+		dataPtr = unsafe.Pointer(&val)
+		dataSize = 1
 
 	default:
 		return fmt.Errorf("hdf5: PT Append does not support datatype (%s).", rt.Kind())
 	}
 
-	return h5err(C.H5PTappend(t.id, cNrecords, cData))
+	ad.memSize = dataSize + ad.offset
+	ad.ptr = C.realloc(ad.ptr, ad.memSize)
+	C.memcpy(unsafe.Pointer(uintptr(ad.ptr)+uintptr(ad.offset)), dataPtr, dataSize)
+	ad.offset += dataSize
+
+	return nil
+}
+
+// Append appends packets to the end of a packet table.
+//
+// Struct values must only have exported fields, otherwise Append will panic.
+func (t *Table) Append(data interface{}) error {
+	var ad appendData
+	defer ad.free()
+
+	if err := extractValues(&ad, data); err != nil {
+		return err
+	}
+
+	return h5err(C.H5PTappend(t.id, ad.numRecords, ad.ptr))
 }
 
 // Next reads packets from a packet table starting at the current index into the value pointed at by data.
