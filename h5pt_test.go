@@ -7,8 +7,8 @@ package hdf5
 import (
 	"os"
 	"reflect"
+	"testing"
 )
-import "testing"
 
 const (
 	fname     string = "ex_table_01.h5"
@@ -18,20 +18,20 @@ const (
 )
 
 type particle struct {
-	//name        string  `hdf5:"Name"`		 // FIXME(TacoVox)
-	vehicle_no  uint8   `hdf5:"Vehicle Number"`
-	sattelites  int8    `hdf5:"Sattelites"`
-	cars_no     int16   `hdf5:"Number of Cars"`
-	trucks_no   int16   `hdf5:"Number of Trucks"`
-	min_speed   uint32  `hdf5:"Minimum Speed"`
-	lati        int32   `hdf5:"Latitude"`
-	max_speed   uint64  `hdf5:"Maximum Speed"`
-	longi       int64   `hdf5:"Longitude"`
-	pressure    float32 `hdf5:"Pressure"`
-	temperature float64 `hdf5:"Temperature"`
-	accurate    bool    `hdf5:"Accurate"`
-	// isthep      []int                     // FIXME(sbinet)
-	// jmohep [2][2]int64                    // FIXME(sbinet)
+	// Name        string  `hdf5:"Name"` // FIXME(TacoVox): ReadPackets seems to need an update
+	Vehicle_no  uint8   `hdf5:"Vehicle Number"`
+	Satellites  int8    `hdf5:"Satellites"`
+	Cars_no     int16   `hdf5:"Number of Cars"`
+	Trucks_no   int16   `hdf5:"Number of Trucks"`
+	Min_speed   uint32  `hdf5:"Minimum Speed"`
+	Lati        int32   `hdf5:"Latitude"`
+	Max_speed   uint64  `hdf5:"Maximum Speed"`
+	Longi       int64   `hdf5:"Longitude"`
+	Pressure    float32 `hdf5:"Pressure"`
+	Temperature float64 `hdf5:"Temperature"`
+	Accurate    bool    `hdf5:"Accurate"`
+	// isthep      []int       // FIXME(sbinet)
+	// jmohep      [2][2]int64 // FIXME(sbinet)
 }
 
 func testTable(t *testing.T, dType interface{}, data interface{}, nrecords int) {
