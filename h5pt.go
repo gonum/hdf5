@@ -32,9 +32,9 @@ func (ad *appendData) free() {
 	C.free(ad.ptr)
 	ad.ptr = nil
 
-	for _, str := range ad.strs {
+	for i, str := range ad.strs {
 		C.free(str)
-		str = nil
+		ad.strs[i] = nil
 	}
 }
 
