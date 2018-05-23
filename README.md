@@ -15,11 +15,15 @@ Naive ``cgo`` bindings for the ``C-API`` of ``hdf5``.
 
 - Writing/reading an ``hdf5`` with compound data: [cmd/test-go-cpxcmpd/main.go](https://github.com/gonum/hdf5/blob/master/cmd/test-go-cpxcmpd/main.go)
 
-## Note
+## Notes
 
 - *Only* version *1.8.x* of ``HDF5`` is supported.
 - In order to use ``HDF5`` functions in more than one goroutine simultaneously, you must build the HDF5 library with threading support. Many binary distributions (RHEL/centos/Fedora packages, etc.) do not have this enabled. Therefore, you must build HDF5 yourself on these systems.
-
+- By default, `gonum/hdf5` is assuming to be compiled against `hdf5-v1.8.x`.
+  If you want to take advantage of the new features of `hdf5-v1.10.x`, please build it with the `hdf5_v1.10` build tag:
+	```
+	$> go install -tags="hdf5_v1.10" ./...
+	```
 
 ## Known problems
 

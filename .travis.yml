@@ -22,6 +22,9 @@ addons:
 env:
   global:
     - GODEBUG=cgocheck=0
+    - TAGS="hdf5_v1.8"
+    ## FIXME: add hdf5_v1.10 when trusty->bionic
+    ## - TAGS="hdf5_v1.8 hdf5_v1.10"
 
 notifications:
   email:
@@ -31,7 +34,7 @@ notifications:
     on_failure: always
 
 script:
- - go get -d -t -v ./...
- - go install -v ./...
- - go test -v ./...
+ - go get -d -t -v -tags="$TAGS" ./...
+ - go install -v -tags="$TAGS" ./...
+ - go test -v -tags="$TAGS" ./...
 
