@@ -16,27 +16,9 @@ import (
 	"reflect"
 	"runtime"
 	"unsafe"
+
+	"gonum.org/v1/hdf5/cmem"
 )
-
-// appendData is a wrapper type for information necessary to create and
-// subsequently write an in memory object to a PacketTable using Append().
-type appendData struct {
-	ptr        unsafe.Pointer
-	memSize    C.size_t
-	offset     C.size_t
-	numRecords C.size_t
-	strs       []unsafe.Pointer
-}
-
-func (ad *appendData) free() {
-	C.free(ad.ptr)
-	ad.ptr = nil
-
-	for i, str := range ad.strs {
-		C.free(str)
-		ad.strs[i] = nil
-	}
-}
 
 // Table is an hdf5 packet-table.
 type Table struct {
@@ -102,147 +84,26 @@ func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	return h5err(err)
 }
 
-// extractValues extracts the values to be appended to a packet table and adds
-// them to the appendData structure.
-//
-// Struct values must only have exported fields, otherwise extractValues will
-// panic.
-func extractValues(ad *appendData, data interface{}) error {
-	rv := reflect.Indirect(reflect.ValueOf(data))
-	rt := rv.Type()
-
-	var dataPtr unsafe.Pointer
-	var dataSize C.size_t
-
-	switch rt.Kind() {
-	case reflect.Slice, reflect.Array:
-		for i := 0; i < rv.Len(); i++ {
-			if err := extractValues(ad, rv.Index(i).Interface()); err != nil {
-				return err
-			}
-		}
-		ad.numRecords = C.size_t(rv.Len())
-		return nil
-
-	case reflect.Struct:
-		offset := ad.offset
-		for i := 0; i < rv.NumField(); i++ {
-			sfv := rv.Field(i).Interface()
-			// In order to keep the struct offset always correct
-			ad.offset = offset + C.size_t(rt.Field(i).Offset)
-			if err := extractValues(ad, sfv); err != nil {
-				return err
-			}
-			// Reset the offset to the correct array sized
-			ad.offset = offset + C.size_t(rt.Size())
-		}
-		ad.numRecords = 1
-		return nil
-
-	case reflect.String:
-		ad.numRecords = 1
-		stringData := C.CString(rv.String())
-		ad.strs = append(ad.strs, unsafe.Pointer(stringData))
-		dataPtr = unsafe.Pointer(&stringData)
-		dataSize = C.size_t(unsafe.Sizeof(dataPtr))
-
-	case reflect.Ptr:
-		ad.numRecords = 1
-		return extractValues(ad, rv.Elem())
-
-	case reflect.Int8:
-		ad.numRecords = 1
-		val := C.int8_t(rv.Int())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 1
-
-	case reflect.Uint8:
-		ad.numRecords = 1
-		val := C.uint8_t(rv.Uint())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 1
-
-	case reflect.Int16:
-		ad.numRecords = 1
-		val := C.int16_t(rv.Int())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 2
-
-	case reflect.Uint16:
-		ad.numRecords = 1
-		val := C.uint16_t(rv.Uint())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 2
-
-	case reflect.Int32:
-		ad.numRecords = 1
-		val := C.int32_t(rv.Int())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 4
-
-	case reflect.Uint32:
-		ad.numRecords = 1
-		val := C.uint32_t(rv.Uint())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 4
-
-	case reflect.Int64:
-		ad.numRecords = 1
-		val := C.int64_t(rv.Int())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 8
-
-	case reflect.Uint64:
-		ad.numRecords = 1
-		val := C.uint64_t(rv.Uint())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 8
-
-	case reflect.Float32:
-		ad.numRecords = 1
-		val := C.float(rv.Float())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 4
-
-	case reflect.Float64:
-		ad.numRecords = 1
-		val := C.double(rv.Float())
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 8
-
-	case reflect.Bool:
-		ad.numRecords = 1
-		val := C.uchar(0)
-		if rv.Bool() {
-			val = 1
-		}
-		dataPtr = unsafe.Pointer(&val)
-		dataSize = 1
-
-	default:
-		return fmt.Errorf("hdf5: PT Append does not support datatype (%s).", rt.Kind())
-	}
-
-	ad.memSize = dataSize + ad.offset
-	ad.ptr = C.realloc(ad.ptr, ad.memSize)
-	C.memcpy(unsafe.Pointer(uintptr(ad.ptr)+uintptr(ad.offset)), dataPtr, dataSize)
-	ad.offset += dataSize
-
-	return nil
-}
-
 // Append appends packets to the end of a packet table.
 //
 // Struct values must only have exported fields, otherwise Append will panic.
-func (t *Table) Append(data interface{}) error {
-	var ad appendData
-	defer ad.free()
-
-	if err := extractValues(&ad, data); err != nil {
-		return err
+func (t *Table) Append(args ...interface{}) error {
+	if len(args) == 0 {
+		return fmt.Errorf("hdf5: no arguments passed to packet table append.")
 	}
 
-	return h5err(C.H5PTappend(t.id, ad.numRecords, ad.ptr))
+	var enc cmem.Encoder
+	for _, arg := range args {
+		if err := enc.Encode(arg); err != nil {
+			return err
+		}
+	}
+
+	if len(enc.Buf) <= 0 {
+		return fmt.Errorf("hdf5: invalid empty buffer")
+	}
+
+	return h5err(C.H5PTappend(t.id, C.size_t(len(args)), unsafe.Pointer(&enc.Buf[0])))
 }
 
 // Next reads packets from a packet table starting at the current index into the value pointed at by data.

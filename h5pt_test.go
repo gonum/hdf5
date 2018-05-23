@@ -34,7 +34,7 @@ type particle struct {
 	// jmohep      [2][2]int64 // FIXME(sbinet)
 }
 
-func testTable(t *testing.T, dType interface{}, data interface{}, nrecords int) {
+func testTable(t *testing.T, dType interface{}, data ...interface{}) {
 	var table *Table
 
 	typeString := reflect.TypeOf(data).String()
@@ -58,7 +58,7 @@ func testTable(t *testing.T, dType interface{}, data interface{}, nrecords int) 
 	}
 
 	// write one packet to the packet table
-	if err = table.Append(data); err != nil {
+	if err = table.Append(data...); err != nil {
 		t.Fatalf("Append failed with single packet for %s: %s", typeString, err)
 	}
 
@@ -67,8 +67,8 @@ func testTable(t *testing.T, dType interface{}, data interface{}, nrecords int) 
 	if err != nil {
 		t.Fatalf("NumPackets failed for %s: %s", typeString, err)
 	}
-	if n != nrecords {
-		t.Fatalf("Wrong number of packets reported for %s, expected %d but got %d", typeString, nrecords, n)
+	if n != len(data) {
+		t.Fatalf("Wrong number of packets reported for %s, expected %d but got %d", typeString, len(data), n)
 	}
 
 	// iterate through packets
@@ -87,9 +87,9 @@ func testTable(t *testing.T, dType interface{}, data interface{}, nrecords int) 
 	// reset index
 	table.CreateIndex()
 
-	readdata := make([]particle, nrecords)
+	readdata := make([]particle, len(data))
 
-	if err = table.ReadPackets(0, nrecords, &readdata); err != nil {
+	if err = table.ReadPackets(0, len(data), &readdata); err != nil {
 		t.Fatalf("ReadPackets failed for %s: %s", typeString, err)
 	}
 
@@ -99,17 +99,6 @@ func testTable(t *testing.T, dType interface{}, data interface{}, nrecords int) 
 }
 
 func TestPTStruct(t *testing.T) {
-	// define an array of particles
-	particles := []particle{
-		{0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, false},
-		{10, 10, 10, 10, 10, 10, 10, 10, 1.0, 10.0, false},
-		{20, 20, 20, 20, 20, 20, 20, 20, 2.0, 20.0, false},
-		{30, 30, 30, 30, 30, 30, 30, 30, 3.0, 30.0, false},
-		{40, 40, 40, 40, 40, 40, 40, 40, 4.0, 40.0, true},
-		{50, 50, 50, 50, 50, 50, 50, 50, 5.0, 50.0, true},
-		{60, 60, 60, 60, 60, 60, 60, 60, 6.0, 60.0, true},
-		{70, 70, 70, 70, 70, 70, 70, 70, 7.0, 70.0, true},
-	}
 	// particles := []particle{
 	// 	{"zero", 0, 0, 0.0, 0., []int{0, 0}, [2][2]int{{0, 0}, {0, 0}}},
 	// 	{"one", 10, 10, 1.0, 10., []int{0, 0}, [2][2]int{{1, 0}, {0, 1}}},
@@ -119,84 +108,162 @@ func TestPTStruct(t *testing.T) {
 	// 	{"five", 50, 50, 5.0, 50., []int{0, 0}, [2][2]int{{5, 0}, {0, 5}}},
 	// 	{"six", 60, 60, 6.0, 60., []int{0, 0}, [2][2]int{{6, 0}, {0, 6}}},
 	// 	{"seven", 70, 70, 7.0, 70., []int{0, 0}, [2][2]int{{7, 0}, {0, 7}}},
-	// }
+	// } // TODO use array and strings when read is fixed.
 
-	testTable(t, particle{}, particles[0], 1)
-
-	parts := particles[1:]
-	testTable(t, particle{}, parts, 7)
+	testTable(t, particle{}, particle{0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, false})
+	testTable(t, particle{},
+		particle{10, 10, 10, 10, 10, 10, 10, 10, 1.0, 10.0, false},
+		particle{20, 20, 20, 20, 20, 20, 20, 20, 2.0, 20.0, false},
+		particle{30, 30, 30, 30, 30, 30, 30, 30, 3.0, 30.0, false},
+		particle{40, 40, 40, 40, 40, 40, 40, 40, 4.0, 40.0, true},
+		particle{50, 50, 50, 50, 50, 50, 50, 50, 5.0, 50.0, true},
+		particle{60, 60, 60, 60, 60, 60, 60, 60, 6.0, 60.0, true},
+		particle{70, 70, 70, 70, 70, 70, 70, 70, 7.0, 70.0, true},
+	)
 }
 
 func TestPTableBasic(t *testing.T) {
 	// INT8
-	i8s := []int8{-3, -2, -1, 0, 1, 2, 3, 4}
-	testTable(t, T_NATIVE_INT8, i8s[0], 1)
-	i8sub := i8s[1:]
-	testTable(t, T_NATIVE_INT8, i8sub, 7)
+	testTable(t, T_NATIVE_INT8, int8(-3))
+	testTable(t, T_NATIVE_INT8,
+		int8(-2),
+		int8(-1),
+		int8(0),
+		int8(1),
+		int8(2),
+		int8(3),
+		int8(4),
+	)
 
 	// INT16
-	i16s := []int16{-3, -2, -1, 0, 1, 2, 3, 4}
-	testTable(t, T_NATIVE_INT16, i16s[0], 1)
-	i16sub := i16s[1:]
-	testTable(t, T_NATIVE_INT16, i16sub, 7)
+	testTable(t, T_NATIVE_INT16, int16(-3))
+	testTable(t, T_NATIVE_INT16,
+		int16(-2),
+		int16(-1),
+		int16(0),
+		int16(1),
+		int16(2),
+		int16(3),
+		int16(4),
+	)
 
 	// INT32
-	i32s := []int32{-3, -2, -1, 0, 1, 2, 3, 4}
-	testTable(t, T_NATIVE_INT32, i32s[0], 1)
-	i32sub := i32s[1:]
-	testTable(t, T_NATIVE_INT32, i32sub, 7)
+	testTable(t, T_NATIVE_INT32, int32(-3))
+	testTable(t, T_NATIVE_INT32,
+		int32(-2),
+		int32(-1),
+		int32(0),
+		int32(1),
+		int32(2),
+		int32(3),
+		int32(4),
+	)
 
 	// INT64
-	i64s := []int64{-3, -2, -1, 0, 1, 2, 3, 4}
-	testTable(t, T_NATIVE_INT64, i64s[0], 1)
-	i64sub := i64s[1:]
-	testTable(t, T_NATIVE_INT64, i64sub, 7)
+	testTable(t, T_NATIVE_INT64, int64(-3))
+	testTable(t, T_NATIVE_INT64,
+		int64(-2),
+		int64(-1),
+		int64(0),
+		int64(1),
+		int64(2),
+		int64(3),
+		int64(4),
+	)
 
 	// UINT8
-	ui8s := []uint8{0, 1, 2, 3, 4, 5, 6, 7}
-	testTable(t, T_NATIVE_UINT8, ui8s[0], 1)
-	ui8sub := ui8s[1:]
-	testTable(t, T_NATIVE_UINT8, ui8sub, 7)
+	testTable(t, T_NATIVE_UINT8, uint8(0))
+	testTable(t, T_NATIVE_UINT8,
+		uint8(1),
+		uint8(2),
+		uint8(3),
+		uint8(4),
+		uint8(5),
+		uint8(6),
+		uint8(7),
+	)
 
 	// UINT16
-	ui16s := []uint16{0, 1, 2, 3, 4, 5, 6, 7}
-	testTable(t, T_NATIVE_UINT16, ui16s[0], 1)
-	ui16sub := ui16s[1:]
-	testTable(t, T_NATIVE_UINT16, ui16sub, 7)
+	testTable(t, T_NATIVE_UINT16, uint16(0))
+	testTable(t, T_NATIVE_UINT16,
+		uint16(1),
+		uint16(2),
+		uint16(3),
+		uint16(4),
+		uint16(5),
+		uint16(6),
+		uint16(7),
+	)
 
 	// UINT32
-	ui32s := []uint32{0, 1, 2, 3, 4, 5, 6, 7}
-	testTable(t, T_NATIVE_UINT32, ui32s[0], 1)
-	ui32sub := ui32s[1:]
-	testTable(t, T_NATIVE_UINT32, ui32sub, 7)
+	testTable(t, T_NATIVE_UINT32, uint32(0))
+	testTable(t, T_NATIVE_UINT32,
+		uint32(1),
+		uint32(2),
+		uint32(3),
+		uint32(4),
+		uint32(5),
+		uint32(6),
+		uint32(7),
+	)
 
 	// UINT64
-	ui64s := []uint64{0, 1, 2, 3, 4, 5, 6, 7}
-	testTable(t, T_NATIVE_UINT64, ui64s[0], 1)
-	ui64sub := ui64s[1:]
-	testTable(t, T_NATIVE_UINT64, ui64sub, 7)
+	testTable(t, T_NATIVE_UINT64, uint64(0))
+	testTable(t, T_NATIVE_UINT64,
+		uint64(1),
+		uint64(2),
+		uint64(3),
+		uint64(4),
+		uint64(5),
+		uint64(6),
+		uint64(7),
+	)
 
 	// FLOAT32
-	f32s := []float32{0., 1., 2., 3., 4., 5., 6., 7.}
-	testTable(t, T_NATIVE_FLOAT, f32s[0], 1)
-	f32sub := f32s[1:]
-	testTable(t, T_NATIVE_FLOAT, f32sub, 7)
+	testTable(t, T_NATIVE_FLOAT, float32(0))
+	testTable(t, T_NATIVE_FLOAT,
+		float32(1),
+		float32(2),
+		float32(3),
+		float32(4),
+		float32(5),
+		float32(6),
+		float32(7),
+	)
 
 	// FLOAT64
-	f64s := []float64{0., 1., 2., 3., 4., 5., 6., 7.}
-	testTable(t, T_NATIVE_DOUBLE, f64s[0], 1)
-	f64sub := f64s[1:]
-	testTable(t, T_NATIVE_DOUBLE, f64sub, 7)
+	testTable(t, T_NATIVE_DOUBLE, float64(0))
+	testTable(t, T_NATIVE_DOUBLE,
+		float64(1),
+		float64(2),
+		float64(3),
+		float64(4),
+		float64(5),
+		float64(6),
+		float64(7),
+	)
 
 	// BOOL
-	bs := []bool{false, true, false, true, false, true, false, true}
-	testTable(t, T_NATIVE_HBOOL, bs[0], 1)
-	bsub := bs[1:]
-	testTable(t, T_NATIVE_HBOOL, bsub, 7)
+	testTable(t, T_NATIVE_HBOOL, false)
+	testTable(t, T_NATIVE_HBOOL,
+		true,
+		false,
+		true,
+		false,
+		true,
+		false,
+		true,
+	)
 
 	// STRING
-	strs := []string{"zero", "one", "two", "three", "four", "five", "six", "seven"}
-	testTable(t, T_GO_STRING, strs[0], 1)
-	strsub := strs[1:]
-	testTable(t, T_GO_STRING, strsub, 7)
+	testTable(t, T_GO_STRING, "zero")
+	testTable(t, T_GO_STRING,
+		"one",
+		"two",
+		"three",
+		"four",
+		"five",
+		"six",
+		"seven",
+	)
 }

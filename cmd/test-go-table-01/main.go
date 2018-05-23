@@ -75,13 +75,14 @@ func main() {
 	}
 
 	// write one packet to the packet table
-	if err = table.Append(&particles[0]); err != nil {
+	if err = table.Append(particles[0]); err != nil {
 		panic(fmt.Errorf("Append failed with single packet: %s", err))
 	}
 
 	// write several packets
-	parts := particles[1:]
-	if err = table.Append(&parts); err != nil {
+	if err = table.Append(particles[1], particles[2], particles[3],
+		particles[4], particles[5], particles[6], particles[7],
+	); err != nil {
 		panic(fmt.Errorf("Append failed with multiple packets: %s", err))
 	}
 
@@ -109,7 +110,7 @@ func main() {
 
 	// reset index
 	table.CreateIndex()
-	parts = make([]particle, nrecords)
+	parts := make([]particle, nrecords)
 	if err = table.ReadPackets(0, nrecords, &parts); err != nil {
 		panic(fmt.Errorf("ReadPackets failed: %s", err))
 	}
