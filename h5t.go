@@ -12,7 +12,6 @@ import "C"
 import (
 	"fmt"
 	"reflect"
-	"runtime"
 	"unsafe"
 )
 
@@ -109,7 +108,6 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 // NewDatatype creates a Datatype from an hdf5 id.
 func NewDatatype(id C.hid_t) *Datatype {
 	t := &Datatype{Identifier{id}}
-	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
@@ -132,12 +130,6 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
-}
-
-func (t *Datatype) finalizer() {
-	if err := t.Close(); err != nil {
-		panic(fmt.Errorf("error closing datatype: %s", err))
-	}
 }
 
 // GoType returns the reflect.Type associated with the Datatype's TypeClass
@@ -212,7 +204,6 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 		return nil, err
 	}
 	t := &ArrayType{Datatype{Identifier{hid}}}
-	runtime.SetFinalizer(t, (*ArrayType).finalizer)
 	return t, nil
 }
 
@@ -250,7 +241,6 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Identifier{id}}}
-	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, nil
 }
 
@@ -271,7 +261,6 @@ func NewCompoundType(size int) (*CompoundType, error) {
 		return nil, err
 	}
 	t := &CompoundType{Datatype{Identifier{id}}}
-	runtime.SetFinalizer(t, (*CompoundType).finalizer)
 	return t, nil
 }
 

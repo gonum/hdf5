@@ -12,7 +12,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -40,15 +39,8 @@ type File struct {
 	CommonFG
 }
 
-func (f *File) finalizer() {
-	if err := f.Close(); err != nil {
-		panic(fmt.Errorf("error closing file: %s", err))
-	}
-}
-
 func newFile(id C.hid_t) *File {
 	f := &File{CommonFG{Identifier{id}}}
-	runtime.SetFinalizer(f, (*File).finalizer)
 	return f
 }
 

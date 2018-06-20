@@ -14,7 +14,6 @@ import "C"
 import (
 	"fmt"
 	"reflect"
-	"runtime"
 	"unsafe"
 
 	"gonum.org/v1/hdf5/cmem"
@@ -27,14 +26,7 @@ type Table struct {
 
 func newPacketTable(id C.hid_t) *Table {
 	t := &Table{Identifier{id}}
-	runtime.SetFinalizer(t, (*Table).finalizer)
 	return t
-}
-
-func (t *Table) finalizer() {
-	if err := t.Close(); err != nil {
-		panic(fmt.Errorf("error closing packet table: %s", err))
-	}
 }
 
 // Close closes an open packet table.

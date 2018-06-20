@@ -12,7 +12,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -38,7 +37,6 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 		return nil, err
 	}
 	group := &Group{CommonFG{Identifier{hid}}}
-	runtime.SetFinalizer(group, (*Group).finalizer)
 	return group, nil
 }
 
@@ -62,12 +60,6 @@ func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Datasp
 	return createAttribute(g.id, name, dtype, dspace, acpl)
 }
 
-func (g *Group) finalizer() {
-	if err := g.Close(); err != nil {
-		panic(fmt.Errorf("error closing group: %s", err))
-	}
-}
-
 // Close closes the Group.
 func (g *Group) Close() error {
 	if g.id == 0 {
@@ -88,7 +80,6 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 		return nil, err
 	}
 	group := &Group{CommonFG{Identifier{hid}}}
-	runtime.SetFinalizer(group, (*Group).finalizer)
 	return group, nil
 }
 
