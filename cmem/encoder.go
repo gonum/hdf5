@@ -54,6 +54,10 @@ func (enc *Encoder) Encode(data interface{}) error {
 	}
 
 	rv := reflect.Indirect(reflect.ValueOf(data))
+	if !rv.IsValid() {
+		return fmt.Errorf("cmem: reflect.ValueOf returned invalid value for type %T", data)
+	}
+
 	rt := rv.Type()
 
 	switch rt.Kind() {
