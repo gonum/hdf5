@@ -52,10 +52,6 @@ func (t *Table) IsValid() bool {
 	return C.H5PTis_valid(t.id) >= 0
 }
 
-func (t *Table) Id() int {
-	return int(t.id)
-}
-
 // ReadPackets reads a number of packets from a packet table.
 func (t *Table) ReadPackets(start, nrecords int, data interface{}) error {
 	c_start := C.hsize_t(start)
