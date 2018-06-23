@@ -54,10 +54,6 @@ func (s *Attribute) finalizer() {
 	}
 }
 
-func (s *Attribute) Id() int {
-	return int(s.id)
-}
-
 // Access the type of an attribute
 func (s *Attribute) GetType() Identifier {
 	ftype := C.H5Aget_type(s.id)

@@ -71,10 +71,6 @@ func (s *Dataspace) Close() error {
 	return err
 }
 
-func (s *Dataspace) Id() int {
-	return int(s.id)
-}
-
 // CreateSimpleDataspace creates a new simple dataspace and opens it for access.
 func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
 	var c_dims, c_maxdims *C.hsize_t
