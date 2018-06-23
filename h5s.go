@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 
-	"runtime"
 	"unsafe"
 )
 
@@ -32,7 +31,6 @@ const (
 
 func newDataspace(id C.hid_t) *Dataspace {
 	ds := &Dataspace{Identifier{id}}
-	runtime.SetFinalizer(ds, (*Dataspace).finalizer)
 	return ds
 }
 
@@ -44,12 +42,6 @@ func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	}
 	ds := newDataspace(hid)
 	return ds, nil
-}
-
-func (s *Dataspace) finalizer() {
-	if err := s.Close(); err != nil {
-		panic(fmt.Errorf("error closing dspace: %s", err))
-	}
 }
 
 // Copy creates an exact copy of a dataspace.

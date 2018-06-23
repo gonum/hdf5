@@ -13,7 +13,6 @@ import (
 	"fmt"
 
 	"reflect"
-	"runtime"
 	"unsafe"
 )
 
@@ -23,7 +22,6 @@ type Dataset struct {
 
 func newDataset(id C.hid_t) *Dataset {
 	d := &Dataset{Identifier{id}}
-	runtime.SetFinalizer(d, (*Dataset).finalizer)
 	return d
 }
 
@@ -39,12 +37,6 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 		return nil, err
 	}
 	return newDataset(hid), nil
-}
-
-func (s *Dataset) finalizer() {
-	if err := s.Close(); err != nil {
-		panic(fmt.Errorf("error closing dset: %s", err))
-	}
 }
 
 // Close releases and terminates access to a dataset.
