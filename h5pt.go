@@ -32,13 +32,15 @@ func newPacketTable(id C.hid_t) *Table {
 }
 
 func (t *Table) finalizer() {
-	if err := t.Close(); err != nil {
+	err := t.closeWith(h5ptclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing packet table: %s", err))
 	}
 }
 
 // Close closes an open packet table.
 func (t *Table) Close() error {
+	runtime.SetFinalizer(t, nil)
 	return t.closeWith(h5ptclose)
 }
 

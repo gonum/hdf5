@@ -63,13 +63,15 @@ func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Datasp
 }
 
 func (g *Group) finalizer() {
-	if err := g.Close(); err != nil {
+	err := g.closeWith(h5gclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing group: %s", err))
 	}
 }
 
 // Close closes the Group.
 func (g *Group) Close() error {
+	runtime.SetFinalizer(g, nil)
 	return g.closeWith(h5gclose)
 }
 

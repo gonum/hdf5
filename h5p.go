@@ -33,7 +33,8 @@ func newPropList(id C.hid_t) *PropList {
 }
 
 func (p *PropList) finalizer() {
-	if err := p.Close(); err != nil {
+	err := p.closeWith(h5pclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing PropList: %s", err))
 	}
 }
@@ -49,6 +50,7 @@ func NewPropList(cls_id PropType) (*PropList, error) {
 
 // Close terminates access to a PropList.
 func (p *PropList) Close() error {
+	runtime.SetFinalizer(p, nil)
 	return p.closeWith(h5pclose)
 }
 

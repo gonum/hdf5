@@ -47,7 +47,8 @@ func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 }
 
 func (s *Dataspace) finalizer() {
-	if err := s.Close(); err != nil {
+	err := s.closeWith(h5sclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing dspace: %s", err))
 	}
 }
@@ -63,6 +64,7 @@ func (s *Dataspace) Copy() (*Dataspace, error) {
 
 // Close releases and terminates access to a dataspace.
 func (s *Dataspace) Close() error {
+	runtime.SetFinalizer(s, nil)
 	return s.closeWith(h5sclose)
 }
 
