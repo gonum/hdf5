@@ -39,12 +39,11 @@ func (t *Table) finalizer() {
 
 // Close closes an open packet table.
 func (t *Table) Close() error {
-	if t.id == 0 {
-		return nil
-	}
-	err := h5err(C.H5PTclose(t.id))
-	t.id = 0
-	return err
+	return t.closeWith(h5ptclose)
+}
+
+func h5ptclose(id C.hid_t) C.herr_t {
+	return C.H5PTclose(id)
 }
 
 // IsValid returns whether or not an indentifier points to a packet table.

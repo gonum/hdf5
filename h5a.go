@@ -62,12 +62,11 @@ func (s *Attribute) GetType() Identifier {
 
 // Close releases and terminates access to an attribute.
 func (s *Attribute) Close() error {
-	if s.id == 0 {
-		return nil
-	}
-	err := h5err(C.H5Aclose(s.id))
-	s.id = 0
-	return err
+	return s.closeWith(h5aclose)
+}
+
+func h5aclose(id C.hid_t) C.herr_t {
+	return C.H5Aclose(id)
 }
 
 // Space returns an identifier for a copy of the dataspace for a attribute.
