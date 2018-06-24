@@ -42,13 +42,15 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 }
 
 func (s *Dataset) finalizer() {
-	if err := s.Close(); err != nil {
+	err := s.closeWith(h5dclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing dset: %s", err))
 	}
 }
 
 // Close releases and terminates access to a dataset.
 func (s *Dataset) Close() error {
+	runtime.SetFinalizer(s, nil)
 	return s.closeWith(h5dclose)
 }
 

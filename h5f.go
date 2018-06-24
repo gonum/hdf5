@@ -41,7 +41,8 @@ type File struct {
 }
 
 func (f *File) finalizer() {
-	if err := f.Close(); err != nil {
+	err := f.closeWith(h5fclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing file: %s", err))
 	}
 }
@@ -97,6 +98,7 @@ func IsHDF5(name string) bool {
 
 // Terminates access to an HDF5 file.
 func (f *File) Close() error {
+	runtime.SetFinalizer(f, nil)
 	return f.closeWith(h5fclose)
 }
 

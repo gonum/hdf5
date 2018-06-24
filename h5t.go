@@ -135,7 +135,8 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 }
 
 func (t *Datatype) finalizer() {
-	if err := t.Close(); err != nil {
+	err := t.closeWith(h5tclose)
+	if err != nil {
 		panic(fmt.Errorf("error closing datatype: %s", err))
 	}
 }
@@ -147,6 +148,7 @@ func (t *Datatype) GoType() reflect.Type {
 
 // Close releases a datatype.
 func (t *Datatype) Close() error {
+	runtime.SetFinalizer(t, nil)
 	return t.closeWith(h5tclose)
 }
 
