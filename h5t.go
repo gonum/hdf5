@@ -147,12 +147,11 @@ func (t *Datatype) GoType() reflect.Type {
 
 // Close releases a datatype.
 func (t *Datatype) Close() error {
-	if t.id == 0 {
-		return nil
-	}
-	err := h5err(C.H5Tclose(t.id))
-	t.id = 0
-	return err
+	return t.closeWith(h5tclose)
+}
+
+func h5tclose(id C.hid_t) C.herr_t {
+	return C.H5Tclose(id)
 }
 
 // Committed determines whether a datatype is a named type or a transient type.

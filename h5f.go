@@ -97,12 +97,11 @@ func IsHDF5(name string) bool {
 
 // Terminates access to an HDF5 file.
 func (f *File) Close() error {
-	if f.id == 0 {
-		return nil
-	}
-	err := h5err(C.H5Fclose(f.id))
-	f.id = 0
-	return err
+	return f.closeWith(h5fclose)
+}
+
+func h5fclose(id C.hid_t) C.herr_t {
+	return C.H5Fclose(id)
 }
 
 // Flushes all buffers associated with a file to disk.

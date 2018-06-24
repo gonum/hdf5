@@ -70,12 +70,11 @@ func (g *Group) finalizer() {
 
 // Close closes the Group.
 func (g *Group) Close() error {
-	if g.id == 0 {
-		return nil
-	}
-	err := h5err(C.H5Gclose(g.id))
-	g.id = 0
-	return err
+	return g.closeWith(h5gclose)
+}
+
+func h5gclose(id C.hid_t) C.herr_t {
+	return C.H5Gclose(id)
 }
 
 // OpenGroup opens an existing child group from this Group.

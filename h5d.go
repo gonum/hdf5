@@ -49,12 +49,11 @@ func (s *Dataset) finalizer() {
 
 // Close releases and terminates access to a dataset.
 func (s *Dataset) Close() error {
-	if s.id == 0 {
-		return nil
-	}
-	err := h5err(C.H5Dclose(s.id))
-	s.id = 0
-	return err
+	return s.closeWith(h5dclose)
+}
+
+func h5dclose(id C.hid_t) C.herr_t {
+	return C.H5Dclose(id)
 }
 
 // Space returns an identifier for a copy of the dataspace for a dataset.

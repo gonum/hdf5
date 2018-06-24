@@ -66,3 +66,12 @@ func (i Identifier) File() *File {
 func (i Identifier) Type() IType {
 	return IType(C.H5Iget_type(i.id))
 }
+
+func (i *Identifier) closeWith(fn func(C.hid_t) C.herr_t) error {
+	if i.id == 0 {
+		return nil
+	}
+	err := h5err(fn(i.id))
+	i.id = 0
+	return err
+}
