@@ -212,6 +212,7 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
+	runtime.SetFinalizer(base_type, nil)
 	t := &ArrayType{Datatype{Identifier{hid}}}
 	runtime.SetFinalizer(t, (*ArrayType).finalizer)
 	return t, nil
@@ -250,6 +251,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
+	runtime.SetFinalizer(base_type, nil)
 	t := &VarLenType{Datatype{Identifier{id}}}
 	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, nil
@@ -323,6 +325,7 @@ func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 func (t *CompoundType) Insert(name string, offset int, field *Datatype) error {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
+	runtime.SetFinalizer(field, nil)
 	return h5err(C.H5Tinsert(t.id, cname, C.size_t(offset), field.id))
 }
 
