@@ -42,7 +42,7 @@ func TestEncode(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			oldEndian := nativeEndian
 			nativeEndian = binary.LittleEndian
-			defer func() { oldEndian = nativeEndian }()
+			defer func() { nativeEndian = oldEndian }()
 			var enc Encoder
 			err := enc.Encode(tc.v)
 			if err != nil {
