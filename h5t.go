@@ -12,7 +12,6 @@ import "C"
 import (
 	"fmt"
 	"reflect"
-	"runtime"
 	"unsafe"
 )
 
@@ -94,7 +93,8 @@ var (
 	}
 )
 
-// OpenDatatype opens a named datatype.
+// OpenDatatype opens a named datatype. The returned datastype must
+// be closed by the user when it is no longer needed.
 func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -109,13 +109,12 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 // NewDatatype creates a Datatype from an hdf5 id.
 func NewDatatype(id C.hid_t) *Datatype {
 	t := &Datatype{Identifier{id}}
-	runtime.SetFinalizer(t, (*Datatype).finalizer)
 	return t
 }
 
-// CreateDatatype creates a new datatype.
-// class must be T_COMPUND, T_OPAQUE, T_ENUM or T_STRING.
-// size is the size of the new datatype in bytes.
+// CreateDatatype creates a new datatype. The value of class must be T_COMPOUND,
+// T_OPAQUE, T_ENUM or T_STRING, and size is the size of the new datatype in bytes.
+// The returned datatype must be closed by the user when it is no longer needed.
 func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	_, ok := parametricTypes[class]
 	if !ok {
@@ -134,13 +133,6 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	return NewDatatype(hid), nil
 }
 
-func (t *Datatype) finalizer() {
-	err := t.closeWith(h5tclose)
-	if err != nil {
-		panic(fmt.Errorf("error closing datatype: %s", err))
-	}
-}
-
 // GoType returns the reflect.Type associated with the Datatype's TypeClass
 func (t *Datatype) GoType() reflect.Type {
 	return typeClassToGoType[t.Class()]
@@ -148,7 +140,6 @@ func (t *Datatype) GoType() reflect.Type {
 
 // Close releases a datatype.
 func (t *Datatype) Close() error {
-	runtime.SetFinalizer(t, nil)
 	return t.closeWith(h5tclose)
 }
 
@@ -161,7 +152,8 @@ func (t *Datatype) Committed() bool {
 	return C.H5Tcommitted(t.id) > 0
 }
 
-// Copy copies an existing datatype.
+// Copy copies an existing datatype. The returned datatype must be closed by the
+// user when it is no longer needed.
 func (t *Datatype) Copy() (*Datatype, error) {
 	return copyDatatype(t.id)
 }
@@ -201,9 +193,9 @@ type ArrayType struct {
 	Datatype
 }
 
-// NewArrayType creates a new ArrayType.
-// base_type specifies the element type of the array.
-// dims specify the dimensions of the array.
+// NewArrayType creates a new ArrayType. The base_type specifies the element type
+// of the array and dims specify the dimensions of the array. The returned
+// arraytype must be closed by the user when it is no longer needed.
 func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	ndims := C.uint(len(dims))
 	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
@@ -213,7 +205,6 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 		return nil, err
 	}
 	t := &ArrayType{Datatype{Identifier{hid}}}
-	runtime.SetFinalizer(t, (*ArrayType).finalizer)
 	return t, nil
 }
 
@@ -243,15 +234,15 @@ type VarLenType struct {
 	Datatype
 }
 
-// NewVarLenType creates a new VarLenType.
-// base_type specifies the element type of the VarLenType.
+// NewVarLenType creates a new VarLenType. the base_type specifies the element type
+// of the VarLenType. The returned variable length type must be closed by the user
+// when it is no longer needed.
 func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	id := C.H5Tvlen_create(base_type.id)
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Identifier{id}}}
-	runtime.SetFinalizer(t, (*VarLenType).finalizer)
 	return t, nil
 }
 
@@ -264,15 +255,15 @@ type CompoundType struct {
 	Datatype
 }
 
-// NewCompoundType creates a new CompoundType.
-// size is the size in bytes of the compound datatype.
+// NewCompoundType creates a new CompoundType. The size is the size in bytes of
+// the compound datatype. The returned compound type must be closed by the user
+// when it is no longer needed.
 func NewCompoundType(size int) (*CompoundType, error) {
 	id := C.H5Tcreate(C.H5T_class_t(T_COMPOUND), C.size_t(size))
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	t := &CompoundType{Datatype{Identifier{id}}}
-	runtime.SetFinalizer(t, (*CompoundType).finalizer)
 	return t, nil
 }
 
@@ -310,7 +301,8 @@ func (t *CompoundType) MemberOffset(mbr_idx int) int {
 	return int(C.H5Tget_member_offset(t.id, C.uint(mbr_idx)))
 }
 
-// MemberType returns the datatype of the specified member.
+// MemberType returns the datatype of the specified member. The returned
+// datatype must be closed by the user when it is no longer needed.
 func (t *CompoundType) MemberType(mbr_idx int) (*Datatype, error) {
 	hid := C.H5Tget_member_type(t.id, C.uint(mbr_idx))
 	if err := checkID(hid); err != nil {
@@ -355,12 +347,14 @@ func (t *OpaqueDatatype) Tag() string {
 	return ""
 }
 
-// NewDatatypeFromValue creates  a datatype from a value in an interface.
+// NewDatatypeFromValue creates  a datatype from a value in an interface. The returned
+// datatype must be closed by the user when it is no longer needed.
 func NewDatatypeFromValue(v interface{}) (*Datatype, error) {
 	return NewDataTypeFromType(reflect.TypeOf(v))
 }
 
-// NewDatatypeFromType creates a new Datatype from a reflect.Type.
+// NewDatatypeFromType creates a new Datatype from a reflect.Type. The returned
+// datatype must be closed by the user when it is no longer needed.
 func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 
 	var dt *Datatype = nil

@@ -11,11 +11,6 @@ package hdf5
 // hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
 import "C"
 
-import (
-	"fmt"
-	"runtime"
-)
-
 type PropType C.hid_t
 
 type PropList struct {
@@ -27,19 +22,11 @@ var (
 )
 
 func newPropList(id C.hid_t) *PropList {
-	p := &PropList{Identifier{id}}
-	runtime.SetFinalizer(p, (*PropList).finalizer)
-	return p
-}
-
-func (p *PropList) finalizer() {
-	err := p.closeWith(h5pclose)
-	if err != nil {
-		panic(fmt.Errorf("error closing PropList: %s", err))
-	}
+	return &PropList{Identifier{id}}
 }
 
 // NewPropList creates a new PropList as an instance of a property list class.
+// The returned proplist must be closed by the user when it is no longer needed.
 func NewPropList(cls_id PropType) (*PropList, error) {
 	hid := C.H5Pcreate(C.hid_t(cls_id))
 	if err := checkID(hid); err != nil {
@@ -50,7 +37,6 @@ func NewPropList(cls_id PropType) (*PropList, error) {
 
 // Close terminates access to a PropList.
 func (p *PropList) Close() error {
-	runtime.SetFinalizer(p, nil)
 	return p.closeWith(h5pclose)
 }
 

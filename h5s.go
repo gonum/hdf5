@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 
-	"runtime"
 	"unsafe"
 )
 
@@ -31,12 +30,11 @@ const (
 )
 
 func newDataspace(id C.hid_t) *Dataspace {
-	ds := &Dataspace{Identifier{id}}
-	runtime.SetFinalizer(ds, (*Dataspace).finalizer)
-	return ds
+	return &Dataspace{Identifier{id}}
 }
 
-// CreateDataspace creates a new dataspace of a specified type.
+// CreateDataspace creates a new dataspace of a specified type. The returned
+// dataspace must be closed by the user when it is no longer needed.
 func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
 	if err := checkID(hid); err != nil {
@@ -46,14 +44,8 @@ func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	return ds, nil
 }
 
-func (s *Dataspace) finalizer() {
-	err := s.closeWith(h5sclose)
-	if err != nil {
-		panic(fmt.Errorf("error closing dspace: %s", err))
-	}
-}
-
-// Copy creates an exact copy of a dataspace.
+// Copy creates an exact copy of a dataspace. The returned dataspace must
+// be closed by the user when it is no longer needed.
 func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
 	if err := checkID(hid); err != nil {
@@ -64,7 +56,6 @@ func (s *Dataspace) Copy() (*Dataspace, error) {
 
 // Close releases and terminates access to a dataspace.
 func (s *Dataspace) Close() error {
-	runtime.SetFinalizer(s, nil)
 	return s.closeWith(h5sclose)
 }
 
@@ -73,6 +64,7 @@ func h5sclose(id C.hid_t) C.herr_t {
 }
 
 // CreateSimpleDataspace creates a new simple dataspace and opens it for access.
+// The returned dataspace must be closed by the user when it is no longer needed.
 func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
 	var c_dims, c_maxdims *C.hsize_t
 

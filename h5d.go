@@ -13,7 +13,6 @@ import (
 	"fmt"
 
 	"reflect"
-	"runtime"
 	"unsafe"
 )
 
@@ -22,9 +21,7 @@ type Dataset struct {
 }
 
 func newDataset(id C.hid_t) *Dataset {
-	d := &Dataset{Identifier{id}}
-	runtime.SetFinalizer(d, (*Dataset).finalizer)
-	return d
+	return &Dataset{Identifier{id}}
 }
 
 func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
@@ -41,16 +38,8 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 	return newDataset(hid), nil
 }
 
-func (s *Dataset) finalizer() {
-	err := s.closeWith(h5dclose)
-	if err != nil {
-		panic(fmt.Errorf("error closing dset: %s", err))
-	}
-}
-
 // Close releases and terminates access to a dataset.
 func (s *Dataset) Close() error {
-	runtime.SetFinalizer(s, nil)
 	return s.closeWith(h5dclose)
 }
 
@@ -163,22 +152,27 @@ func (s *Dataset) Write(data interface{}) error {
 	return s.WriteSubset(data, nil, nil)
 }
 
-// Creates a new attribute at this location.
+// Creates a new attribute at this location. The returned attribute
+// must be closed by the user when it is no longer needed.
 func (s *Dataset) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
 	return createAttribute(s.id, name, dtype, dspace, P_DEFAULT)
 }
 
-// Creates a new attribute at this location.
+// Creates a new attribute at this location. The returned
+// attribute must be closed by the user when it is no longer needed.
 func (s *Dataset) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
 	return createAttribute(s.id, name, dtype, dspace, acpl)
 }
 
-// Opens an existing attribute.
+// Opens an existing attribute. The returned attribute must be closed
+// by the user when it is no longer needed. The returned attribute
+// must be closed by the user when it is no longer needed.
 func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 	return openAttribute(s.id, name)
 }
 
-// Datatype returns the HDF5 Datatype of the Dataset
+// Datatype returns the HDF5 Datatype of the Dataset. The returned
+// datatype must be closed by the user when it is no longer needed.
 func (s *Dataset) Datatype() (*Datatype, error) {
 	dtype_id := C.H5Dget_type(s.id)
 	if dtype_id < 0 {
