@@ -64,7 +64,7 @@ func h5sclose(id C.hid_t) C.herr_t {
 }
 
 // CreateSimpleDataspace creates a new simple dataspace and opens it for access.
-//  The returned dataspace must be closed by the user when it is no longer needed.
+// The returned dataspace must be closed by the user when it is no longer needed.
 func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
 	var c_dims, c_maxdims *C.hsize_t
 
