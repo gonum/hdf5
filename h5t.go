@@ -112,7 +112,7 @@ func NewDatatype(id C.hid_t) *Datatype {
 	return t
 }
 
-// CreateDatatype creates a new datatype. The value of class must be T_COMPUND,
+// CreateDatatype creates a new datatype. The value of class must be T_COMPOUND,
 // T_OPAQUE, T_ENUM or T_STRING, and size is the size of the new datatype in bytes.
 // The returned datatype must be closed by the user when it is no longer needed.
 func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
@@ -255,7 +255,7 @@ type CompoundType struct {
 	Datatype
 }
 
-// NewCompoundType creates a new CompoundType. The/ size is the size in bytes of
+// NewCompoundType creates a new CompoundType. The size is the size in bytes of
 // the compound datatype. The returned compound type must be closed by the user
 // when it is no longer needed.
 func NewCompoundType(size int) (*CompoundType, error) {
