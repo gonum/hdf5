@@ -10,10 +10,7 @@ package hdf5
 import "C"
 
 import (
-	"fmt"
-
 	"reflect"
-	"runtime"
 	"unsafe"
 )
 
@@ -22,9 +19,7 @@ type Attribute struct {
 }
 
 func newAttribute(id C.hid_t) *Attribute {
-	d := &Attribute{Identifier{id}}
-	runtime.SetFinalizer(d, (*Attribute).finalizer)
-	return d
+	return &Attribute{Identifier{id}}
 }
 
 func createAttribute(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
@@ -46,12 +41,6 @@ func openAttribute(id C.hid_t, name string) (*Attribute, error) {
 		return nil, err
 	}
 	return newAttribute(hid), nil
-}
-
-func (s *Attribute) finalizer() {
-	if err := s.Close(); err != nil {
-		panic(fmt.Errorf("error closing attr: %s", err))
-	}
 }
 
 // Access the type of an attribute

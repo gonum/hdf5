@@ -14,7 +14,6 @@ import "C"
 import (
 	"fmt"
 	"reflect"
-	"runtime"
 	"unsafe"
 
 	"gonum.org/v1/hdf5/cmem"
@@ -26,21 +25,11 @@ type Table struct {
 }
 
 func newPacketTable(id C.hid_t) *Table {
-	t := &Table{Identifier{id}}
-	runtime.SetFinalizer(t, (*Table).finalizer)
-	return t
-}
-
-func (t *Table) finalizer() {
-	err := t.closeWith(h5ptclose)
-	if err != nil {
-		panic(fmt.Errorf("error closing packet table: %s", err))
-	}
+	return &Table{Identifier{id}}
 }
 
 // Close closes an open packet table.
 func (t *Table) Close() error {
-	runtime.SetFinalizer(t, nil)
 	return t.closeWith(h5ptclose)
 }
 
@@ -158,7 +147,8 @@ func (t *Table) SetIndex(index int) error {
 	return h5err(err)
 }
 
-// Type returns an identifier for a copy of the datatype for a dataset.
+// Type returns an identifier for a copy of the datatype for a dataset. The returned
+// datatype must be closed by the user when it is no longer needed.
 func (t *Table) Type() (*Datatype, error) {
 	hid := C.H5Dget_type(t.id)
 	if err := checkID(hid); err != nil {

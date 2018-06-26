@@ -12,7 +12,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -40,17 +39,8 @@ type File struct {
 	CommonFG
 }
 
-func (f *File) finalizer() {
-	err := f.closeWith(h5fclose)
-	if err != nil {
-		panic(fmt.Errorf("error closing file: %s", err))
-	}
-}
-
 func newFile(id C.hid_t) *File {
-	f := &File{CommonFG{Identifier{id}}}
-	runtime.SetFinalizer(f, (*File).finalizer)
-	return f
+	return &File{CommonFG{Identifier{id}}}
 }
 
 // Creates an HDF5 file.
@@ -66,7 +56,8 @@ func CreateFile(name string, flags int) (*File, error) {
 	return newFile(hid), nil
 }
 
-// Opens an existing HDF5 file.
+// Open opens and returns an an existing HDF5 file. The returned
+// file must be closed by the user when it is no longer needed.
 func OpenFile(name string, flags int) (*File, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
@@ -79,7 +70,8 @@ func OpenFile(name string, flags int) (*File, error) {
 	return newFile(hid), nil
 }
 
-// Returns a new identifier for a previously-opened HDF5 file.
+// ReOpen returns a new identifier for a previously-opened HDF5 file.
+// The returned file must be closed by the user when it is no longer needed.
 func (f *File) ReOpen() (*File, error) {
 	hid := C.H5Freopen(f.id)
 	if err := checkID(hid); err != nil {
@@ -96,9 +88,8 @@ func IsHDF5(name string) bool {
 	return C.H5Fis_hdf5(c_name) > 0
 }
 
-// Terminates access to an HDF5 file.
+// Close closes the file.
 func (f *File) Close() error {
-	runtime.SetFinalizer(f, nil)
 	return f.closeWith(h5fclose)
 }
 
@@ -107,15 +98,15 @@ func h5fclose(id C.hid_t) C.herr_t {
 }
 
 // Flushes all buffers associated with a file to disk.
-// herr_t H5Fflush(hid_t object_id, H5F_scope_t scope )
 func (f *File) Flush(scope Scope) error {
+	// herr_t H5Fflush(hid_t object_id, H5F_scope_t scope )
 	return h5err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
 }
 
 // FIXME
 // Retrieves name of file to which object belongs.
-// ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size )
 func (f *File) FileName() string {
+	// ssize_t H5Fget_name(hid_t obj_id, char *name, size_t size )
 	sz := int(C.H5Fget_name(f.id, nil, 0)) + 1
 	if sz < 0 {
 		return ""
@@ -133,20 +124,23 @@ func (f *File) FileName() string {
 
 var cdot = C.CString(".")
 
-// Creates a packet table to store fixed-length packets.
-// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
+// Creates a packet table to store fixed-length packets. The returned
+// table must be closed by the user when it is no longer needed.
 func (f *File) CreateTable(name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
+	// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
 	return createTable(f.id, name, dtype, chunkSize, compression)
 }
 
-// Creates a packet table to store fixed-length packets.
-// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
+// Creates a packet table to store fixed-length packets. The returned
+// table must be closed by the user when it is no longer needed.
 func (f *File) CreateTableFrom(name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
+	// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dtype_id, hsize_t chunk_size, int compression )
 	return createTableFrom(f.id, name, dtype, chunkSize, compression)
 }
 
-// Opens an existing packet table.
-// hid_t H5PTopen( hid_t loc_id, const char *dset_name )
+// Opens an existing packet table. The returned table must be closed
+// by the user when it is no longer needed.
 func (f *File) OpenTable(name string) (*Table, error) {
+	// hid_t H5PTopen( hid_t loc_id, const char *dset_name )
 	return openTable(f.id, name)
 }
