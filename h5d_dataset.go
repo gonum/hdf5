@@ -18,10 +18,12 @@ import (
 
 type Dataset struct {
 	Identifier
+
+	typ *Datatype
 }
 
-func newDataset(id C.hid_t) *Dataset {
-	return &Dataset{Identifier{id}}
+func newDataset(id C.hid_t, typ *Datatype) *Dataset {
+	return &Dataset{Identifier: Identifier{id}, typ: typ}
 }
 
 func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
@@ -35,7 +37,7 @@ func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, 
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return newDataset(hid), nil
+	return newDataset(hid, dtype), nil
 }
 
 // Close releases and terminates access to a dataset.
@@ -179,4 +181,8 @@ func (s *Dataset) Datatype() (*Datatype, error) {
 		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
 	}
 	return NewDatatype(dtype_id), nil
+}
+
+func (s *Dataset) hasGoPointer() bool {
+	return s.typ != nil && s.typ._hasGoPointer
 }

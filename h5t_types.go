@@ -17,6 +17,8 @@ import (
 
 type Datatype struct {
 	Identifier
+
+	_hasGoPointer bool
 }
 
 type TypeClass C.H5T_class_t
@@ -108,8 +110,7 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 
 // NewDatatype creates a Datatype from an hdf5 id.
 func NewDatatype(id C.hid_t) *Datatype {
-	t := &Datatype{Identifier{id}}
-	return t
+	return &Datatype{Identifier: Identifier{id}}
 }
 
 // CreateDatatype creates a new datatype. The value of class must be T_COMPOUND,
@@ -152,10 +153,14 @@ func (t *Datatype) Committed() bool {
 	return C.H5Tcommitted(t.id) > 0
 }
 
-// Copy copies an existing datatype. The returned datatype must be closed by the
-// user when it is no longer needed.
+// Copy copies an existing datatype.
 func (t *Datatype) Copy() (*Datatype, error) {
-	return copyDatatype(t.id)
+	c, err := copyDatatype(t.id)
+	if err != nil {
+		return nil, err
+	}
+	c._hasGoPointer = t._hasGoPointer
+	return c, nil
 }
 
 // copyDatatype should be called by any function wishing to return
@@ -204,7 +209,7 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	t := &ArrayType{Datatype{Identifier{hid}}}
+	t := &ArrayType{Datatype{Identifier: Identifier{hid}}}
 	return t, nil
 }
 
@@ -242,7 +247,8 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{Identifier{id}}}
+	t := &VarLenType{Datatype{Identifier: Identifier{id}}}
+	t._hasGoPointer = true
 	return t, nil
 }
 
@@ -263,7 +269,7 @@ func NewCompoundType(size int) (*CompoundType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &CompoundType{Datatype{Identifier{id}}}
+	t := &CompoundType{Datatype{Identifier: Identifier{id}}}
 	return t, nil
 }
 
@@ -446,6 +452,9 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			if err != nil {
 				return nil, err
 			}
+			if field_dt._hasGoPointer {
+				cdt._hasGoPointer = true
+			}
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
 				return nil, fmt.Errorf("pb with field [%d-%s]", i, f.Name)
@@ -462,7 +471,13 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 		dt = &cdt.Datatype
 
 	case reflect.Ptr:
-		return NewDataTypeFromType(t.Elem())
+		dt, err = NewDataTypeFromType(t.Elem())
+		// TODO(kortschak): Make this less strict.
+		// This currently identifies all types with any pointers
+		// as _hasGoPointer. This is not necesssary since the CGo
+		// rules only ban Go pointers to Go pointers.
+		// Maybe _hasGoPointer should be _pointerPathCount int.
+		dt._hasGoPointer = true
 
 	default:
 		// Should never happen.

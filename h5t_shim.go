@@ -273,5 +273,6 @@ func makeGoStringDatatype() *Datatype {
 	if err != nil {
 		panic(err)
 	}
+	dt._hasGoPointer = true
 	return dt
 }
