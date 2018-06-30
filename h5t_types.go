@@ -18,7 +18,7 @@ import (
 type Datatype struct {
 	Identifier
 
-	_hasGoPointer bool
+	_goPtrPathLen int
 }
 
 type TypeClass C.H5T_class_t
@@ -159,7 +159,7 @@ func (t *Datatype) Copy() (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	c._hasGoPointer = t._hasGoPointer
+	c._goPtrPathLen = t._goPtrPathLen
 	return c, nil
 }
 
@@ -248,7 +248,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Identifier: Identifier{id}}}
-	t._hasGoPointer = true
+	t._goPtrPathLen = 1 // This is the first field of the slice header.
 	return t, nil
 }
 
@@ -444,16 +444,17 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 		if err != nil {
 			return nil, err
 		}
+		var ptrPathLen int
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
-			var field_dt *Datatype = nil
+			var field_dt *Datatype
 			field_dt, err = NewDataTypeFromType(f.Type)
 			if err != nil {
 				return nil, err
 			}
-			if field_dt._hasGoPointer {
-				cdt._hasGoPointer = true
+			if field_dt._goPtrPathLen > ptrPathLen {
+				ptrPathLen = field_dt._goPtrPathLen
 			}
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
@@ -469,15 +470,11 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			}
 		}
 		dt = &cdt.Datatype
+		dt._goPtrPathLen += ptrPathLen
 
 	case reflect.Ptr:
 		dt, err = NewDataTypeFromType(t.Elem())
-		// TODO(kortschak): Make this less strict.
-		// This currently identifies all types with any pointers
-		// as _hasGoPointer. This is not necesssary since the CGo
-		// rules only ban Go pointers to Go pointers.
-		// Maybe _hasGoPointer should be _pointerPathCount int.
-		dt._hasGoPointer = true
+		dt._goPtrPathLen++
 
 	default:
 		// Should never happen.
@@ -485,6 +482,12 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 	}
 
 	return dt, err
+}
+
+// hasIllegalGoPointer returns whether the Datatype is known to have
+// a Go pointer to Go pointer chain.
+func (t *Datatype) hasIllegalGoPointer() bool {
+	return t != nil && t._goPtrPathLen > 1
 }
 
 func getArrayDims(dt reflect.Type) []int {

@@ -4,35 +4,50 @@
 
 package hdf5
 
-import (
-	"runtime"
-	"testing"
-	"time"
-)
+import "testing"
 
 func TestSimpleDatatypes(t *testing.T) {
 	// Smoke tests for the simple datatypes
-	tests := []interface{}{
-		int(0),
-		int8(0),
-		int16(0),
-		int32(0),
-		int64(0),
-		uint(0),
-		uint8(0),
-		uint16(0),
-		uint32(0),
-		uint64(0),
-		float32(0),
-		float64(0),
-		string(""),
-		bool(true),
+	tests := []struct {
+		v          interface{}
+		illegalPtr bool
+	}{
+		{v: int(0), illegalPtr: false},
+		{v: int8(0), illegalPtr: false},
+		{v: int16(0), illegalPtr: false},
+		{v: int32(0), illegalPtr: false},
+		{v: int64(0), illegalPtr: false},
+		{v: uint(0), illegalPtr: false},
+		{v: uint8(0), illegalPtr: false},
+		{v: uint16(0), illegalPtr: false},
+		{v: uint32(0), illegalPtr: false},
+		{v: uint64(0), illegalPtr: false},
+		{v: float32(0), illegalPtr: false},
+		{v: float64(0), illegalPtr: false},
+		{v: string(""), illegalPtr: false},
+		{v: bool(true), illegalPtr: false},
+		{v: (*int)(nil), illegalPtr: false},
+		{v: (*int8)(nil), illegalPtr: false},
+		{v: (*int16)(nil), illegalPtr: false},
+		{v: (*int32)(nil), illegalPtr: false},
+		{v: (*int64)(nil), illegalPtr: false},
+		{v: (*uint)(nil), illegalPtr: false},
+		{v: (*uint8)(nil), illegalPtr: false},
+		{v: (*uint16)(nil), illegalPtr: false},
+		{v: (*uint32)(nil), illegalPtr: false},
+		{v: (*uint64)(nil), illegalPtr: false},
+		{v: (*float32)(nil), illegalPtr: false},
+		{v: (*float64)(nil), illegalPtr: false},
+		{v: (*string)(nil), illegalPtr: true},
+		{v: (*bool)(nil), illegalPtr: false},
 	}
 
-	for test := range tests {
-		NewDatatypeFromValue(test)
-		// Test again for usage with ptrs
-		NewDatatypeFromValue(&test)
+	for _, test := range tests {
+		dt, _ := NewDatatypeFromValue(test.v)
+		gotIllegalPtr := dt.hasIllegalGoPointer()
+		if gotIllegalPtr != test.illegalPtr {
+			t.Errorf("unexpected illegal pointer statusfot %T: got:%t want:%t", test.v, gotIllegalPtr, test.illegalPtr)
+		}
 	}
 }
 
@@ -48,6 +63,9 @@ func TestArrayDatatype(t *testing.T) {
 		dt, err := NewDatatypeFromValue(val)
 		if err != nil {
 			t.Fatal(err)
+		}
+		if dt.hasIllegalGoPointer() {
+			t.Errorf("unexpected illegal pointer for %T", val)
 		}
 		adt := ArrayType{*dt}
 		if adt.NDims() != dims {
@@ -75,12 +93,18 @@ func TestStructDatatype(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if dtype.hasIllegalGoPointer() {
+		t.Errorf("unexpected illegal pointer for %T", test)
+	}
 	dtypes = append(dtypes, dtype)
 
 	// pointer to value
-	dtype, err = NewDatatypeFromValue(test)
+	dtype, err = NewDatatypeFromValue(&test)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if !dtype.hasIllegalGoPointer() {
+		t.Errorf("expected illegal pointer for %T", &test)
 	}
 	dtypes = append(dtypes, dtype)
 
@@ -138,8 +162,4 @@ func TestCloseBehavior(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer dtype.Close()
-
-	// Sleep to ensure GC runs before returning
-	runtime.GC()
-	time.Sleep(100 * time.Millisecond)
 }

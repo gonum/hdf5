@@ -183,6 +183,10 @@ func (s *Dataset) Datatype() (*Datatype, error) {
 	return NewDatatype(dtype_id), nil
 }
 
-func (s *Dataset) hasGoPointer() bool {
-	return s.typ != nil && s.typ._hasGoPointer
+// hasIllegalGoPointer returns whether the Dataset is known to have
+// a Go pointer to Go pointer chain. If the Dataset was created by
+// a call to OpenDataset without a read operation, it will be false,
+// but will not be a valid reflection of the real situation.
+func (s *Dataset) hasIllegalGoPointer() bool {
+	return s.typ.hasIllegalGoPointer()
 }
