@@ -18,7 +18,7 @@ import (
 type Datatype struct {
 	Identifier
 
-	_goPtrPathLen int
+	goPtrPathLen int
 }
 
 type TypeClass C.H5T_class_t
@@ -159,7 +159,7 @@ func (t *Datatype) Copy() (*Datatype, error) {
 	if err != nil {
 		return nil, err
 	}
-	c._goPtrPathLen = t._goPtrPathLen
+	c.goPtrPathLen = t.goPtrPathLen
 	return c, nil
 }
 
@@ -248,7 +248,7 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Identifier: Identifier{id}}}
-	t._goPtrPathLen = 1 // This is the first field of the slice header.
+	t.goPtrPathLen = 1 // This is the first field of the slice header.
 	return t, nil
 }
 
@@ -453,8 +453,8 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			if err != nil {
 				return nil, err
 			}
-			if field_dt._goPtrPathLen > ptrPathLen {
-				ptrPathLen = field_dt._goPtrPathLen
+			if field_dt.goPtrPathLen > ptrPathLen {
+				ptrPathLen = field_dt.goPtrPathLen
 			}
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
@@ -470,11 +470,11 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			}
 		}
 		dt = &cdt.Datatype
-		dt._goPtrPathLen += ptrPathLen
+		dt.goPtrPathLen += ptrPathLen
 
 	case reflect.Ptr:
 		dt, err = NewDataTypeFromType(t.Elem())
-		dt._goPtrPathLen++
+		dt.goPtrPathLen++
 
 	default:
 		// Should never happen.
@@ -487,7 +487,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 // hasIllegalGoPointer returns whether the Datatype is known to have
 // a Go pointer to Go pointer chain.
 func (t *Datatype) hasIllegalGoPointer() bool {
-	return t != nil && t._goPtrPathLen > 1
+	return t != nil && t.goPtrPathLen > 1
 }
 
 func getArrayDims(dt reflect.Type) []int {

@@ -43,7 +43,11 @@ func TestSimpleDatatypes(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		dt, _ := NewDatatypeFromValue(test.v)
+		dt, err := NewDatatypeFromValue(test.v)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+			continue
+		}
 		gotIllegalPtr := dt.hasIllegalGoPointer()
 		if gotIllegalPtr != test.illegalPtr {
 			t.Errorf("unexpected illegal pointer statusfot %T: got:%t want:%t", test.v, gotIllegalPtr, test.illegalPtr)
