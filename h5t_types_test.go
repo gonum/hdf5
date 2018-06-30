@@ -9,57 +9,57 @@ import "testing"
 func TestSimpleDatatypes(t *testing.T) {
 	// Smoke tests for the simple datatypes
 	tests := []struct {
-		v          interface{}
-		illegalPtr bool
+		v             interface{}
+		hasIllegalPtr bool
 	}{
-		{v: int(0), illegalPtr: false},
-		{v: int8(0), illegalPtr: false},
-		{v: int16(0), illegalPtr: false},
-		{v: int32(0), illegalPtr: false},
-		{v: int64(0), illegalPtr: false},
-		{v: uint(0), illegalPtr: false},
-		{v: uint8(0), illegalPtr: false},
-		{v: uint16(0), illegalPtr: false},
-		{v: uint32(0), illegalPtr: false},
-		{v: uint64(0), illegalPtr: false},
-		{v: float32(0), illegalPtr: false},
-		{v: float64(0), illegalPtr: false},
-		{v: string(""), illegalPtr: false},
-		{v: ([]int)(nil), illegalPtr: false},
-		{v: [1]int{0}, illegalPtr: false},
-		{v: bool(true), illegalPtr: false},
-		{v: (*int)(nil), illegalPtr: false},
-		{v: (*int8)(nil), illegalPtr: false},
-		{v: (*int16)(nil), illegalPtr: false},
-		{v: (*int32)(nil), illegalPtr: false},
-		{v: (*int64)(nil), illegalPtr: false},
-		{v: (*uint)(nil), illegalPtr: false},
-		{v: (*uint8)(nil), illegalPtr: false},
-		{v: (*uint16)(nil), illegalPtr: false},
-		{v: (*uint32)(nil), illegalPtr: false},
-		{v: (*uint64)(nil), illegalPtr: false},
-		{v: (*float32)(nil), illegalPtr: false},
-		{v: (*float64)(nil), illegalPtr: false},
-		{v: (*string)(nil), illegalPtr: true},
-		{v: (*[]int)(nil), illegalPtr: true},
-		{v: (*[1]int)(nil), illegalPtr: false},
-		{v: (*bool)(nil), illegalPtr: false},
-		{v: (**int)(nil), illegalPtr: true},
-		{v: (**int8)(nil), illegalPtr: true},
-		{v: (**int16)(nil), illegalPtr: true},
-		{v: (**int32)(nil), illegalPtr: true},
-		{v: (**int64)(nil), illegalPtr: true},
-		{v: (**uint)(nil), illegalPtr: true},
-		{v: (**uint8)(nil), illegalPtr: true},
-		{v: (**uint16)(nil), illegalPtr: true},
-		{v: (**uint32)(nil), illegalPtr: true},
-		{v: (**uint64)(nil), illegalPtr: true},
-		{v: (**float32)(nil), illegalPtr: true},
-		{v: (**float64)(nil), illegalPtr: true},
-		{v: (**string)(nil), illegalPtr: true},
-		{v: (**[]int)(nil), illegalPtr: true},
-		{v: (**[1]int)(nil), illegalPtr: true},
-		{v: (**bool)(nil), illegalPtr: true},
+		{v: int(0), hasIllegalPtr: false},
+		{v: int8(0), hasIllegalPtr: false},
+		{v: int16(0), hasIllegalPtr: false},
+		{v: int32(0), hasIllegalPtr: false},
+		{v: int64(0), hasIllegalPtr: false},
+		{v: uint(0), hasIllegalPtr: false},
+		{v: uint8(0), hasIllegalPtr: false},
+		{v: uint16(0), hasIllegalPtr: false},
+		{v: uint32(0), hasIllegalPtr: false},
+		{v: uint64(0), hasIllegalPtr: false},
+		{v: float32(0), hasIllegalPtr: false},
+		{v: float64(0), hasIllegalPtr: false},
+		{v: string(""), hasIllegalPtr: false},
+		{v: ([]int)(nil), hasIllegalPtr: false},
+		{v: [1]int{0}, hasIllegalPtr: false},
+		{v: bool(true), hasIllegalPtr: false},
+		{v: (*int)(nil), hasIllegalPtr: false},
+		{v: (*int8)(nil), hasIllegalPtr: false},
+		{v: (*int16)(nil), hasIllegalPtr: false},
+		{v: (*int32)(nil), hasIllegalPtr: false},
+		{v: (*int64)(nil), hasIllegalPtr: false},
+		{v: (*uint)(nil), hasIllegalPtr: false},
+		{v: (*uint8)(nil), hasIllegalPtr: false},
+		{v: (*uint16)(nil), hasIllegalPtr: false},
+		{v: (*uint32)(nil), hasIllegalPtr: false},
+		{v: (*uint64)(nil), hasIllegalPtr: false},
+		{v: (*float32)(nil), hasIllegalPtr: false},
+		{v: (*float64)(nil), hasIllegalPtr: false},
+		{v: (*string)(nil), hasIllegalPtr: true},
+		{v: (*[]int)(nil), hasIllegalPtr: true},
+		{v: (*[1]int)(nil), hasIllegalPtr: false},
+		{v: (*bool)(nil), hasIllegalPtr: false},
+		{v: (**int)(nil), hasIllegalPtr: true},
+		{v: (**int8)(nil), hasIllegalPtr: true},
+		{v: (**int16)(nil), hasIllegalPtr: true},
+		{v: (**int32)(nil), hasIllegalPtr: true},
+		{v: (**int64)(nil), hasIllegalPtr: true},
+		{v: (**uint)(nil), hasIllegalPtr: true},
+		{v: (**uint8)(nil), hasIllegalPtr: true},
+		{v: (**uint16)(nil), hasIllegalPtr: true},
+		{v: (**uint32)(nil), hasIllegalPtr: true},
+		{v: (**uint64)(nil), hasIllegalPtr: true},
+		{v: (**float32)(nil), hasIllegalPtr: true},
+		{v: (**float64)(nil), hasIllegalPtr: true},
+		{v: (**string)(nil), hasIllegalPtr: true},
+		{v: (**[]int)(nil), hasIllegalPtr: true},
+		{v: (**[1]int)(nil), hasIllegalPtr: true},
+		{v: (**bool)(nil), hasIllegalPtr: true},
 	}
 
 	for _, test := range tests {
@@ -69,8 +69,8 @@ func TestSimpleDatatypes(t *testing.T) {
 			continue
 		}
 		gotIllegalPtr := dt.hasIllegalGoPointer()
-		if gotIllegalPtr != test.illegalPtr {
-			t.Errorf("unexpected illegal pointer statusfot %T: got:%t want:%t", test.v, gotIllegalPtr, test.illegalPtr)
+		if gotIllegalPtr != test.hasIllegalPtr {
+			t.Errorf("unexpected illegal pointer status for %T: got:%t want:%t", test.v, gotIllegalPtr, test.hasIllegalPtr)
 		}
 	}
 }
