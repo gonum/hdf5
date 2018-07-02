@@ -17,6 +17,8 @@ import (
 
 type Datatype struct {
 	Identifier
+
+	goPtrPathLen int
 }
 
 type TypeClass C.H5T_class_t
@@ -108,8 +110,7 @@ func OpenDatatype(c CommonFG, name string, tapl_id int) (*Datatype, error) {
 
 // NewDatatype creates a Datatype from an hdf5 id.
 func NewDatatype(id C.hid_t) *Datatype {
-	t := &Datatype{Identifier{id}}
-	return t
+	return &Datatype{Identifier: Identifier{id}}
 }
 
 // CreateDatatype creates a new datatype. The value of class must be T_COMPOUND,
@@ -152,10 +153,14 @@ func (t *Datatype) Committed() bool {
 	return C.H5Tcommitted(t.id) > 0
 }
 
-// Copy copies an existing datatype. The returned datatype must be closed by the
-// user when it is no longer needed.
+// Copy copies an existing datatype.
 func (t *Datatype) Copy() (*Datatype, error) {
-	return copyDatatype(t.id)
+	c, err := copyDatatype(t.id)
+	if err != nil {
+		return nil, err
+	}
+	c.goPtrPathLen = t.goPtrPathLen
+	return c, nil
 }
 
 // copyDatatype should be called by any function wishing to return
@@ -204,7 +209,7 @@ func NewArrayType(base_type *Datatype, dims []int) (*ArrayType, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	t := &ArrayType{Datatype{Identifier{hid}}}
+	t := &ArrayType{Datatype{Identifier: Identifier{hid}}}
 	return t, nil
 }
 
@@ -242,7 +247,8 @@ func NewVarLenType(base_type *Datatype) (*VarLenType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &VarLenType{Datatype{Identifier{id}}}
+	t := &VarLenType{Datatype{Identifier: Identifier{id}}}
+	t.goPtrPathLen = 1 // This is the first field of the slice header.
 	return t, nil
 }
 
@@ -263,7 +269,7 @@ func NewCompoundType(size int) (*CompoundType, error) {
 	if err := checkID(id); err != nil {
 		return nil, err
 	}
-	t := &CompoundType{Datatype{Identifier{id}}}
+	t := &CompoundType{Datatype{Identifier: Identifier{id}}}
 	return t, nil
 }
 
@@ -438,13 +444,17 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 		if err != nil {
 			return nil, err
 		}
+		var ptrPathLen int
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
-			var field_dt *Datatype = nil
+			var field_dt *Datatype
 			field_dt, err = NewDataTypeFromType(f.Type)
 			if err != nil {
 				return nil, err
+			}
+			if field_dt.goPtrPathLen > ptrPathLen {
+				ptrPathLen = field_dt.goPtrPathLen
 			}
 			offset := int(f.Offset + 0)
 			if field_dt == nil {
@@ -460,9 +470,11 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 			}
 		}
 		dt = &cdt.Datatype
+		dt.goPtrPathLen += ptrPathLen
 
 	case reflect.Ptr:
-		return NewDataTypeFromType(t.Elem())
+		dt, err = NewDataTypeFromType(t.Elem())
+		dt.goPtrPathLen++
 
 	default:
 		// Should never happen.
@@ -470,6 +482,12 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 	}
 
 	return dt, err
+}
+
+// hasIllegalGoPointer returns whether the Datatype is known to have
+// a Go pointer to Go pointer chain.
+func (t *Datatype) hasIllegalGoPointer() bool {
+	return t != nil && t.goPtrPathLen > 1
 }
 
 func getArrayDims(dt reflect.Type) []int {

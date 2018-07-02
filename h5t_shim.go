@@ -273,5 +273,6 @@ func makeGoStringDatatype() *Datatype {
 	if err != nil {
 		panic(err)
 	}
+	dt.goPtrPathLen = 1 // This is the first field of the string header.
 	return dt
 }

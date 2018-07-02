@@ -99,7 +99,7 @@ func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return newDataset(hid), nil
+	return newDataset(hid, nil), nil
 }
 
 // NumObjects returns the number of objects in the Group.
