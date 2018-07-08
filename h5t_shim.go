@@ -262,14 +262,14 @@ var (
 )
 
 //
-var h5t_VARIABLE = int(C.size_t_H5T_VARIABLE())
+var h5tVARIABLE = int(C.size_t_H5T_VARIABLE())
 
 func makeGoStringDatatype() *Datatype {
 	dt, err := T_C_S1.Copy()
 	if err != nil {
 		panic(err)
 	}
-	err = dt.SetSize(h5t_VARIABLE)
+	err = dt.SetSize(h5tVARIABLE)
 	if err != nil {
 		panic(err)
 	}

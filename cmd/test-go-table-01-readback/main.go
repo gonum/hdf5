@@ -64,7 +64,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf(":: file [%s] opened (id=%d)\n", f.Name(), f.ID())
+	fmt.Printf(":: file [%s] opened (id=%d)\n", f.Name(), f.Id())
 
 	// create a fixed-length packet table within the file
 	table, err := f.OpenTable(tname)

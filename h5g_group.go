@@ -29,13 +29,13 @@ type Group struct {
 // in the file. The returned group must be closed by the user when it is no
 // longer needed.
 func (g *CommonFG) CreateGroup(name string) (*Group, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
 
-	link_flags := C.hid_t(C.H5P_DEFAULT)
-	grp_c_flags := C.hid_t(C.H5P_DEFAULT)
-	hid := C.H5Gcreate2(g.id, c_name, link_flags, grp_c_flags, P_DEFAULT.id)
-	if err := checkID(hid); err != nil {
+	linkFlags := C.hid_t(C.H5P_DEFAULT)
+	grpCFlags := C.hid_t(C.H5P_DEFAULT)
+	hid := C.H5Gcreate2(g.id, cName, linkFlags, grpCFlags, P_DEFAULT.id)
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Identifier{hid}}}
@@ -44,26 +44,26 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 
 // CreateDataset creates a new Dataset. The returned dataset must be
 // closed by the user when it is no longer needed.
-func (g *CommonFG) CreateDataset(name string, dtype *Datatype, dspace *Dataspace) (*Dataset, error) {
-	return createDataset(g.id, name, dtype, dspace, P_DEFAULT)
+func (g *CommonFG) CreateDataset(name string, dType *Datatype, dSpace *Dataspace) (*Dataset, error) {
+	return createDataset(g.id, name, dType, dSpace, P_DEFAULT)
 }
 
 // CreateDatasetWith creates a new Dataset with a user-defined PropList.
 // The returned dataset must be closed by the user when it is no longer needed.
-func (g *CommonFG) CreateDatasetWith(name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
-	return createDataset(g.id, name, dtype, dspace, dcpl)
+func (g *CommonFG) CreateDatasetWith(name string, dType *Datatype, dSpace *Dataspace, dcpl *PropList) (*Dataset, error) {
+	return createDataset(g.id, name, dType, dSpace, dcpl)
 }
 
 // CreateAttribute creates a new attribute at this location. The returned
 // attribute must be closed by the user when it is no longer needed.
-func (g *Group) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
-	return createAttribute(g.id, name, dtype, dspace, P_DEFAULT)
+func (g *Group) CreateAttribute(name string, dType *Datatype, dSpace *Dataspace) (*Attribute, error) {
+	return createAttribute(g.id, name, dType, dSpace, P_DEFAULT)
 }
 
 // CreateAttributeWith creates a new attribute at this location with a user-defined
 // PropList. The returned dataset must be closed by the user when it is no longer needed.
-func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
-	return createAttribute(g.id, name, dtype, dspace, acpl)
+func (g *Group) CreateAttributeWith(name string, dType *Datatype, dSpace *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(g.id, name, dType, dSpace, acpl)
 }
 
 // Close closes the Group.
@@ -78,11 +78,11 @@ func h5gclose(id C.hid_t) C.herr_t {
 // OpenGroup opens and returns an existing child group from this Group.
 // The returned group must be closed by the user when it is no longer needed.
 func (g *CommonFG) OpenGroup(name string) (*Group, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
 
-	hid := C.H5Gopen2(g.id, c_name, P_DEFAULT.id)
-	if err := checkID(hid); err != nil {
+	hid := C.H5Gopen2(g.id, cName, P_DEFAULT.id)
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Identifier{hid}}}
@@ -92,11 +92,11 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 // OpenDataset opens and returns a named Dataset. The returned
 // dataset must be closed by the user when it is no longer needed.
 func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
 
-	hid := C.H5Dopen2(g.id, c_name, P_DEFAULT.id)
-	if err := checkID(hid); err != nil {
+	hid := C.H5Dopen2(g.id, cName, P_DEFAULT.id)
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	return newDataset(hid, nil), nil
@@ -128,14 +128,14 @@ func (g *CommonFG) ObjectNameByIndex(idx uint) (string, error) {
 
 // CreateTable creates a packet table to store fixed-length packets.
 // The returned table must be closed by the user when it is no longer needed.
-func (g *Group) CreateTable(name string, dtype *Datatype, chunkSize, compression int) (*Table, error) {
-	return createTable(g.id, name, dtype, chunkSize, compression)
+func (g *Group) CreateTable(name string, dType *Datatype, chunkSize, compression int) (*Table, error) {
+	return createTable(g.id, name, dType, chunkSize, compression)
 }
 
 // CreateTableFrom creates a packet table to store fixed-length packets.
 // The returned table must be closed by the user when it is no longer needed.
-func (g *Group) CreateTableFrom(name string, dtype interface{}, chunkSize, compression int) (*Table, error) {
-	return createTableFrom(g.id, name, dtype, chunkSize, compression)
+func (g *Group) CreateTableFrom(name string, dType interface{}, chunkSize, compression int) (*Table, error) {
+	return createTableFrom(g.id, name, dType, chunkSize, compression)
 }
 
 // OpenTable opens an existing packet table. The returned table must be

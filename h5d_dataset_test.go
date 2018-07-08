@@ -25,13 +25,13 @@ func createDataset1(t *testing.T) error {
 	}
 
 	dims := []uint{20, 5}
-	dspace, err := CreateSimpleDataspace(dims, dims)
+	dSpace, err := CreateSimpleDataspace(dims, dims)
 	if err != nil {
 		t.Fatal(err)
 		return err
 	}
 
-	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, dspace)
+	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, dSpace)
 	if err != nil {
 		t.Fatal(err)
 		return err
@@ -78,20 +78,20 @@ func TestReadSubset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// get the filespace and select the subset
-	filespace := dset.Space()
+	// get the fileSpace and select the subset
+	fileSpace := dset.Space()
 	offset, stride, count, block := [2]uint{5, 1}, [2]uint{1, 1}, [2]uint{5, 2}, [2]uint{1, 1}
-	err = filespace.SelectHyperslab(offset[:], stride[:], count[:], block[:])
+	err = fileSpace.SelectHyperslab(offset[:], stride[:], count[:], block[:])
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// create the memory space for the subset
-	dims, maxdims := [2]uint{2, 5}, [2]uint{2, 5}
+	dims, maxDims := [2]uint{2, 5}, [2]uint{2, 5}
 	if err != nil {
 		t.Fatal(err)
 	}
-	memspace, err := CreateSimpleDataspace(dims[:], maxdims[:])
+	memSpace, err := CreateSimpleDataspace(dims[:], maxDims[:])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func TestReadSubset(t *testing.T) {
 		data := [10]uint16{}
 
 		// read the subset
-		err = dset.ReadSubset(&data, memspace, filespace)
+		err = dset.ReadSubset(&data, memSpace, fileSpace)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +120,7 @@ func TestReadSubset(t *testing.T) {
 		data := make([]uint16, 10)
 
 		// read the subset
-		err = dset.ReadSubset(&data, memspace, filespace)
+		err = dset.ReadSubset(&data, memSpace, fileSpace)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -142,7 +142,7 @@ func TestWriteSubset(t *testing.T) {
 		t.Fatal(err)
 	}
 	mdims := []uint{2, 6}
-	mspace, err := CreateSimpleDataspace(mdims, nil)
+	mSpace, err := CreateSimpleDataspace(mdims, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +167,7 @@ func TestWriteSubset(t *testing.T) {
 
 	data := make([]uint16, mdims[0]*mdims[1])
 
-	if err = dset.WriteSubset(&data, mspace, fspace); err != nil {
+	if err = dset.WriteSubset(&data, mSpace, fspace); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -177,21 +177,21 @@ func TestSelectHyperslab(t *testing.T) {
 	defer DisplayErrors(false)
 
 	dims := []uint{12, 4}
-	dspace, err := CreateSimpleDataspace(dims, nil)
+	dSpace, err := CreateSimpleDataspace(dims, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	offset, stride, count, block := []uint{1, 2}, []uint{2, 1}, []uint{4, 2}, []uint{1, 1}
-	if err = dspace.SelectHyperslab(offset, stride, count, block); err != nil {
+	if err = dSpace.SelectHyperslab(offset, stride, count, block); err != nil {
 		t.Fatal(err)
 	}
-	if err = dspace.SelectHyperslab(offset, nil, count, block); err != nil {
+	if err = dSpace.SelectHyperslab(offset, nil, count, block); err != nil {
 		t.Fatal(err)
 	}
-	if err = dspace.SelectHyperslab(offset, stride, count, nil); err != nil {
+	if err = dSpace.SelectHyperslab(offset, stride, count, nil); err != nil {
 		t.Fatal(err)
 	}
-	if err = dspace.SelectHyperslab(offset, nil, count, nil); err != nil {
+	if err = dSpace.SelectHyperslab(offset, nil, count, nil); err != nil {
 		t.Fatal(err)
 	}
 }

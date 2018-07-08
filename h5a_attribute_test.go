@@ -49,19 +49,19 @@ func TestWriteAttribute(t *testing.T) {
 	}
 
 	for name, v := range attrs {
-		dtype, err := NewDataTypeFromType(v.Type)
+		dType, err := NewDataTypeFromType(v.Type)
 		if err != nil {
 			t.Fatalf("NewDatatypeFromValue failed: %s\n", err)
 		}
-		defer dtype.Close()
+		defer dType.Close()
 
-		attr, err := dset.CreateAttribute(name, dtype, scalar)
+		attr, err := dset.CreateAttribute(name, dType, scalar)
 		if err != nil {
 			t.Fatalf("CreateAttribute failed: %s\n", err)
 		}
 		defer attr.Close()
 
-		if err := attr.Write(v.Value, dtype); err != nil {
+		if err := attr.Write(v.Value, dType); err != nil {
 			t.Fatalf("Attribute write failed: %s\n", err)
 		}
 	}

@@ -22,22 +22,22 @@ func newAttribute(id C.hid_t) *Attribute {
 	return &Attribute{Identifier{id}}
 }
 
-func createAttribute(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	hid := C.H5Acreate2(id, c_name, dtype.id, dspace.id, acpl.id, P_DEFAULT.id)
-	if err := checkID(hid); err != nil {
+func createAttribute(id C.hid_t, name string, dType *Datatype, dSpace *Dataspace, acpl *PropList) (*Attribute, error) {
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	hid := C.H5Acreate2(id, cName, dType.id, dSpace.id, acpl.id, P_DEFAULT.id)
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	return newAttribute(hid), nil
 }
 
 func openAttribute(id C.hid_t, name string) (*Attribute, error) {
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
 
-	hid := C.H5Aopen(id, c_name, P_DEFAULT.id)
-	if err := checkID(hid); err != nil {
+	hid := C.H5Aopen(id, cName, P_DEFAULT.id)
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	return newAttribute(hid), nil
@@ -68,7 +68,7 @@ func (s *Attribute) Space() *Dataspace {
 }
 
 // Read reads raw data from a attribute into a buffer.
-func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
+func (s *Attribute) Read(data interface{}, dType *Datatype) error {
 	var addr unsafe.Pointer
 	v := reflect.ValueOf(data)
 
@@ -88,13 +88,13 @@ func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
 		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	rc := C.H5Aread(s.id, dtype.id, addr)
+	rc := C.H5Aread(s.id, dType.id, addr)
 	err := h5err(rc)
 	return err
 }
 
 // Write writes raw data from a buffer to an attribute.
-func (s *Attribute) Write(data interface{}, dtype *Datatype) error {
+func (s *Attribute) Write(data interface{}, dType *Datatype) error {
 	var addr unsafe.Pointer
 	v := reflect.Indirect(reflect.ValueOf(data))
 	switch v.Kind() {
@@ -114,7 +114,7 @@ func (s *Attribute) Write(data interface{}, dtype *Datatype) error {
 		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	rc := C.H5Awrite(s.id, dtype.id, addr)
+	rc := C.H5Awrite(s.id, dType.id, addr)
 	err := h5err(rc)
 	return err
 }

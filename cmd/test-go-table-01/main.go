@@ -60,7 +60,7 @@ func main() {
 		panic(fmt.Errorf("CreateFile failed: %s", err))
 	}
 	defer f.Close()
-	fmt.Printf(":: file [%s] created (id=%d)\n", fname, f.ID())
+	fmt.Printf(":: file [%s] created (id=%d)\n", fname, f.Id())
 
 	// create a fixed-length packet table within the file
 	table, err := f.CreateTableFrom(tname, particle{}, chunkSize, compress)
@@ -68,7 +68,7 @@ func main() {
 		panic(fmt.Errorf("CreateTableFrom failed: %s", err))
 	}
 	defer table.Close()
-	fmt.Printf(":: table [%s] created (id=%d)\n", tname, table.ID())
+	fmt.Printf(":: table [%s] created (id=%d)\n", tname, table.Id())
 
 	if !table.IsValid() {
 		panic("table is invalid")

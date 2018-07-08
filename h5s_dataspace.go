@@ -37,7 +37,7 @@ func newDataspace(id C.hid_t) *Dataspace {
 // dataspace must be closed by the user when it is no longer needed.
 func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
-	if err := checkID(hid); err != nil {
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	ds := newDataspace(hid)
@@ -48,7 +48,7 @@ func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 // be closed by the user when it is no longer needed.
 func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
-	if err := checkID(hid); err != nil {
+	if err := checkId(hid); err != nil {
 		return nil, err
 	}
 	return newDataspace(hid), nil
@@ -66,24 +66,24 @@ func h5sclose(id C.hid_t) C.herr_t {
 // CreateSimpleDataspace creates a new simple dataspace and opens it for access.
 // The returned dataspace must be closed by the user when it is no longer needed.
 func CreateSimpleDataspace(dims, maxDims []uint) (*Dataspace, error) {
-	var c_dims, c_maxdims *C.hsize_t
+	var cDims, cMaxDims *C.hsize_t
 
 	rank := C.int(0)
 	if dims != nil {
 		rank = C.int(len(dims))
-		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+		cDims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	}
 	if maxDims != nil {
 		rank = C.int(len(maxDims))
-		c_maxdims = (*C.hsize_t)(unsafe.Pointer(&maxDims[0]))
+		cMaxDims = (*C.hsize_t)(unsafe.Pointer(&maxDims[0]))
 
 	}
 	if len(dims) != len(maxDims) && (dims != nil && maxDims != nil) {
 		return nil, errors.New("lengths of dims and maxDims do not match")
 	}
 
-	hid := C.H5Screate_simple(rank, c_dims, c_maxdims)
+	hid := C.H5Screate_simple(rank, cDims, cMaxDims)
 	if hid < 0 {
 		return nil, fmt.Errorf("failed to create dataspace")
 	}
@@ -107,8 +107,8 @@ func (s *Dataspace) SetOffset(offset []uint) error {
 		return err
 	}
 
-	c_offset := (*C.hssize_t)(unsafe.Pointer(&offset[0]))
-	err := C.H5Soffset_simple(s.id, c_offset)
+	cOffset := (*C.hssize_t)(unsafe.Pointer(&offset[0]))
+	err := C.H5Soffset_simple(s.id, cOffset)
 	return h5err(err)
 }
 
@@ -124,28 +124,28 @@ func (s *Dataspace) SelectHyperslab(offset, stride, count, block []uint) error {
 		return err
 	}
 
-	c_offset := (*C.hsize_t)(unsafe.Pointer(&offset[0]))
-	c_count := (*C.hsize_t)(unsafe.Pointer(&count[0]))
-	var c_stride, c_block *C.hsize_t
+	cOffset := (*C.hsize_t)(unsafe.Pointer(&offset[0]))
+	cCount := (*C.hsize_t)(unsafe.Pointer(&count[0]))
+	var cStride, cBlock *C.hsize_t
 	if stride != nil {
-		c_stride = (*C.hsize_t)(unsafe.Pointer(&stride[0]))
+		cStride = (*C.hsize_t)(unsafe.Pointer(&stride[0]))
 	}
 	if block != nil {
-		c_block = (*C.hsize_t)(unsafe.Pointer(&block[0]))
+		cBlock = (*C.hsize_t)(unsafe.Pointer(&block[0]))
 	}
-	err := C.H5Sselect_hyperslab(s.id, C.H5S_SELECT_SET, c_offset, c_stride, c_count, c_block)
+	err := C.H5Sselect_hyperslab(s.id, C.H5S_SELECT_SET, cOffset, cStride, cCount, cBlock)
 	return h5err(err)
 }
 
 // SimpleExtentDims returns dataspace dimension size and maximum size.
-func (s *Dataspace) SimpleExtentDims() (dims, maxdims []uint, err error) {
+func (s *Dataspace) SimpleExtentDims() (dims, maxDims []uint, err error) {
 	rank := s.SimpleExtentNDims()
 	dims = make([]uint, rank)
-	maxdims = make([]uint, rank)
+	maxDims = make([]uint, rank)
 
-	c_dims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
-	c_maxdims := (*C.hsize_t)(unsafe.Pointer(&maxdims[0]))
-	rc := C.H5Sget_simple_extent_dims(s.id, c_dims, c_maxdims)
+	cDims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+	cMaxDims := (*C.hsize_t)(unsafe.Pointer(&maxDims[0]))
+	rc := C.H5Sget_simple_extent_dims(s.id, cDims, cMaxDims)
 	err = h5err(C.herr_t(rc))
 	return
 }

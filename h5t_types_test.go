@@ -110,30 +110,30 @@ func TestStructDatatype(t *testing.T) {
 
 	// Test that the type can be constructed and that the number of
 	// members is as expected.
-	var dtypes []*Datatype
+	var dTypes []*Datatype
 
 	// "Regular" value
-	dtype, err := NewDatatypeFromValue(test)
+	dType, err := NewDatatypeFromValue(test)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if dtype.hasIllegalGoPointer() {
+	if dType.hasIllegalGoPointer() {
 		t.Errorf("unexpected illegal pointer for %T", test)
 	}
-	dtypes = append(dtypes, dtype)
+	dTypes = append(dTypes, dType)
 
 	// pointer to value
-	dtype, err = NewDatatypeFromValue(&test)
+	dType, err = NewDatatypeFromValue(&test)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !dtype.hasIllegalGoPointer() {
+	if !dType.hasIllegalGoPointer() {
 		t.Errorf("expected illegal pointer for %T", &test)
 	}
-	dtypes = append(dtypes, dtype)
+	dTypes = append(dTypes, dType)
 
-	for _, dtype := range dtypes {
-		dt := CompoundType{*dtype}
+	for _, dType := range dTypes {
+		dt := CompoundType{*dType}
 		if dt.NMembers() != 3 {
 			t.Errorf("wrong number of members: got %d, want %d", dt.NMembers(), 3)
 		}
@@ -181,9 +181,9 @@ func TestCloseBehavior(t *testing.T) {
 		a int
 		b float64
 	}
-	dtype, err := NewDatatypeFromValue(s)
+	dType, err := NewDatatypeFromValue(s)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer dtype.Close()
+	defer dType.Close()
 }

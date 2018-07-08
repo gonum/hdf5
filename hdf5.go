@@ -16,8 +16,8 @@ import (
 func init() {
 	err := h5err(C.H5open())
 	if err != nil {
-		err_str := fmt.Sprintf("pb calling H5open(): %s", err)
-		panic(err_str)
+		errStr := fmt.Sprintf("pb calling H5open(): %s", err)
+		panic(errStr)
 	}
 }
 
@@ -37,7 +37,7 @@ func h5err(herr C.herr_t) error {
 	return nil
 }
 
-func checkID(hid C.hid_t) error {
+func checkId(hid C.hid_t) error {
 	if hid < 0 {
 		return h5error{code: int(hid)}
 	}

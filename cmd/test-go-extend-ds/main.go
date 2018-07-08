@@ -19,9 +19,9 @@ func main() {
 	//RANK:= 2
 
 	//dims := []int{3, 3} // dset dimensions at creation
-	//maxdims:= []int{hdf5.S_UNLIMITED, hdf5.S_UNLIMITED}
+	//maxDims:= []int{hdf5.S_UNLIMITED, hdf5.S_UNLIMITED}
 
-	//mspace := hdf5.CreateDataspace(dims, maxdims)
+	//mSpace := hdf5.CreateDataspace(dims, maxDims)
 
 	// create a new file
 	f, err := hdf5.CreateFile(fname, hdf5.F_ACC_TRUNC)

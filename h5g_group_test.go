@@ -86,18 +86,18 @@ func TestGroup(t *testing.T) {
 
 	data := 5
 
-	dtype, err := NewDatatypeFromValue(data)
+	dType, err := NewDatatypeFromValue(data)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	dims := []uint{1}
-	dspace, err := CreateSimpleDataspace(dims, dims)
+	dSpace, err := CreateSimpleDataspace(dims, dims)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dset, err := g3.CreateDataset("dset", dtype, dspace)
+	dset, err := g3.CreateDataset("dset", dType, dSpace)
 	if err != nil {
 		t.Fatal(err)
 	}
