@@ -32,8 +32,8 @@ type Identifier struct {
 	id C.hid_t
 }
 
-// Id returns the integer value of an identifier.
-func (i Identifier) Id() int64 {
+// ID returns the integer value of an identifier.
+func (i Identifier) ID() int64 {
 	return int64(i.id)
 }
 

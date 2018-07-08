@@ -34,7 +34,7 @@ type particle struct {
 	// jmohep      [2][2]int64 // FIXME(sbinet)
 }
 
-func testTable(t *testing.T, dType interface{}, data ...interface{}) {
+func testTable(t *testing.T, typ interface{}, data ...interface{}) {
 	var table *Table
 
 	typeString := reflect.TypeOf(data).String()
@@ -47,7 +47,7 @@ func testTable(t *testing.T, dType interface{}, data ...interface{}) {
 	defer os.Remove(fname)
 	defer f.Close()
 
-	table, err = f.CreateTableFrom(tname, dType, chunkSize, compress)
+	table, err = f.CreateTableFrom(tname, typ, chunkSize, compress)
 	if err != nil {
 		t.Fatalf("CreateTableFrom struct failed for %s: %s", typeString, err)
 	}

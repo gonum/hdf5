@@ -37,7 +37,7 @@ func newDataspace(id C.hid_t) *Dataspace {
 // dataspace must be closed by the user when it is no longer needed.
 func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 	hid := C.H5Screate(C.H5S_class_t(class))
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	ds := newDataspace(hid)
@@ -48,7 +48,7 @@ func CreateDataspace(class SpaceClass) (*Dataspace, error) {
 // be closed by the user when it is no longer needed.
 func (s *Dataspace) Copy() (*Dataspace, error) {
 	hid := C.H5Scopy(s.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newDataspace(hid), nil

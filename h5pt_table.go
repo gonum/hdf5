@@ -48,7 +48,7 @@ func (t *Table) ReadPackets(start, nRecords int, data interface{}) error {
 	cNRecords := C.size_t(nRecords)
 	rv := reflect.Indirect(reflect.ValueOf(data))
 	rt := rv.Type()
-	cData := unsafe.Pointer(nil)
+	var cData unsafe.Pointer
 	switch rt.Kind() {
 	case reflect.Array:
 		if rv.Len() < nRecords {
@@ -129,9 +129,9 @@ func (t *Table) Next(data interface{}) error {
 
 // NumPackets returns the number of packets in a packet table.
 func (t *Table) NumPackets() (int, error) {
-	cNRecords := C.hsize_t(0)
-	err := C.H5PTget_num_packets(t.id, &cNRecords)
-	return int(cNRecords), h5err(err)
+	var n C.hsize_t
+	err := C.H5PTget_num_packets(t.id, &n)
+	return int(n), h5err(err)
 }
 
 // CreateIndex resets a packet table's index to the first packet.
@@ -142,8 +142,8 @@ func (t *Table) CreateIndex() error {
 
 // SetIndex sets a packet table's index.
 func (t *Table) SetIndex(index int) error {
-	cIdX := C.hsize_t(index)
-	err := C.H5PTset_index(t.id, cIdX)
+	cIdx := C.hsize_t(index)
+	err := C.H5PTset_index(t.id, cIdx)
 	return h5err(err)
 }
 
@@ -151,37 +151,37 @@ func (t *Table) SetIndex(index int) error {
 // datatype must be closed by the user when it is no longer needed.
 func (t *Table) Type() (*Datatype, error) {
 	hid := C.H5Dget_type(t.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
 }
 
-func createTable(id C.hid_t, name string, dType *Datatype, chunkSize, compression int) (*Table, error) {
+func createTable(id C.hid_t, name string, typ *Datatype, chunkSize, compression int) (*Table, error) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
 	chunk := C.hsize_t(chunkSize)
 	compr := C.int(compression)
-	hid := C.H5PTcreate_fl(id, cName, dType.id, chunk, compr)
-	if err := checkId(hid); err != nil {
+	hid := C.H5PTcreate_fl(id, cName, typ.id, chunk, compr)
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newPacketTable(hid), nil
 }
 
-func createTableFrom(id C.hid_t, name string, dType interface{}, chunkSize, compression int) (*Table, error) {
+func createTableFrom(id C.hid_t, name string, typ interface{}, chunkSize, compression int) (*Table, error) {
 	var err error
-	switch dt := dType.(type) {
+	switch dt := typ.(type) {
 	case reflect.Type:
-		if hdfDType, err := NewDataTypeFromType(dt); err == nil {
-			return createTable(id, name, hdfDType, chunkSize, compression)
+		if typ, err := NewDataTypeFromType(dt); err == nil {
+			return createTable(id, name, typ, chunkSize, compression)
 		}
 	case *Datatype:
 		return createTable(id, name, dt, chunkSize, compression)
 	default:
-		if hdfDType, err := NewDataTypeFromType(reflect.TypeOf(dType)); err == nil {
-			return createTable(id, name, hdfDType, chunkSize, compression)
+		if typ, err := NewDataTypeFromType(reflect.TypeOf(typ)); err == nil {
+			return createTable(id, name, typ, chunkSize, compression)
 		}
 	}
 	return nil, err
@@ -192,7 +192,7 @@ func openTable(id C.hid_t, name string) (*Table, error) {
 	defer C.free(unsafe.Pointer(cName))
 
 	hid := C.H5PTopen(id, cName)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newPacketTable(hid), nil

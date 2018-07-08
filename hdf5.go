@@ -16,8 +16,7 @@ import (
 func init() {
 	err := h5err(C.H5open())
 	if err != nil {
-		errStr := fmt.Sprintf("pb calling H5open(): %s", err)
-		panic(errStr)
+		panic(fmt.Sprintf("pb calling H5open(): %s", err))
 	}
 }
 
@@ -37,7 +36,7 @@ func h5err(herr C.herr_t) error {
 	return nil
 }
 
-func checkId(hid C.hid_t) error {
+func checkID(hid C.hid_t) error {
 	if hid < 0 {
 		return h5error{code: int(hid)}
 	}
@@ -82,6 +81,6 @@ func GarbageCollect() error {
 // Object represents an hdf5 object.
 type Object interface {
 	Name() string
-	Id() int
+	ID() int
 	File() *File
 }

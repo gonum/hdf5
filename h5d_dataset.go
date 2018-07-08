@@ -26,18 +26,18 @@ func newDataset(id C.hid_t, typ *Datatype) *Dataset {
 	return &Dataset{Identifier: Identifier{id}, typ: typ}
 }
 
-func createDataset(id C.hid_t, name string, dType *Datatype, dSpace *Dataspace, dcpl *PropList) (*Dataset, error) {
-	dType, err := dType.Copy() // For safety
+func createDataset(id C.hid_t, name string, typ *Datatype, spc *Dataspace, dcpl *PropList) (*Dataset, error) {
+	typ, err := typ.Copy() // For safety
 	if err != nil {
 		return nil, err
 	}
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
-	hid := C.H5Dcreate2(id, cName, dType.id, dSpace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
-	if err := checkId(hid); err != nil {
+	hid := C.H5Dcreate2(id, cName, typ.id, spc.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return newDataset(hid, dType), nil
+	return newDataset(hid, typ), nil
 }
 
 // Close releases and terminates access to a dataset.
@@ -60,8 +60,8 @@ func (s *Dataset) Space() *Dataspace {
 
 // ReadSubset reads a subset of raw data from a dataset into a buffer.
 func (s *Dataset) ReadSubset(data interface{}, memSpace, fileSpace *Dataspace) error {
-	dType, err := s.Datatype()
-	defer dType.Close()
+	typ, err := s.Datatype()
+	defer typ.Close()
 	if err != nil {
 		return err
 	}
@@ -89,14 +89,14 @@ func (s *Dataset) ReadSubset(data interface{}, memSpace, fileSpace *Dataspace) e
 		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	var fileSpaceId, memSpaceId C.hid_t = 0, 0
+	var fileSpaceID, memSpaceID C.hid_t
 	if memSpace != nil {
-		memSpaceId = memSpace.id
+		memSpaceID = memSpace.id
 	}
 	if fileSpace != nil {
-		fileSpaceId = fileSpace.id
+		fileSpaceID = fileSpace.id
 	}
-	rc := C.H5Dread(s.id, dType.id, memSpaceId, fileSpaceId, 0, addr)
+	rc := C.H5Dread(s.id, typ.id, memSpaceID, fileSpaceID, 0, addr)
 	err = h5err(rc)
 	return err
 }
@@ -108,8 +108,8 @@ func (s *Dataset) Read(data interface{}) error {
 
 // WriteSubset writes a subset of raw data from a buffer to a dataset.
 func (s *Dataset) WriteSubset(data interface{}, memSpace, fileSpace *Dataspace) error {
-	dType, err := s.Datatype()
-	defer dType.Close()
+	typ, err := s.Datatype()
+	defer typ.Close()
 	if err != nil {
 		return err
 	}
@@ -137,14 +137,14 @@ func (s *Dataset) WriteSubset(data interface{}, memSpace, fileSpace *Dataspace) 
 		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	var fileSpaceId, memSpaceId C.hid_t = 0, 0
+	var fileSpaceID, memSpaceID C.hid_t
 	if memSpace != nil {
-		memSpaceId = memSpace.id
+		memSpaceID = memSpace.id
 	}
 	if fileSpace != nil {
-		fileSpaceId = fileSpace.id
+		fileSpaceID = fileSpace.id
 	}
-	rc := C.H5Dwrite(s.id, dType.id, memSpaceId, fileSpaceId, 0, addr)
+	rc := C.H5Dwrite(s.id, typ.id, memSpaceID, fileSpaceID, 0, addr)
 	err = h5err(rc)
 	return err
 }
@@ -156,14 +156,14 @@ func (s *Dataset) Write(data interface{}) error {
 
 // Creates a new attribute at this location. The returned attribute
 // must be closed by the user when it is no longer needed.
-func (s *Dataset) CreateAttribute(name string, dType *Datatype, dSpace *Dataspace) (*Attribute, error) {
-	return createAttribute(s.id, name, dType, dSpace, P_DEFAULT)
+func (s *Dataset) CreateAttribute(name string, typ *Datatype, spc *Dataspace) (*Attribute, error) {
+	return createAttribute(s.id, name, typ, spc, P_DEFAULT)
 }
 
 // Creates a new attribute at this location. The returned
 // attribute must be closed by the user when it is no longer needed.
-func (s *Dataset) CreateAttributeWith(name string, dType *Datatype, dSpace *Dataspace, acpl *PropList) (*Attribute, error) {
-	return createAttribute(s.id, name, dType, dSpace, acpl)
+func (s *Dataset) CreateAttributeWith(name string, typ *Datatype, spc *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(s.id, name, typ, spc, acpl)
 }
 
 // Opens an existing attribute. The returned attribute must be closed
@@ -176,11 +176,11 @@ func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 // Datatype returns the HDF5 Datatype of the Dataset. The returned
 // datatype must be closed by the user when it is no longer needed.
 func (s *Dataset) Datatype() (*Datatype, error) {
-	dTypeId := C.H5Dget_type(s.id)
-	if dTypeId < 0 {
+	typID := C.H5Dget_type(s.id)
+	if typID < 0 {
 		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
 	}
-	return NewDatatype(dTypeId), nil
+	return NewDatatype(typID), nil
 }
 
 // hasIllegalGoPointer returns whether the Dataset is known to have

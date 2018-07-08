@@ -35,7 +35,7 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 	linkFlags := C.hid_t(C.H5P_DEFAULT)
 	grpCFlags := C.hid_t(C.H5P_DEFAULT)
 	hid := C.H5Gcreate2(g.id, cName, linkFlags, grpCFlags, P_DEFAULT.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Identifier{hid}}}
@@ -44,26 +44,26 @@ func (g *CommonFG) CreateGroup(name string) (*Group, error) {
 
 // CreateDataset creates a new Dataset. The returned dataset must be
 // closed by the user when it is no longer needed.
-func (g *CommonFG) CreateDataset(name string, dType *Datatype, dSpace *Dataspace) (*Dataset, error) {
-	return createDataset(g.id, name, dType, dSpace, P_DEFAULT)
+func (g *CommonFG) CreateDataset(name string, typ *Datatype, spc *Dataspace) (*Dataset, error) {
+	return createDataset(g.id, name, typ, spc, P_DEFAULT)
 }
 
 // CreateDatasetWith creates a new Dataset with a user-defined PropList.
 // The returned dataset must be closed by the user when it is no longer needed.
-func (g *CommonFG) CreateDatasetWith(name string, dType *Datatype, dSpace *Dataspace, dcpl *PropList) (*Dataset, error) {
-	return createDataset(g.id, name, dType, dSpace, dcpl)
+func (g *CommonFG) CreateDatasetWith(name string, typ *Datatype, spc *Dataspace, dcpl *PropList) (*Dataset, error) {
+	return createDataset(g.id, name, typ, spc, dcpl)
 }
 
 // CreateAttribute creates a new attribute at this location. The returned
 // attribute must be closed by the user when it is no longer needed.
-func (g *Group) CreateAttribute(name string, dType *Datatype, dSpace *Dataspace) (*Attribute, error) {
-	return createAttribute(g.id, name, dType, dSpace, P_DEFAULT)
+func (g *Group) CreateAttribute(name string, typ *Datatype, spc *Dataspace) (*Attribute, error) {
+	return createAttribute(g.id, name, typ, spc, P_DEFAULT)
 }
 
 // CreateAttributeWith creates a new attribute at this location with a user-defined
 // PropList. The returned dataset must be closed by the user when it is no longer needed.
-func (g *Group) CreateAttributeWith(name string, dType *Datatype, dSpace *Dataspace, acpl *PropList) (*Attribute, error) {
-	return createAttribute(g.id, name, dType, dSpace, acpl)
+func (g *Group) CreateAttributeWith(name string, typ *Datatype, spc *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(g.id, name, typ, spc, acpl)
 }
 
 // Close closes the Group.
@@ -82,7 +82,7 @@ func (g *CommonFG) OpenGroup(name string) (*Group, error) {
 	defer C.free(unsafe.Pointer(cName))
 
 	hid := C.H5Gopen2(g.id, cName, P_DEFAULT.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	group := &Group{CommonFG{Identifier{hid}}}
@@ -96,7 +96,7 @@ func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
 	defer C.free(unsafe.Pointer(cName))
 
 	hid := C.H5Dopen2(g.id, cName, P_DEFAULT.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return newDataset(hid, nil), nil
@@ -128,14 +128,14 @@ func (g *CommonFG) ObjectNameByIndex(idx uint) (string, error) {
 
 // CreateTable creates a packet table to store fixed-length packets.
 // The returned table must be closed by the user when it is no longer needed.
-func (g *Group) CreateTable(name string, dType *Datatype, chunkSize, compression int) (*Table, error) {
-	return createTable(g.id, name, dType, chunkSize, compression)
+func (g *Group) CreateTable(name string, typ *Datatype, chunkSize, compression int) (*Table, error) {
+	return createTable(g.id, name, typ, chunkSize, compression)
 }
 
 // CreateTableFrom creates a packet table to store fixed-length packets.
 // The returned table must be closed by the user when it is no longer needed.
-func (g *Group) CreateTableFrom(name string, dType interface{}, chunkSize, compression int) (*Table, error) {
-	return createTableFrom(g.id, name, dType, chunkSize, compression)
+func (g *Group) CreateTableFrom(name string, typ interface{}, chunkSize, compression int) (*Table, error) {
+	return createTableFrom(g.id, name, typ, chunkSize, compression)
 }
 
 // OpenTable opens an existing packet table. The returned table must be

@@ -25,13 +25,13 @@ func createDataset1(t *testing.T) error {
 	}
 
 	dims := []uint{20, 5}
-	dSpace, err := CreateSimpleDataspace(dims, dims)
+	spc, err := CreateSimpleDataspace(dims, dims)
 	if err != nil {
 		t.Fatal(err)
 		return err
 	}
 
-	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, dSpace)
+	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, spc)
 	if err != nil {
 		t.Fatal(err)
 		return err
@@ -177,21 +177,21 @@ func TestSelectHyperslab(t *testing.T) {
 	defer DisplayErrors(false)
 
 	dims := []uint{12, 4}
-	dSpace, err := CreateSimpleDataspace(dims, nil)
+	spc, err := CreateSimpleDataspace(dims, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	offset, stride, count, block := []uint{1, 2}, []uint{2, 1}, []uint{4, 2}, []uint{1, 1}
-	if err = dSpace.SelectHyperslab(offset, stride, count, block); err != nil {
+	if err = spc.SelectHyperslab(offset, stride, count, block); err != nil {
 		t.Fatal(err)
 	}
-	if err = dSpace.SelectHyperslab(offset, nil, count, block); err != nil {
+	if err = spc.SelectHyperslab(offset, nil, count, block); err != nil {
 		t.Fatal(err)
 	}
-	if err = dSpace.SelectHyperslab(offset, stride, count, nil); err != nil {
+	if err = spc.SelectHyperslab(offset, stride, count, nil); err != nil {
 		t.Fatal(err)
 	}
-	if err = dSpace.SelectHyperslab(offset, nil, count, nil); err != nil {
+	if err = spc.SelectHyperslab(offset, nil, count, nil); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -97,12 +97,12 @@ var (
 
 // OpenDatatype opens a named datatype. The returned datastype must
 // be closed by the user when it is no longer needed.
-func OpenDatatype(c CommonFG, name string, taplId int) (*Datatype, error) {
+func OpenDatatype(c CommonFG, name string, taplID int) (*Datatype, error) {
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 
-	id := C.H5Topen2(C.hid_t(c.id), cName, C.hid_t(taplId))
-	if err := checkId(id); err != nil {
+	id := C.H5Topen2(C.hid_t(c.id), cName, C.hid_t(taplID))
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	return NewDatatype(id), nil
@@ -128,7 +128,7 @@ func CreateDatatype(class TypeClass, size int) (*Datatype, error) {
 	}
 
 	hid := C.H5Tcreate(C.H5T_class_t(class), C.size_t(size))
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
@@ -167,7 +167,7 @@ func (t *Datatype) Copy() (*Datatype, error) {
 // an existing Datatype from a Dataset or Attribute.
 func copyDatatype(id C.hid_t) (*Datatype, error) {
 	hid := C.H5Tcopy(id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
@@ -206,7 +206,7 @@ func NewArrayType(baseType *Datatype, dims []int) (*ArrayType, error) {
 	cDims := (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	hid := C.H5Tarray_create2(baseType.id, nDims, cDims)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	t := &ArrayType{Datatype{Identifier: Identifier{hid}}}
@@ -244,7 +244,7 @@ type VarLenType struct {
 // when it is no longer needed.
 func NewVarLenType(baseType *Datatype) (*VarLenType, error) {
 	id := C.H5Tvlen_create(baseType.id)
-	if err := checkId(id); err != nil {
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	t := &VarLenType{Datatype{Identifier: Identifier{id}}}
@@ -266,7 +266,7 @@ type CompoundType struct {
 // when it is no longer needed.
 func NewCompoundType(size int) (*CompoundType, error) {
 	id := C.H5Tcreate(C.H5T_class_t(T_COMPOUND), C.size_t(size))
-	if err := checkId(id); err != nil {
+	if err := checkID(id); err != nil {
 		return nil, err
 	}
 	t := &CompoundType{Datatype{Identifier: Identifier{id}}}
@@ -284,13 +284,13 @@ func (t *Datatype) Class() TypeClass {
 }
 
 // MemberClass returns datatype class of compound datatype member.
-func (t *CompoundType) MemberClass(mbrIdX int) TypeClass {
-	return TypeClass(C.H5Tget_member_class(t.id, C.uint(mbrIdX)))
+func (t *CompoundType) MemberClass(mbrIDX int) TypeClass {
+	return TypeClass(C.H5Tget_member_class(t.id, C.uint(mbrIDX)))
 }
 
 // MemberName returns the name of a compound or enumeration datatype member.
-func (t *CompoundType) MemberName(mbrIdX int) string {
-	cName := C.H5Tget_member_name(t.id, C.uint(mbrIdX))
+func (t *CompoundType) MemberName(mbrIDX int) string {
+	cName := C.H5Tget_member_name(t.id, C.uint(mbrIDX))
 	defer C.free(unsafe.Pointer(cName))
 	return C.GoString(cName)
 }
@@ -303,15 +303,15 @@ func (t *CompoundType) MemberIndex(name string) int {
 }
 
 // MemberOffset returns the offset of a field of a compound datatype.
-func (t *CompoundType) MemberOffset(mbrIdX int) int {
-	return int(C.H5Tget_member_offset(t.id, C.uint(mbrIdX)))
+func (t *CompoundType) MemberOffset(mbrIDX int) int {
+	return int(C.H5Tget_member_offset(t.id, C.uint(mbrIDX)))
 }
 
 // MemberType returns the datatype of the specified member. The returned
 // datatype must be closed by the user when it is no longer needed.
-func (t *CompoundType) MemberType(mbrIdX int) (*Datatype, error) {
-	hid := C.H5Tget_member_type(t.id, C.uint(mbrIdX))
-	if err := checkId(hid); err != nil {
+func (t *CompoundType) MemberType(mbrIDX int) (*Datatype, error) {
+	hid := C.H5Tget_member_type(t.id, C.uint(mbrIDX))
+	if err := checkID(hid); err != nil {
 		return nil, err
 	}
 	return NewDatatype(hid), nil
@@ -440,7 +440,7 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 
 	case reflect.Struct:
 		sz := int(t.Size())
-		cDT, err := NewCompoundType(sz)
+		cdt, err := NewCompoundType(sz)
 		if err != nil {
 			return nil, err
 		}
@@ -448,28 +448,28 @@ func NewDataTypeFromType(t reflect.Type) (*Datatype, error) {
 		n := t.NumField()
 		for i := 0; i < n; i++ {
 			f := t.Field(i)
-			var fieldDT *Datatype
-			fieldDT, err = NewDataTypeFromType(f.Type)
+			var ft *Datatype
+			ft, err = NewDataTypeFromType(f.Type)
 			if err != nil {
 				return nil, err
 			}
-			if fieldDT.goPtrPathLen > ptrPathLen {
-				ptrPathLen = fieldDT.goPtrPathLen
+			if ft.goPtrPathLen > ptrPathLen {
+				ptrPathLen = ft.goPtrPathLen
 			}
 			offset := int(f.Offset + 0)
-			if fieldDT == nil {
+			if ft == nil {
 				return nil, fmt.Errorf("pb with field [%d-%s]", i, f.Name)
 			}
 			fieldName := string(f.Tag)
 			if len(fieldName) == 0 {
 				fieldName = f.Name
 			}
-			err = cDT.Insert(fieldName, offset, fieldDT)
+			err = cdt.Insert(fieldName, offset, ft)
 			if err != nil {
 				return nil, fmt.Errorf("pb with field [%d-%s]: %s", i, f.Name, err)
 			}
 		}
-		dt = &cDT.Datatype
+		dt = &cdt.Datatype
 		dt.goPtrPathLen += ptrPathLen
 
 	case reflect.Ptr:

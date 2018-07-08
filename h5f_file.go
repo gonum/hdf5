@@ -50,7 +50,7 @@ func CreateFile(name string, flags int) (*File, error) {
 
 	// FIXME: file props
 	hid := C.H5Fcreate(cName, C.uint(flags), P_DEFAULT.id, P_DEFAULT.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, fmt.Errorf("error creating hdf5 file: %s", err)
 	}
 	return newFile(hid), nil
@@ -64,7 +64,7 @@ func OpenFile(name string, flags int) (*File, error) {
 
 	// FIXME: file props
 	hid := C.H5Fopen(cName, C.uint(flags), P_DEFAULT.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, fmt.Errorf("error opening hdf5 file: %s", err)
 	}
 	return newFile(hid), nil
@@ -74,7 +74,7 @@ func OpenFile(name string, flags int) (*File, error) {
 // The returned file must be closed by the user when it is no longer needed.
 func (f *File) ReOpen() (*File, error) {
 	hid := C.H5Freopen(f.id)
-	if err := checkId(hid); err != nil {
+	if err := checkID(hid); err != nil {
 		return nil, fmt.Errorf("error reopening hdf5 file: %s", err)
 	}
 	return newFile(hid), nil
@@ -99,14 +99,12 @@ func h5fclose(id C.hid_t) C.herr_t {
 
 // Flushes all buffers associated with a file to disk.
 func (f *File) Flush(scope Scope) error {
-	// herr_t H5Fflush(hid_t object_id, H5F_scope_t scope )
 	return h5err(C.H5Fflush(f.id, C.H5F_scope_t(scope)))
 }
 
 // FIXME
 // Retrieves name of file to which object belongs.
 func (f *File) FileName() string {
-	// size_t H5Fget_name(hid_t obj_id, char *name, size_t size )
 	sz := int(C.H5Fget_name(f.id, nil, 0)) + 1
 	if sz < 0 {
 		return ""
@@ -126,21 +124,18 @@ var cdot = C.CString(".")
 
 // Creates a packet table to store fixed-length packets. The returned
 // table must be closed by the user when it is no longer needed.
-func (f *File) CreateTable(name string, dType *Datatype, chunkSize, compression int) (*Table, error) {
-	// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dType_id, hsize_t chunk_size, int compression )
-	return createTable(f.id, name, dType, chunkSize, compression)
+func (f *File) CreateTable(name string, typ *Datatype, chunkSize, compression int) (*Table, error) {
+	return createTable(f.id, name, typ, chunkSize, compression)
 }
 
 // Creates a packet table to store fixed-length packets. The returned
 // table must be closed by the user when it is no longer needed.
-func (f *File) CreateTableFrom(name string, dType interface{}, chunkSize, compression int) (*Table, error) {
-	// hid_t H5PTcreate_fl( hid_t loc_id, const char * dset_name, hid_t dType_id, hsize_t chunk_size, int compression )
-	return createTableFrom(f.id, name, dType, chunkSize, compression)
+func (f *File) CreateTableFrom(name string, typ interface{}, chunkSize, compression int) (*Table, error) {
+	return createTableFrom(f.id, name, typ, chunkSize, compression)
 }
 
 // Opens an existing packet table. The returned table must be closed
 // by the user when it is no longer needed.
 func (f *File) OpenTable(name string) (*Table, error) {
-	// hid_t H5PTopen( hid_t loc_id, const char *dset_name )
 	return openTable(f.id, name)
 }
