@@ -9,5 +9,7 @@ package hdf5
 // #cgo darwin LDFLAGS: -L/usr/local/lib
 // #cgo linux CFLAGS: -I/usr/local/include, -I/usr/lib/x86_64-linux-gnu/hdf5/serial/include
 // #cgo linux LDFLAGS: -L/usr/local/lib, -L/usr/lib/x86_64-linux-gnu/hdf5/serial/
+// #cgo linux arm CFLAGS: -I/usr/local/include, -I/usr/lib/arm-linux-gnueabihf/hdf5/serial/include/
+// #cgo linux arm LDFLAGS: -L/usr/local/lib, -L/usr/lib/arm-linux-gnueabihf/hdf5/serial/
 // #include "hdf5.h"
 import "C"
