@@ -4,7 +4,7 @@
 
 package hdf5
 
-// #cgo pkg-config: hdf5
+// #cgo pkg-config: hdf5-serial
 // #cgo LDFLAGS: -lhdf5_hl
 // #include "hdf5.h"
 import "C"
