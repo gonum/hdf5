@@ -51,41 +51,6 @@ func TestDeflate(t *testing.T) {
 	}
 }
 
-func TestSZip(t *testing.T) {
-	DisplayErrors(true)
-	fn, dsn, dims := "cmprss_szip.h5", "dset_cmpress", []uint{100, 100}
-	defer DisplayErrors(false)
-	defer os.Remove(fn)
-
-	dclp, err := NewPropList(H5P_DATASET_CREATE)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer dclp.Close()
-	err = dclp.SetChunk(2, []uint{20, 20})
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = dclp.SetSzip(H5_SZIP_EC_OPTION_MASK, 32)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data0, err := save(fn, dsn, dims, dclp)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	data1, err := load(fn, dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := compare(data0, data1); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func save(fn, dsn string, dims []uint, dclp *PropList) ([]float64, error) {
 	f, err := CreateFile(fn, F_ACC_TRUNC)
 	if err != nil {
