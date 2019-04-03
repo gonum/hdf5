@@ -5,7 +5,6 @@
 package hdf5
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -112,12 +111,12 @@ func load(fn, dsn string) ([]float64, error) {
 func compare(ds0, ds1 []float64) error {
 	n0, n1 := len(ds0), len(ds1)
 	if n0 != n1 {
-		return errors.New(fmt.Sprintf("dimensions mismatch: %d != %d", n0, n1))
+		return fmt.Errorf("dimensions mismatch: %d != %d", n0, n1)
 	}
 	for i := 0; i < n0; i++ {
 		d := math.Abs(ds0[i] - ds1[i])
 		if d > 1e-7 {
-			return errors.New(fmt.Sprintf("values at index %d differ: %f != %f", i, ds0[i], ds1[i]))
+			return fmt.Errorf("values at index %d differ: %f != %f", i, ds0[i], ds1[i])
 		}
 	}
 	return nil
