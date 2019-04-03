@@ -6,6 +6,7 @@ package hdf5
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"os"
 	"testing"
@@ -18,16 +19,20 @@ import (
 
 func TestDeflate(t *testing.T) {
 	DisplayErrors(true)
-	fn, dsn, dims := "cmprss_deflate.h5", "dset_cmpress", []uint{1000, 1000}
 	defer DisplayErrors(false)
+	var (
+		fn   = "cmprss_deflate.h5"
+		dsn  = "dset_cmpress"
+		dims = []uint{1000, 1000}
+	)
 	defer os.Remove(fn)
 
-	dclp, err := NewPropList(H5P_DATASET_CREATE)
+	dclp, err := NewPropList(P_DATASET_CREATE)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer dclp.Close()
-	err = dclp.SetChunk(2, []uint{100, 100})
+	err = dclp.SetChunk([]uint{100, 100})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +76,7 @@ func save(fn, dsn string, dims []uint, dclp *PropList) ([]float64, error) {
 
 	n := dims[0] * dims[1]
 	data := make([]float64, n)
-	for i := uint(0); i < n; i++ {
+	for i := range data {
 		data[i] = float64((i*i*i + 13) % 8191)
 	}
 	err = dset.Write(&data[0])
@@ -107,12 +112,12 @@ func load(fn, dsn string) ([]float64, error) {
 func compare(ds0, ds1 []float64) error {
 	n0, n1 := len(ds0), len(ds1)
 	if n0 != n1 {
-		return errors.New("Dimensions not meet")
+		return errors.New(fmt.Sprintf("dimensions mismatch: %d != %d", n0, n1))
 	}
 	for i := 0; i < n0; i++ {
 		d := math.Abs(ds0[i] - ds1[i])
 		if d > 1e-7 {
-			return errors.New("Values not meet")
+			return errors.New(fmt.Sprintf("values at index %d differ: %f != %f", i, ds0[i], ds1[i]))
 		}
 	}
 	return nil

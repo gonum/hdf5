@@ -7,9 +7,8 @@ package hdf5
 // #include "hdf5.h"
 // #include <stdlib.h>
 // #include <string.h>
-// inline static
-// hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
-// hid_t _go_hdf5_H5P_DATASET_CREATE() { return H5P_DATASET_CREATE; }
+// static inline hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
+// static inline hid_t _go_hdf5_H5P_DATASET_CREATE() { return H5P_DATASET_CREATE; }
 import "C"
 
 import "unsafe"
@@ -21,8 +20,8 @@ type PropList struct {
 }
 
 var (
-	P_DEFAULT          *PropList = newPropList(C._go_hdf5_H5P_DEFAULT())
-	H5P_DATASET_CREATE PropType  = PropType(C._go_hdf5_H5P_DATASET_CREATE()) // Properties for dataset creation
+	P_DEFAULT        *PropList = newPropList(C._go_hdf5_H5P_DEFAULT())
+	P_DATASET_CREATE PropType  = PropType(C._go_hdf5_H5P_DATASET_CREATE()) // Properties for dataset creation
 )
 
 func newPropList(id C.hid_t) *PropList {
@@ -44,18 +43,21 @@ func (p *PropList) Close() error {
 	return p.closeWith(h5pclose)
 }
 
-// Sets the size of the chunks used to store a chunked layout dataset.
+// SetChunk sets the size of the chunks used to store a chunked layout dataset.
 // https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetChunk
-func (p *PropList) SetChunk(ndims uint, dim []uint) error {
-	var c_dim *C.hsize_t
-	c_dim = (*C.hsize_t)(unsafe.Pointer(&dim[0]))
+func (p *PropList) SetChunk(dim []uint) error {
+	ndims := len(dim)
+	if ndims <= 0 {
+		return h5err(C.herr_t(-1))
+	}
+	c_dim := (*C.hsize_t)(unsafe.Pointer(&dim[0]))
 	if err := h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), c_dim)); err != nil {
 		return err
 	}
 	return nil
 }
 
-// Sets deflate (GNU gzip) compression method and compression level.
+// SetDeflate sets deflate (GNU gzip) compression method and compression level.
 // https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetDeflate
 func (p *PropList) SetDeflate(level uint) error {
 	if err := h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level))); err != nil {
