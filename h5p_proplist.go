@@ -11,7 +11,18 @@ package hdf5
 // static inline hid_t _go_hdf5_H5P_DATASET_CREATE() { return H5P_DATASET_CREATE; }
 import "C"
 
-import "unsafe"
+import (
+	"compress/zlib"
+	"fmt"
+	"unsafe"
+)
+
+const (
+	NoCompression      = zlib.NoCompression
+	BestSpeed          = zlib.BestSpeed
+	BestCompression    = zlib.BestCompression
+	DefaultCompression = zlib.DefaultCompression
+)
 
 type PropType C.hid_t
 
@@ -48,7 +59,7 @@ func (p *PropList) Close() error {
 func (p *PropList) SetChunk(dim []uint) error {
 	ndims := len(dim)
 	if ndims <= 0 {
-		return h5err(C.herr_t(-1))
+		return fmt.Errorf("number of dimensions must be same size as the rank of the dataset, but zero received")
 	}
 	c_dim := (*C.hsize_t)(unsafe.Pointer(&dim[0]))
 	if err := h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), c_dim)); err != nil {
@@ -58,8 +69,15 @@ func (p *PropList) SetChunk(dim []uint) error {
 }
 
 // SetDeflate sets deflate (GNU gzip) compression method and compression level.
+// If level is set as DefaultCompression, 6 will be used.
 // https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetDeflate
-func (p *PropList) SetDeflate(level uint) error {
+func (p *PropList) SetDeflate(level int) error {
+	if level == DefaultCompression {
+		level = 6
+	}
+	if level < 0 {
+		return fmt.Errorf("unsupported compression level: %d", level)
+	}
 	if err := h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level))); err != nil {
 		return err
 	}

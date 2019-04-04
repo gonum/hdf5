@@ -35,7 +35,7 @@ func TestDeflate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dclp.SetDeflate(7)
+	err = dclp.SetDeflate(DefaultCompression)
 	if err != nil {
 		t.Fatal(err)
 	}
