@@ -75,9 +75,6 @@ func (p *PropList) SetDeflate(level int) error {
 	if level == DefaultCompression {
 		level = 6
 	}
-	if level < 0 {
-		return fmt.Errorf("unsupported compression level: %d", level)
-	}
 	if err := h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level))); err != nil {
 		return err
 	}
