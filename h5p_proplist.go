@@ -14,7 +14,6 @@ import "C"
 import (
 	"compress/zlib"
 	"fmt"
-	"unsafe"
 )
 
 const (
@@ -61,8 +60,11 @@ func (p *PropList) SetChunk(dim []uint) error {
 	if ndims <= 0 {
 		return fmt.Errorf("number of dimensions must be same size as the rank of the dataset, but zero received")
 	}
-	c_dim := (*C.hsize_t)(unsafe.Pointer(&dim[0]))
-	if err := h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), c_dim)); err != nil {
+	c_dim := make([]C.hsize_t, ndims)
+	for i := range dim {
+		c_dim[i] = C.hsize_t(dim[i])
+	}
+	if err := h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), &c_dim[0])); err != nil {
 		return err
 	}
 	return nil
