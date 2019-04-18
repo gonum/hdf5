@@ -64,10 +64,7 @@ func (p *PropList) SetChunk(dim []uint) error {
 	for i := range dim {
 		c_dim[i] = C.hsize_t(dim[i])
 	}
-	if err := h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), &c_dim[0])); err != nil {
-		return err
-	}
-	return nil
+	return h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), &c_dim[0]))
 }
 
 // SetDeflate sets deflate (GNU gzip) compression method and compression level.
@@ -77,10 +74,7 @@ func (p *PropList) SetDeflate(level int) error {
 	if level == DefaultCompression {
 		level = 6
 	}
-	if err := h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level))); err != nil {
-		return err
-	}
-	return nil
+	return h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level)))
 }
 
 func h5pclose(id C.hid_t) C.herr_t {
