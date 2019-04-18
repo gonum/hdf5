@@ -52,7 +52,7 @@ func TestChunk(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data1, err := load(fn, dsn)
+	data1, err := load(fn, dsn, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,12 +92,83 @@ func TestDeflate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data1, err := load(fn, dsn)
+	data1, err := load(fn, dsn, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if err := compare(data0, data1); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestChunkCache(t *testing.T) {
+	DisplayErrors(true)
+	defer DisplayErrors(false)
+	var (
+		fn    = "test_chunk_cache.h5"
+		dsn   = "dset_chunk_cache"
+		dims  = []uint{1000, 1000}
+		cdims = []uint{100, 100}
+	)
+	defer os.Remove(fn)
+
+	dclp0, err := NewPropList(P_DATASET_CREATE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dclp0.Close()
+	err = dclp0.SetChunk(cdims)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cdims_, err := dclp0.GetChunk(len(cdims))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, cdim := range cdims_ {
+		if cdim != cdims[i] {
+			t.Fatalf("chunked dimensions mismatch: %d != %d", cdims[i], cdim)
+		}
+	}
+
+	data0, err := save(fn, dsn, dims, dclp0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dclp1, err := NewPropList(P_DATASET_ACCESS)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dclp1.Close()
+
+	nslots, nbytes, w0, err := dclp1.GetChunkCache()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	nslots_, nbytes_, w0_ := nslots*4, nbytes*2, w0/3
+	if err := dclp1.SetChunkCache(nslots_, nbytes_, w0_); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkChunkCahche(nslots_, nbytes_, w0_, dclp1); err != nil {
+		t.Fatal(err)
+	}
+
+	data1, err := load(fn, dsn, dclp1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := compare(data0, data1); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := dclp1.SetChunkCache(D_CHUNK_CACHE_NSLOTS_DEFAULT, D_CHUNK_CACHE_NBYTES_DEFAULT, D_CHUNK_CACHE_W0_DEFAULT); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkChunkCahche(nslots, nbytes, w0, dclp1); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -132,14 +203,20 @@ func save(fn, dsn string, dims []uint, dclp *PropList) ([]float64, error) {
 	return data, nil
 }
 
-func load(fn, dsn string) ([]float64, error) {
+func load(fn, dsn string, dclp *PropList) ([]float64, error) {
 	f, err := OpenFile(fn, F_ACC_RDONLY)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	dset, _ := f.OpenDataset(dsn)
+	var dset *Dataset
+	if dclp == nil {
+		dset, _ = f.OpenDataset(dsn)
+	} else {
+		dset, _ = f.OpenDatasetWith(dsn, dclp)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -165,6 +242,24 @@ func compare(ds0, ds1 []float64) error {
 		if d > 1e-7 {
 			return fmt.Errorf("values at index %d differ: %f != %f", i, ds0[i], ds1[i])
 		}
+	}
+	return nil
+}
+
+func checkChunkCahche(nslots, nbytes int, w0 float64, dclp *PropList) error {
+	nslots_, nbytes_, w0_, err := dclp.GetChunkCache()
+	if err != nil {
+		return err
+	}
+
+	if nslots_ != nslots {
+		return fmt.Errorf("`nslots` mismatch: %d != %d", nslots, nslots_)
+	}
+	if nbytes_ != nbytes {
+		return fmt.Errorf("`nbytes` mismatch: %d != %d", nbytes, nbytes_)
+	}
+	if math.Abs(w0_-w0) > 1e-5 {
+		return fmt.Errorf("`w0` mismatch: %.6f != %.6f", w0, w0_)
 	}
 	return nil
 }

@@ -9,6 +9,7 @@ package hdf5
 // #include <string.h>
 // static inline hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
 // static inline hid_t _go_hdf5_H5P_DATASET_CREATE() { return H5P_DATASET_CREATE; }
+// static inline hid_t _go_hdf5_H5P_DATASET_ACCESS() { return H5P_DATASET_ACCESS; }
 import "C"
 
 import (
@@ -32,6 +33,7 @@ type PropList struct {
 var (
 	P_DEFAULT        *PropList = newPropList(C._go_hdf5_H5P_DEFAULT())
 	P_DATASET_CREATE PropType  = PropType(C._go_hdf5_H5P_DATASET_CREATE()) // Properties for dataset creation
+	P_DATASET_ACCESS PropType  = PropType(C._go_hdf5_H5P_DATASET_ACCESS()) // Properties for dataset access
 )
 
 func newPropList(id C.hid_t) *PropList {
@@ -93,6 +95,28 @@ func (p *PropList) SetDeflate(level int) error {
 		level = 6
 	}
 	return h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level)))
+}
+
+// SetChunkCache sets the raw data chunk cache parameters.
+// To reset them as default, use `D_CHUNK_CACHE_NSLOTS_DEFAULT`, `D_CHUNK_CACHE_NBYTES_DEFAULT` and `D_CHUNK_CACHE_W0_DEFAULT`.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetChunkCache
+func (p *PropList) SetChunkCache(nslots, nbytes int, w0 float64) error {
+	return h5err(C.H5Pset_chunk_cache(C.hid_t(p.id), C.size_t(nslots), C.size_t(nbytes), C.double(w0)))
+}
+
+// GetChunkCache retrieves the number of chunk slots in the raw data chunk cache hash table.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-GetChunkCache
+func (p *PropList) GetChunkCache() (nslots, nbytes int, w0 float64, err error) {
+	var (
+		c_nslots C.size_t
+		c_nbytes C.size_t
+		c_w0     C.double
+	)
+	if err = h5err(C.H5Pget_chunk_cache(C.hid_t(p.id), &c_nslots, &c_nbytes, &c_w0)); err != nil {
+		return
+	}
+	nslots, nbytes, w0 = int(c_nslots), int(c_nbytes), float64(c_w0)
+	return
 }
 
 func h5pclose(id C.hid_t) C.herr_t {
