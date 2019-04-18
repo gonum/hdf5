@@ -55,16 +55,34 @@ func (p *PropList) Close() error {
 
 // SetChunk sets the size of the chunks used to store a chunked layout dataset.
 // https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetChunk
-func (p *PropList) SetChunk(dim []uint) error {
-	ndims := len(dim)
+func (p *PropList) SetChunk(dims []uint) error {
+	ndims := len(dims)
 	if ndims <= 0 {
 		return fmt.Errorf("number of dimensions must be same size as the rank of the dataset, but zero received")
 	}
 	c_dim := make([]C.hsize_t, ndims)
-	for i := range dim {
-		c_dim[i] = C.hsize_t(dim[i])
+	for i := range dims {
+		c_dim[i] = C.hsize_t(dims[i])
 	}
 	return h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), &c_dim[0]))
+}
+
+// GetChunk retrieves the size of chunks for the raw data of a chunked layout dataset.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-GetChunk
+func (p *PropList) GetChunk(ndims int) (dims []uint, err error) {
+	if ndims <= 0 {
+		err = fmt.Errorf("number of dimensions must be same size as the rank of the dataset, but nonpositive value received")
+		return
+	}
+	c_dims := make([]C.hsize_t, ndims)
+	if err = h5err(C.H5Pget_chunk(C.hid_t(p.id), C.int(ndims), &c_dims[0])); err != nil {
+		return
+	}
+	dims = make([]uint, ndims)
+	for i := range dims {
+		dims[i] = uint(c_dims[i])
+	}
+	return
 }
 
 // SetDeflate sets deflate (GNU gzip) compression method and compression level.

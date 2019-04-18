@@ -16,13 +16,14 @@ import (
  * https://support.hdfgroup.org/HDF5/examples/intro.html#c
  */
 
-func TestDeflate(t *testing.T) {
+func TestChunk(t *testing.T) {
 	DisplayErrors(true)
 	defer DisplayErrors(false)
 	var (
-		fn   = "cmprss_deflate.h5"
-		dsn  = "dset_cmpress"
-		dims = []uint{1000, 1000}
+		fn    = "test_chunk.h5"
+		dsn   = "dset_chunk"
+		dims  = []uint{1000, 1000}
+		cdims = []uint{100, 100}
 	)
 	defer os.Remove(fn)
 
@@ -31,7 +32,53 @@ func TestDeflate(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer dclp.Close()
-	err = dclp.SetChunk([]uint{100, 100})
+	err = dclp.SetChunk(cdims)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cdims_, err := dclp.GetChunk(len(cdims))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, cdim := range cdims_ {
+		if cdim != cdims[i] {
+			t.Fatalf("chunked dimensions mismatch: %d != %d", cdims[i], cdim)
+		}
+	}
+
+	data0, err := save(fn, dsn, dims, dclp)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data1, err := load(fn, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := compare(data0, data1); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDeflate(t *testing.T) {
+	DisplayErrors(true)
+	defer DisplayErrors(false)
+	var (
+		fn    = "test_cmprss_deflate.h5"
+		dsn   = "dset_cmpress"
+		dims  = []uint{1000, 1000}
+		cdims = []uint{100, 100}
+	)
+	defer os.Remove(fn)
+
+	dclp, err := NewPropList(P_DATASET_CREATE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dclp.Close()
+	err = dclp.SetChunk(cdims)
 	if err != nil {
 		t.Fatal(err)
 	}
