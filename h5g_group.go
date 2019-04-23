@@ -110,11 +110,11 @@ func (g *CommonFG) OpenDataset(name string) (*Dataset, error) {
 
 // OpenDataset opens and returns a named Dataset with a user-defined PropList.
 // The returned dataset must be closed by the user when it is no longer needed.
-func (g *CommonFG) OpenDatasetWith(name string, dcpl *PropList) (*Dataset, error) {
+func (g *CommonFG) OpenDatasetWith(name string, dapl *PropList) (*Dataset, error) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 
-	hid := C.H5Dopen2(g.id, c_name, dcpl.id)
+	hid := C.H5Dopen2(g.id, c_name, dapl.id)
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}

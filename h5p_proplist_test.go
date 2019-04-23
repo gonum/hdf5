@@ -27,17 +27,17 @@ func TestChunk(t *testing.T) {
 	)
 	defer os.Remove(fn)
 
-	dclp, err := NewPropList(P_DATASET_CREATE)
+	dcpl, err := NewPropList(P_DATASET_CREATE)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer dclp.Close()
-	err = dclp.SetChunk(cdims)
+	defer dcpl.Close()
+	err = dcpl.SetChunk(cdims)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	cdims_, err := dclp.GetChunk(len(cdims))
+	cdims_, err := dcpl.GetChunk(len(cdims))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestChunk(t *testing.T) {
 		}
 	}
 
-	data0, err := save(fn, dsn, dims, dclp)
+	data0, err := save(fn, dsn, dims, dcpl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,21 +73,21 @@ func TestDeflate(t *testing.T) {
 	)
 	defer os.Remove(fn)
 
-	dclp, err := NewPropList(P_DATASET_CREATE)
+	dcpl, err := NewPropList(P_DATASET_CREATE)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer dclp.Close()
-	err = dclp.SetChunk(cdims)
+	defer dcpl.Close()
+	err = dcpl.SetChunk(cdims)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = dclp.SetDeflate(DefaultCompression)
+	err = dcpl.SetDeflate(DefaultCompression)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	data0, err := save(fn, dsn, dims, dclp)
+	data0, err := save(fn, dsn, dims, dcpl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,17 +113,17 @@ func TestChunkCache(t *testing.T) {
 	)
 	defer os.Remove(fn)
 
-	dclp0, err := NewPropList(P_DATASET_CREATE)
+	dcpl, err := NewPropList(P_DATASET_CREATE)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer dclp0.Close()
-	err = dclp0.SetChunk(cdims)
+	defer dcpl.Close()
+	err = dcpl.SetChunk(cdims)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	cdims_, err := dclp0.GetChunk(len(cdims))
+	cdims_, err := dcpl.GetChunk(len(cdims))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,31 +133,31 @@ func TestChunkCache(t *testing.T) {
 		}
 	}
 
-	data0, err := save(fn, dsn, dims, dclp0)
+	data0, err := save(fn, dsn, dims, dcpl)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dclp1, err := NewPropList(P_DATASET_ACCESS)
+	dapl, err := NewPropList(P_DATASET_ACCESS)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer dclp1.Close()
+	defer dapl.Close()
 
-	nslots, nbytes, w0, err := dclp1.GetChunkCache()
+	nslots, nbytes, w0, err := dapl.GetChunkCache()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	nslots_, nbytes_, w0_ := nslots*4, nbytes*2, w0/3
-	if err := dclp1.SetChunkCache(nslots_, nbytes_, w0_); err != nil {
+	if err := dapl.SetChunkCache(nslots_, nbytes_, w0_); err != nil {
 		t.Fatal(err)
 	}
-	if err := checkChunkCahche(nslots_, nbytes_, w0_, dclp1); err != nil {
+	if err := checkChunkCahche(nslots_, nbytes_, w0_, dapl); err != nil {
 		t.Fatal(err)
 	}
 
-	data1, err := load(fn, dsn, dclp1)
+	data1, err := load(fn, dsn, dapl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,15 +165,15 @@ func TestChunkCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := dclp1.SetChunkCache(D_CHUNK_CACHE_NSLOTS_DEFAULT, D_CHUNK_CACHE_NBYTES_DEFAULT, D_CHUNK_CACHE_W0_DEFAULT); err != nil {
+	if err := dapl.SetChunkCache(D_CHUNK_CACHE_NSLOTS_DEFAULT, D_CHUNK_CACHE_NBYTES_DEFAULT, D_CHUNK_CACHE_W0_DEFAULT); err != nil {
 		t.Fatal(err)
 	}
-	if err := checkChunkCahche(nslots, nbytes, w0, dclp1); err != nil {
+	if err := checkChunkCahche(nslots, nbytes, w0, dapl); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func save(fn, dsn string, dims []uint, dclp *PropList) ([]float64, error) {
+func save(fn, dsn string, dims []uint, dcpl *PropList) ([]float64, error) {
 	f, err := CreateFile(fn, F_ACC_TRUNC)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func save(fn, dsn string, dims []uint, dclp *PropList) ([]float64, error) {
 		return nil, err
 	}
 
-	dset, err := f.CreateDatasetWith(dsn, T_NATIVE_DOUBLE, dspace, dclp)
+	dset, err := f.CreateDatasetWith(dsn, T_NATIVE_DOUBLE, dspace, dcpl)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +203,7 @@ func save(fn, dsn string, dims []uint, dclp *PropList) ([]float64, error) {
 	return data, nil
 }
 
-func load(fn, dsn string, dclp *PropList) ([]float64, error) {
+func load(fn, dsn string, dapl *PropList) ([]float64, error) {
 	f, err := OpenFile(fn, F_ACC_RDONLY)
 	if err != nil {
 		return nil, err
@@ -211,10 +211,10 @@ func load(fn, dsn string, dclp *PropList) ([]float64, error) {
 	defer f.Close()
 
 	var dset *Dataset
-	if dclp == nil {
+	if dapl == nil {
 		dset, _ = f.OpenDataset(dsn)
 	} else {
-		dset, _ = f.OpenDatasetWith(dsn, dclp)
+		dset, _ = f.OpenDatasetWith(dsn, dapl)
 	}
 
 	if err != nil {
@@ -246,8 +246,8 @@ func compare(ds0, ds1 []float64) error {
 	return nil
 }
 
-func checkChunkCahche(nslots, nbytes int, w0 float64, dclp *PropList) error {
-	nslots_, nbytes_, w0_, err := dclp.GetChunkCache()
+func checkChunkCahche(nslots, nbytes int, w0 float64, dapl *PropList) error {
+	nslots_, nbytes_, w0_, err := dapl.GetChunkCache()
 	if err != nil {
 		return err
 	}
