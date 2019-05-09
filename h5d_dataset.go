@@ -167,8 +167,7 @@ func (s *Dataset) CreateAttributeWith(name string, dtype *Datatype, dspace *Data
 }
 
 // Opens an existing attribute. The returned attribute must be closed
-// by the user when it is no longer needed. The returned attribute
-// must be closed by the user when it is no longer needed.
+// by the user when it is no longer needed.
 func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 	return openAttribute(s.id, name)
 }
