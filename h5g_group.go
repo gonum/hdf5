@@ -67,8 +67,7 @@ func (g *Group) CreateAttributeWith(name string, dtype *Datatype, dspace *Datasp
 }
 
 // Opens an existing attribute. The returned attribute must be closed
-// by the user when it is no longer needed. The returned attribute
-// must be closed by the user when it is no longer needed.
+// by the user when it is no longer needed.
 func (g *Group) OpenAttribute(name string) (*Attribute, error) {
 	return openAttribute(g.id, name)
 }
