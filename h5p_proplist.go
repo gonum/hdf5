@@ -7,9 +7,21 @@ package hdf5
 // #include "hdf5.h"
 // #include <stdlib.h>
 // #include <string.h>
-// inline static
-// hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
+// static inline hid_t _go_hdf5_H5P_DEFAULT() { return H5P_DEFAULT; }
+// static inline hid_t _go_hdf5_H5P_DATASET_CREATE() { return H5P_DATASET_CREATE; }
 import "C"
+
+import (
+	"compress/zlib"
+	"fmt"
+)
+
+const (
+	NoCompression      = zlib.NoCompression
+	BestSpeed          = zlib.BestSpeed
+	BestCompression    = zlib.BestCompression
+	DefaultCompression = zlib.DefaultCompression
+)
 
 type PropType C.hid_t
 
@@ -18,7 +30,8 @@ type PropList struct {
 }
 
 var (
-	P_DEFAULT *PropList = newPropList(C._go_hdf5_H5P_DEFAULT())
+	P_DEFAULT        *PropList = newPropList(C._go_hdf5_H5P_DEFAULT())
+	P_DATASET_CREATE PropType  = PropType(C._go_hdf5_H5P_DATASET_CREATE()) // Properties for dataset creation
 )
 
 func newPropList(id C.hid_t) *PropList {
@@ -38,6 +51,48 @@ func NewPropList(cls_id PropType) (*PropList, error) {
 // Close terminates access to a PropList.
 func (p *PropList) Close() error {
 	return p.closeWith(h5pclose)
+}
+
+// SetChunk sets the size of the chunks used to store a chunked layout dataset.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetChunk
+func (p *PropList) SetChunk(dims []uint) error {
+	ndims := len(dims)
+	if ndims <= 0 {
+		return fmt.Errorf("number of dimensions must be same size as the rank of the dataset, but zero received")
+	}
+	c_dim := make([]C.hsize_t, ndims)
+	for i := range dims {
+		c_dim[i] = C.hsize_t(dims[i])
+	}
+	return h5err(C.H5Pset_chunk(C.hid_t(p.id), C.int(ndims), &c_dim[0]))
+}
+
+// GetChunk retrieves the size of chunks for the raw data of a chunked layout dataset.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-GetChunk
+func (p *PropList) GetChunk(ndims int) (dims []uint, err error) {
+	if ndims <= 0 {
+		err = fmt.Errorf("number of dimensions must be same size as the rank of the dataset, but nonpositive value received")
+		return
+	}
+	c_dims := make([]C.hsize_t, ndims)
+	if err = h5err(C.H5Pget_chunk(C.hid_t(p.id), C.int(ndims), &c_dims[0])); err != nil {
+		return
+	}
+	dims = make([]uint, ndims)
+	for i := range dims {
+		dims[i] = uint(c_dims[i])
+	}
+	return
+}
+
+// SetDeflate sets deflate (GNU gzip) compression method and compression level.
+// If level is set as DefaultCompression, 6 will be used.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetDeflate
+func (p *PropList) SetDeflate(level int) error {
+	if level == DefaultCompression {
+		level = 6
+	}
+	return h5err(C.H5Pset_deflate(C.hid_t(p.id), C.uint(level)))
 }
 
 func h5pclose(id C.hid_t) C.herr_t {
