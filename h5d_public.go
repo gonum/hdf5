@@ -7,10 +7,10 @@ package hdf5
 // #include "hdf5.h"
 import "C"
 
+// Used to unset chunk cache configuration parameter.
+// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetChunkCache
 const (
-	// Used to unset chunk cache configuration parameter.
-	// https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetChunkCache
-	D_CHUNK_CACHE_NSLOTS_DEFAULT int     = -1 // rdcc_nslots
-	D_CHUNK_CACHE_NBYTES_DEFAULT int     = -1 // rdcc_nbytes
-	D_CHUNK_CACHE_W0_DEFAULT     float64 = -1 // rdcc_w0
+	D_CHUNK_CACHE_NSLOTS_DEFAULT int     = -1 // The number of chunk slots in the raw data chunk cache for this dataset
+	D_CHUNK_CACHE_NBYTES_DEFAULT int     = -1 // The total size of the raw data chunk cache for this dataset
+	D_CHUNK_CACHE_W0_DEFAULT     float64 = -1 // The chunk preemption policy for this dataset
 )
