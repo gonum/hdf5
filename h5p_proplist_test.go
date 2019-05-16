@@ -37,11 +37,11 @@ func TestChunk(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cdims_, err := dcpl.GetChunk(len(cdims))
+	cdimsChunk, err := dcpl.GetChunk(len(cdims))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i, cdim := range cdims_ {
+	for i, cdim := range cdimsChunk {
 		if cdim != cdims[i] {
 			t.Fatalf("chunked dimensions mismatch: %d != %d", cdims[i], cdim)
 		}
@@ -123,11 +123,11 @@ func TestChunkCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cdims_, err := dcpl.GetChunk(len(cdims))
+	cdimsChunk, err := dcpl.GetChunk(len(cdims))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for i, cdim := range cdims_ {
+	for i, cdim := range cdimsChunk {
 		if cdim != cdims[i] {
 			t.Fatalf("chunked dimensions mismatch: %d != %d", cdims[i], cdim)
 		}
@@ -149,11 +149,11 @@ func TestChunkCache(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nslots_, nbytes_, w0_ := nslots*4, nbytes*2, w0/3
-	if err := dapl.SetChunkCache(nslots_, nbytes_, w0_); err != nil {
+	nslotsNew, nbytesNew, w0New := nslots*4, nbytes*2, w0/3
+	if err := dapl.SetChunkCache(nslotsNew, nbytesNew, w0New); err != nil {
 		t.Fatal(err)
 	}
-	if err := checkChunkCache(nslots_, nbytes_, w0_, dapl); err != nil {
+	if err := checkChunkCache(nslotsNew, nbytesNew, w0New, dapl); err != nil {
 		t.Fatal(err)
 	}
 
@@ -246,19 +246,19 @@ func compare(ds0, ds1 []float64) error {
 }
 
 func checkChunkCache(nslots, nbytes int, w0 float64, dapl *PropList) error {
-	nslots_, nbytes_, w0_, err := dapl.GetChunkCache()
+	nslotsCache, nbytesCache, w0Cache, err := dapl.GetChunkCache()
 	if err != nil {
 		return err
 	}
 
-	if nslots_ != nslots {
-		return fmt.Errorf("`nslots` mismatch: %d != %d", nslots, nslots_)
+	if nslotsCache != nslots {
+		return fmt.Errorf("`nslots` mismatch: %d != %d", nslots, nslotsCache)
 	}
-	if nbytes_ != nbytes {
-		return fmt.Errorf("`nbytes` mismatch: %d != %d", nbytes, nbytes_)
+	if nbytesCache != nbytes {
+		return fmt.Errorf("`nbytes` mismatch: %d != %d", nbytes, nbytesCache)
 	}
-	if math.Abs(w0_-w0) > 1e-5 {
-		return fmt.Errorf("`w0` mismatch: %.6f != %.6f", w0, w0_)
+	if math.Abs(w0Cache-w0) > 1e-5 {
+		return fmt.Errorf("`w0` mismatch: %.6f != %.6f", w0, w0Cache)
 	}
 	return nil
 }
