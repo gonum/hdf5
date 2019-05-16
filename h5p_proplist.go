@@ -112,11 +112,8 @@ func (p *PropList) GetChunkCache() (nslots, nbytes int, w0 float64, err error) {
 		c_nbytes C.size_t
 		c_w0     C.double
 	)
-	if err = h5err(C.H5Pget_chunk_cache(C.hid_t(p.id), &c_nslots, &c_nbytes, &c_w0)); err != nil {
-		return
-	}
-	nslots, nbytes, w0 = int(c_nslots), int(c_nbytes), float64(c_w0)
-	return
+	err = h5err(C.H5Pget_chunk_cache(C.hid_t(p.id), &c_nslots, &c_nbytes, &c_w0))
+	return int(c_nslots), int(c_nbytes), float64(c_w0), nil
 }
 
 func h5pclose(id C.hid_t) C.herr_t {
