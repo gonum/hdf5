@@ -153,7 +153,7 @@ func TestChunkCache(t *testing.T) {
 	if err := dapl.SetChunkCache(nslots_, nbytes_, w0_); err != nil {
 		t.Fatal(err)
 	}
-	if err := checkChunkCahche(nslots_, nbytes_, w0_, dapl); err != nil {
+	if err := checkChunkCache(nslots_, nbytes_, w0_, dapl); err != nil {
 		t.Fatal(err)
 	}
 
@@ -168,7 +168,7 @@ func TestChunkCache(t *testing.T) {
 	if err := dapl.SetChunkCache(D_CHUNK_CACHE_NSLOTS_DEFAULT, D_CHUNK_CACHE_NBYTES_DEFAULT, D_CHUNK_CACHE_W0_DEFAULT); err != nil {
 		t.Fatal(err)
 	}
-	if err := checkChunkCahche(nslots, nbytes, w0, dapl); err != nil {
+	if err := checkChunkCache(nslots, nbytes, w0, dapl); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -246,7 +246,7 @@ func compare(ds0, ds1 []float64) error {
 	return nil
 }
 
-func checkChunkCahche(nslots, nbytes int, w0 float64, dapl *PropList) error {
+func checkChunkCache(nslots, nbytes int, w0 float64, dapl *PropList) error {
 	nslots_, nbytes_, w0_, err := dapl.GetChunkCache()
 	if err != nil {
 		return err
