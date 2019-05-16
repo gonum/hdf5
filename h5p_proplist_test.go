@@ -212,11 +212,10 @@ func load(fn, dsn string, dapl *PropList) ([]float64, error) {
 
 	var dset *Dataset
 	if dapl == nil {
-		dset, _ = f.OpenDataset(dsn)
+		dset, err = f.OpenDataset(dsn)
 	} else {
-		dset, _ = f.OpenDatasetWith(dsn, dapl)
+		dset, err = f.OpenDatasetWith(dsn, dapl)
 	}
-
 	if err != nil {
 		return nil, err
 	}
