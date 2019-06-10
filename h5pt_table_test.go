@@ -19,13 +19,13 @@ const (
 
 type particle struct {
 	// Name        string  `hdf5:"Name"` // FIXME(TacoVox): ReadPackets seems to need an update
-	Vehicle_no  uint8   `hdf5:"Vehicle Number"`
+	VehicleNo   uint8   `hdf5:"Vehicle Number"`
 	Satellites  int8    `hdf5:"Satellites"`
-	Cars_no     int16   `hdf5:"Number of Cars"`
-	Trucks_no   int16   `hdf5:"Number of Trucks"`
-	Min_speed   uint32  `hdf5:"Minimum Speed"`
+	CarsNo      int16   `hdf5:"Number of Cars"`
+	TrucksNo    int16   `hdf5:"Number of Trucks"`
+	MinSpeed    uint32  `hdf5:"Minimum Speed"`
 	Lati        int32   `hdf5:"Latitude"`
-	Max_speed   uint64  `hdf5:"Maximum Speed"`
+	MaxSpeed    uint64  `hdf5:"Maximum Speed"`
 	Longi       int64   `hdf5:"Longitude"`
 	Pressure    float32 `hdf5:"Pressure"`
 	Temperature float64 `hdf5:"Temperature"`
@@ -34,7 +34,7 @@ type particle struct {
 	// jmohep      [2][2]int64 // FIXME(sbinet)
 }
 
-func testTable(t *testing.T, dType interface{}, data ...interface{}) {
+func testTable(t *testing.T, typ interface{}, data ...interface{}) {
 	var table *Table
 
 	typeString := reflect.TypeOf(data).String()
@@ -47,7 +47,7 @@ func testTable(t *testing.T, dType interface{}, data ...interface{}) {
 	defer os.Remove(fname)
 	defer f.Close()
 
-	table, err = f.CreateTableFrom(tname, dType, chunkSize, compress)
+	table, err = f.CreateTableFrom(tname, typ, chunkSize, compress)
 	if err != nil {
 		t.Fatalf("CreateTableFrom struct failed for %s: %s", typeString, err)
 	}

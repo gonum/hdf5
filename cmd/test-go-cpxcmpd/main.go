@@ -70,13 +70,13 @@ func main() {
 	fmt.Printf(":: file [%s] created (id=%d)\n", fname, f.ID())
 
 	// create the memory data type
-	dtype, err := hdf5.NewDatatypeFromValue(s1[0])
+	typ, err := hdf5.NewDatatypeFromValue(s1[0])
 	if err != nil {
-		panic("could not create a dtype")
+		panic("could not create a typ")
 	}
 
 	// create the dataset
-	dset, err := f.CreateDataset(dsname, dtype, space)
+	dset, err := f.CreateDataset(dsname, typ, space)
 	if err != nil {
 		panic(err)
 	}

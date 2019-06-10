@@ -48,13 +48,13 @@ func TestDataspace(t *testing.T) {
 
 func TestSimpleDataspace(t *testing.T) {
 	dims := []uint{3, 3, 3}
-	maxdims := []uint{9, 9, 9}
-	ds, err := CreateSimpleDataspace(dims, maxdims)
+	maxDims := []uint{9, 9, 9}
+	ds, err := CreateSimpleDataspace(dims, maxDims)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	dsDims, dsMaxdims, err := ds.SimpleExtentDims()
+	dsDims, dsMaxDims, err := ds.SimpleExtentDims()
 
 	if err != nil {
 		t.Fatal(err)
@@ -64,8 +64,8 @@ func TestSimpleDataspace(t *testing.T) {
 		t.Errorf("retrieved dims not equal: %v != %v", dims, dsDims)
 	}
 
-	if !arrayEq(maxdims, dsMaxdims) {
-		t.Errorf("retrieved maxdims not equal: %v != %v", maxdims, dsMaxdims)
+	if !arrayEq(maxDims, dsMaxDims) {
+		t.Errorf("retrieved maxDims not equal: %v != %v", maxDims, dsMaxDims)
 	}
 
 	if ds.SimpleExtentNDims() != 3 {

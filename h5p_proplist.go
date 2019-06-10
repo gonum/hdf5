@@ -42,8 +42,8 @@ func newPropList(id C.hid_t) *PropList {
 
 // NewPropList creates a new PropList as an instance of a property list class.
 // The returned proplist must be closed by the user when it is no longer needed.
-func NewPropList(cls_id PropType) (*PropList, error) {
-	hid := C.H5Pcreate(C.hid_t(cls_id))
+func NewPropList(clsID PropType) (*PropList, error) {
+	hid := C.H5Pcreate(C.hid_t(clsID))
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}

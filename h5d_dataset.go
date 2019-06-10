@@ -26,18 +26,18 @@ func newDataset(id C.hid_t, typ *Datatype) *Dataset {
 	return &Dataset{Identifier: Identifier{id}, typ: typ}
 }
 
-func createDataset(id C.hid_t, name string, dtype *Datatype, dspace *Dataspace, dcpl *PropList) (*Dataset, error) {
-	dtype, err := dtype.Copy() // For safety
+func createDataset(id C.hid_t, name string, typ *Datatype, spc *Dataspace, dcpl *PropList) (*Dataset, error) {
+	typ, err := typ.Copy() // For safety
 	if err != nil {
 		return nil, err
 	}
-	c_name := C.CString(name)
-	defer C.free(unsafe.Pointer(c_name))
-	hid := C.H5Dcreate2(id, c_name, dtype.id, dspace.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
+	cName := C.CString(name)
+	defer C.free(unsafe.Pointer(cName))
+	hid := C.H5Dcreate2(id, cName, typ.id, spc.id, P_DEFAULT.id, dcpl.id, P_DEFAULT.id)
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-	return newDataset(hid, dtype), nil
+	return newDataset(hid, typ), nil
 }
 
 // Close releases and terminates access to a dataset.
@@ -59,9 +59,9 @@ func (s *Dataset) Space() *Dataspace {
 }
 
 // ReadSubset reads a subset of raw data from a dataset into a buffer.
-func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) error {
-	dtype, err := s.Datatype()
-	defer dtype.Close()
+func (s *Dataset) ReadSubset(data interface{}, memSpace, fileSpace *Dataspace) error {
+	typ, err := s.Datatype()
+	defer typ.Close()
 	if err != nil {
 		return err
 	}
@@ -89,14 +89,14 @@ func (s *Dataset) ReadSubset(data interface{}, memspace, filespace *Dataspace) e
 		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	var filespace_id, memspace_id C.hid_t = 0, 0
-	if memspace != nil {
-		memspace_id = memspace.id
+	var fileSpaceID, memSpaceID C.hid_t
+	if memSpace != nil {
+		memSpaceID = memSpace.id
 	}
-	if filespace != nil {
-		filespace_id = filespace.id
+	if fileSpace != nil {
+		fileSpaceID = fileSpace.id
 	}
-	rc := C.H5Dread(s.id, dtype.id, memspace_id, filespace_id, 0, addr)
+	rc := C.H5Dread(s.id, typ.id, memSpaceID, fileSpaceID, 0, addr)
 	err = h5err(rc)
 	return err
 }
@@ -107,9 +107,9 @@ func (s *Dataset) Read(data interface{}) error {
 }
 
 // WriteSubset writes a subset of raw data from a buffer to a dataset.
-func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) error {
-	dtype, err := s.Datatype()
-	defer dtype.Close()
+func (s *Dataset) WriteSubset(data interface{}, memSpace, fileSpace *Dataspace) error {
+	typ, err := s.Datatype()
+	defer typ.Close()
 	if err != nil {
 		return err
 	}
@@ -137,14 +137,14 @@ func (s *Dataset) WriteSubset(data interface{}, memspace, filespace *Dataspace) 
 		addr = unsafe.Pointer(v.UnsafeAddr())
 	}
 
-	var filespace_id, memspace_id C.hid_t = 0, 0
-	if memspace != nil {
-		memspace_id = memspace.id
+	var fileSpaceID, memSpaceID C.hid_t
+	if memSpace != nil {
+		memSpaceID = memSpace.id
 	}
-	if filespace != nil {
-		filespace_id = filespace.id
+	if fileSpace != nil {
+		fileSpaceID = fileSpace.id
 	}
-	rc := C.H5Dwrite(s.id, dtype.id, memspace_id, filespace_id, 0, addr)
+	rc := C.H5Dwrite(s.id, typ.id, memSpaceID, fileSpaceID, 0, addr)
 	err = h5err(rc)
 	return err
 }
@@ -156,14 +156,14 @@ func (s *Dataset) Write(data interface{}) error {
 
 // Creates a new attribute at this location. The returned attribute
 // must be closed by the user when it is no longer needed.
-func (s *Dataset) CreateAttribute(name string, dtype *Datatype, dspace *Dataspace) (*Attribute, error) {
-	return createAttribute(s.id, name, dtype, dspace, P_DEFAULT)
+func (s *Dataset) CreateAttribute(name string, typ *Datatype, spc *Dataspace) (*Attribute, error) {
+	return createAttribute(s.id, name, typ, spc, P_DEFAULT)
 }
 
 // Creates a new attribute at this location. The returned
 // attribute must be closed by the user when it is no longer needed.
-func (s *Dataset) CreateAttributeWith(name string, dtype *Datatype, dspace *Dataspace, acpl *PropList) (*Attribute, error) {
-	return createAttribute(s.id, name, dtype, dspace, acpl)
+func (s *Dataset) CreateAttributeWith(name string, typ *Datatype, spc *Dataspace, acpl *PropList) (*Attribute, error) {
+	return createAttribute(s.id, name, typ, spc, acpl)
 }
 
 // Opens an existing attribute. The returned attribute must be closed
@@ -175,11 +175,11 @@ func (s *Dataset) OpenAttribute(name string) (*Attribute, error) {
 // Datatype returns the HDF5 Datatype of the Dataset. The returned
 // datatype must be closed by the user when it is no longer needed.
 func (s *Dataset) Datatype() (*Datatype, error) {
-	dtype_id := C.H5Dget_type(s.id)
-	if dtype_id < 0 {
+	typID := C.H5Dget_type(s.id)
+	if typID < 0 {
 		return nil, fmt.Errorf("couldn't open Datatype from Dataset %q", s.Name())
 	}
-	return NewDatatype(dtype_id), nil
+	return NewDatatype(typID), nil
 }
 
 // hasIllegalGoPointer returns whether the Dataset is known to have
