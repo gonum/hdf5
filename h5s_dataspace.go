@@ -164,3 +164,6 @@ func (s *Dataspace) SimpleExtentNPoints() int {
 func (s *Dataspace) SimpleExtentType() SpaceClass {
 	return SpaceClass(C.H5Sget_simple_extent_type(s.id))
 }
+func (s *Dataspace) Hello() string {
+	return "Hello"
+}
