@@ -189,3 +189,17 @@ func (s *Dataset) Datatype() (*Datatype, error) {
 func (s *Dataset) hasIllegalGoPointer() bool {
 	return s.typ.hasIllegalGoPointer()
 }
+
+// Resize a dataset
+func (s *Dataset) resize(dims []uint) error {
+	var c_dims *C.hsize_t
+
+	rank := C.int(0)
+	if dims != nil {
+		rank = C.int(len(dims))
+		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
+
+	}
+	c.H5Dset_extent(s, c_dims)
+
+}
