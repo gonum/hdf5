@@ -7,7 +7,7 @@ package main
 import (
 	"fmt"
 
-	"gonum.org/v1/hdf5"
+	"github.com/zyc-sudo/hdf5"
 )
 
 func main() {

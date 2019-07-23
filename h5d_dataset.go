@@ -191,7 +191,7 @@ func (s *Dataset) hasIllegalGoPointer() bool {
 }
 
 // Resize a dataset
-func (s *CommonFG) resize(dims []uint) int {
+func (s *Dataset) Resize(dims []uint) int {
 	var c_dims *C.hsize_t
 
 	//rank := C.int(0)
