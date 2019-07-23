@@ -194,9 +194,9 @@ func (s *Dataset) hasIllegalGoPointer() bool {
 func (s *Dataset) resize(dims []uint) int {
 	var c_dims *C.hsize_t
 
-	rank := C.int(0)
+	//rank := C.int(0)
 	if dims != nil {
-		rank = C.int(len(dims))
+		//	rank = C.int(len(dims))
 		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	}
