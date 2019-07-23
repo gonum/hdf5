@@ -191,7 +191,7 @@ func (s *Dataset) hasIllegalGoPointer() bool {
 }
 
 // Resize a dataset
-func (s *Dataset) resize(dims []uint) error {
+func (s *Dataset) resize(dims []uint) int {
 	var c_dims *C.hsize_t
 
 	rank := C.int(0)
@@ -200,7 +200,7 @@ func (s *Dataset) resize(dims []uint) error {
 		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	}
-	C.H5Dset_extent(s, c_dims)
+	C.H5Dset_extent(s.id, c_dims)
 	return 0
 
 }
