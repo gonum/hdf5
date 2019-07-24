@@ -200,5 +200,7 @@ func (s *Dataset) Resize(dims []uint) error {
 		c_dims = (*C.hsize_t)(unsafe.Pointer(&dims[0]))
 
 	}
-	return C.H5Dset_extent(s.id, c_dims)
+	rc := C.H5Dset_extent(s.id, c_dims)
+	err = h5err(rc)
+	return err
 }
