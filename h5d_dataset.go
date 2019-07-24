@@ -201,6 +201,6 @@ func (s *Dataset) Resize(dims []uint) error {
 
 	}
 	rc := C.H5Dset_extent(s.id, c_dims)
-	err = h5err(rc)
+	err := h5err(rc)
 	return err
 }
