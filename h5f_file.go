@@ -154,3 +154,11 @@ func (f *File) CheckGroup(name string) error {
 	}
 	return errors.New("The group " + name + " does not exist or some other error occured")
 }
+
+func (f *File) CheckLink(name string) error {
+	status := C.H5Lexists(f.id, C.CString(name), 0)
+	if status > 0 {
+		return nil
+	}
+	return errors.New("The link " + name + " does not exist or some other error occured")
+}

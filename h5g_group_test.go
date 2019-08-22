@@ -27,7 +27,7 @@ func TestGroup(t *testing.T) {
 	if g1.Name() != "/foo" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo", g1.Name())
 	}
-	err = f.CheckGroup("/foo")
+	err = f.CheckLink("/foo")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -41,7 +41,7 @@ func TestGroup(t *testing.T) {
 	if g2.Name() != "/foo/bar" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar", g1.Name())
 	}
-	err = f.CheckGroup("/foo/bar")
+	err = f.CheckLink("/foo/bar")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
@@ -55,7 +55,7 @@ func TestGroup(t *testing.T) {
 	if g3.Name() != "/foo/bar/baz" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar/bar", g1.Name())
 	}
-	err = f.CheckGroup("/foo/bar/baz")
+	err = f.CheckLink("/foo/bar/baz")
 	if err != nil {
 		t.Fatalf("err: %s", err)
 	}
