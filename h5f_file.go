@@ -11,6 +11,7 @@ package hdf5
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -143,4 +144,13 @@ func (f *File) CreateTableFrom(name string, dtype interface{}, chunkSize, compre
 func (f *File) OpenTable(name string) (*Table, error) {
 	// hid_t H5PTopen( hid_t loc_id, const char *dset_name )
 	return openTable(f.id, name)
+}
+
+// CheckGroup check if a group exist, if not return error
+func (f *File) CheckGroup(name string) error {
+	status := C.H5Gget_objinfo(f.id, C.CString(name), 0, nil)
+	if status == 0 {
+		return nil
+	}
+	return errors.New("The group " + name + " does not exist or some other error occured")
 }

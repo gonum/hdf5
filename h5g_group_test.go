@@ -27,7 +27,10 @@ func TestGroup(t *testing.T) {
 	if g1.Name() != "/foo" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo", g1.Name())
 	}
-
+	err = f.CheckGroup("/foo")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
 	g2, err := g1.CreateGroup("bar")
 	if err != nil {
 		t.Fatalf("couldn't create group: %s", err)
@@ -38,7 +41,10 @@ func TestGroup(t *testing.T) {
 	if g2.Name() != "/foo/bar" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar", g1.Name())
 	}
-
+	err = f.CheckGroup("/foo/bar")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
 	g3, err := g2.CreateGroup("baz")
 	if err != nil {
 		t.Fatalf("couldn't create group: %s", err)
@@ -49,7 +55,10 @@ func TestGroup(t *testing.T) {
 	if g3.Name() != "/foo/bar/baz" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar/bar", g1.Name())
 	}
-
+	err = f.CheckGroup("/foo/bar/baz")
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
 	if nObjs, err := g2.NumObjects(); err != nil {
 		t.Fatal(err)
 	} else if nObjs != 1 {
