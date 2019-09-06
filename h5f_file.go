@@ -146,15 +146,7 @@ func (f *File) OpenTable(name string) (*Table, error) {
 	return openTable(f.id, name)
 }
 
-// CheckGroup check if a group exist, if not return error
-func (f *File) CheckGroup(name string) error {
-	status := C.H5Gget_objinfo(f.id, C.CString(name), 0, nil)
-	if status == 0 {
-		return nil
-	}
-	return errors.New("The group " + name + " does not exist or some other error occured")
-}
-
+// CheckLink checks if a link( can be group or dataset or actual link )exsit or not. This method won't give you annoying hdf5 warnings when called in a goroutine
 func (f *File) CheckLink(name string) error {
 	status := C.H5Lexists(f.id, C.CString(name), 0)
 	if status > 0 {
