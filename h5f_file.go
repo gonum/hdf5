@@ -11,7 +11,6 @@ package hdf5
 import "C"
 
 import (
-	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -144,13 +143,4 @@ func (f *File) CreateTableFrom(name string, dtype interface{}, chunkSize, compre
 func (f *File) OpenTable(name string) (*Table, error) {
 	// hid_t H5PTopen( hid_t loc_id, const char *dset_name )
 	return openTable(f.id, name)
-}
-
-// CheckLink checks if a link( can be group or dataset or actual link )exsit or not. This method won't give you annoying hdf5 warnings when called in a goroutine
-func (f *File) CheckLink(name string) error {
-	status := C.H5Lexists(f.id, C.CString(name), 0)
-	if status > 0 {
-		return nil
-	}
-	return errors.New("The link " + name + " does not exist or some other error occured")
 }

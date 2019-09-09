@@ -11,7 +11,9 @@ package hdf5
 import "C"
 
 import (
+	"errors"
 	"fmt"
+	"image"
 	"unsafe"
 )
 
@@ -161,4 +163,24 @@ func (g *Group) CreateTableFrom(name string, dtype interface{}, chunkSize, compr
 // closed by the user when it is no longer needed.
 func (g *Group) OpenTable(name string) (*Table, error) {
 	return openTable(g.id, name)
+}
+
+// CheckLink checks if a link( can be group or dataset or actual link )exsit or not. This method won't give you annoying hdf5 warnings when called in a goroutine
+func (g *CommonFG) CheckLink(name string) error {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	status := C.H5Lexists(g.id, c_name, 0)
+	if status > 0 {
+		return nil
+	}
+	return errors.New("The link " + name + " does not exist or some other error occured")
+}
+
+// CreateTureImage create a image set with given name under a CommonFG
+func (g *CommonFG) CreateTrueImage(name string, img image.Image) error {
+	err := g.CheckLink(name)
+	if err == nil {
+		return errors.New("name already exist")
+	}
+	return newImage(g.id, name, img)
 }
