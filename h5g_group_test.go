@@ -5,6 +5,8 @@
 package hdf5
 
 import (
+	"image"
+	"image/color"
 	"os"
 	"testing"
 )
@@ -131,4 +133,31 @@ func TestGroup(t *testing.T) {
 		t.Errorf("opened dataset that was never created: %v", dset2)
 	}
 
+}
+
+func TestImage(t *testing.T) {
+	f, err := CreateFile(fname, F_ACC_TRUNC)
+	if err != nil {
+		t.Fatalf("CreateFile failed: %s", err)
+	}
+	defer os.Remove(fname)
+	defer f.Close()
+	img := image.NewRGBA(image.Rect(0, 0, 100, 50))
+	for y := 20; y < 30; y++ {
+		for x := 40; x < 60; x++ {
+			img.Set(x, y, color.RGBA{255, 0, 0, 255})
+		}
+	}
+	if err != nil {
+		t.Fatalf("image decoding failed: %s", err)
+	}
+	g1, err := f.CreateGroup("foo")
+	if err != nil {
+		t.Fatalf("couldn't create group: %s", err)
+	}
+	defer g1.Close()
+	err = g1.CreateTrueImage("image", img)
+	if err != nil {
+		t.Fatalf("image saving failed: %s", err)
+	}
 }

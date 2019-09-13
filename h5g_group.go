@@ -13,6 +13,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"image"
 	"unsafe"
 )
 
@@ -174,4 +175,13 @@ func (g *CommonFG) CheckLink(name string) error {
 		return nil
 	}
 	return errors.New("The link " + name + " does not exist or some other error occured")
+}
+
+// CreateTureImage create a image set with given name under a CommonFG
+func (g *CommonFG) CreateTrueImage(name string, img image.Image) error {
+	err := g.CheckLink(name)
+	if err == nil {
+		return errors.New("name already exist")
+	}
+	return newImage(g.id, name, img)
 }
