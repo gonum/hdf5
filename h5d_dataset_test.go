@@ -195,3 +195,60 @@ func TestSelectHyperslab(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDatasetResize(t *testing.T) {
+	f, err := CreateFile(fname, F_ACC_TRUNC)
+	if err != nil {
+		t.Fatalf("CreateFile failed: %s", err)
+	}
+	defer os.Remove(fname)
+	defer f.Close()
+
+	dtype, err := NewDataTypeFromType(reflect.TypeOf(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	initdims := []uint{4, 4}
+	maxdims := []uint{12, 4}
+	chunkDims := []uint{2, 4}
+	resizedDims := []uint{8, 4}
+	space, err := CreateSimpleDataspace(initdims, maxdims)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer space.Close()
+
+	dcpl, err := NewPropList(P_DATASET_CREATE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dcpl.Close()
+	err = dcpl.SetChunk(chunkDims)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dset, err := f.CreateDatasetWith("dsetchunked", dtype, space, dcpl)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dset.Close()
+
+	dimsGot, maxdimsGot, err := dset.Space().SimpleExtentDims()
+	if !reflect.DeepEqual(dimsGot, initdims) || !reflect.DeepEqual(maxdimsGot, maxdims) {
+		t.Fatal("Dimension not correct when creating chunked dataset")
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = dset.Resize(resizedDims)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dimsGot, maxdimsGot, err = dset.Space().SimpleExtentDims()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(dimsGot, resizedDims) || !reflect.DeepEqual(maxdimsGot, maxdims) {
+		t.Fatal("Resized dimension not as expected")
+	}
+}
