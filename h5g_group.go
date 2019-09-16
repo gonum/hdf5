@@ -185,3 +185,11 @@ func (g *CommonFG) CreateTrueImage(name string, img image.Image) error {
 	}
 	return newImage(g.id, name, img)
 }
+
+func (g *CommonFG) ReadTrueImage(name string) (image.Image, error) {
+	err := g.CheckLink(name)
+	if err != nil {
+		return nil, errors.New("name doesn't exist")
+	}
+	return getImage(g.id, name)
+}

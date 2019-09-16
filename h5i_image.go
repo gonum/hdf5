@@ -11,6 +11,7 @@ import "C"
 import (
 	"errors"
 	"image"
+	"image/color"
 	"unsafe"
 )
 
@@ -42,4 +43,37 @@ func newImage(id C.hid_t, name string, img image.Image) error {
 		return errors.New("Failed to create HDF5 true color image")
 	}
 	return nil
+}
+
+//
+func getImage(id C.hid_t, name string) (image.Image, error) {
+	//TODO Should handle interlace and npal better, yet these two are not needed for simple image read and write
+	var width, height, planes C.hsize_t
+	var npals C.hssize_t
+	var interlace C.char
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	rc := C.H5IMget_image_info(id, c_name, &width, &height, &planes, &interlace, &npals)
+	err := h5err(rc)
+	if err != nil {
+		return nil, err
+	}
+	gbuf := make([]uint8, width*height*planes)
+	c_image := (*C.uchar)(unsafe.Pointer(&gbuf[0]))
+	rc = C.H5IMread_image(id, c_name, c_image)
+
+	err = h5err(rc)
+	if err != nil {
+		return nil, err
+	}
+
+	g_width := int(width)
+	g_height := int(height)
+	img := image.NewRGBA(image.Rect(0, 0, g_width, g_height))
+	for y := 0; y < g_height; y++ {
+		for x := 0; x < g_width; x++ {
+			img.Set(x, y, color.RGBA{gbuf[y*g_width*3+x*3], gbuf[y*g_width*3+x*3+1], gbuf[y*g_width*3+x*3+2], 255})
+		}
+	}
+	return img, err
 }

@@ -7,6 +7,7 @@ package hdf5
 import (
 	"image"
 	"image/color"
+	"image/jpeg"
 	"os"
 	"testing"
 )
@@ -142,10 +143,10 @@ func TestImage(t *testing.T) {
 	}
 	defer os.Remove(fname)
 	defer f.Close()
-	img := image.NewRGBA(image.Rect(0, 0, 100, 50))
-	for y := 20; y < 30; y++ {
-		for x := 40; x < 60; x++ {
-			img.Set(x, y, color.RGBA{255, 0, 0, 255})
+	img := image.NewRGBA(image.Rect(0, 0, 1000, 500))
+	for y := 200; y < 300; y++ {
+		for x := 400; x < 600; x++ {
+			img.Set(x, y, color.RGBA{255, 0, 255, 255})
 		}
 	}
 	if err != nil {
@@ -160,4 +161,22 @@ func TestImage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("image saving failed: %s", err)
 	}
+	imgRead, err := g1.ReadTrueImage("image")
+	if err != nil {
+		t.Fatalf("image reading failed: %s", err)
+	}
+	widthGot := imgRead.Bounds().Max.X
+	heightGot := imgRead.Bounds().Max.Y
+	if widthGot != 1000 || heightGot != 500 {
+		t.Fatalf("image dimension miss match: Got %d * %d, suppose to be 1000x500", widthGot, heightGot)
+	}
+
+	imgfile, err := os.Create("img.jpg")
+	if err != nil {
+		t.Fatalf("image file creation failed: %s", err)
+	}
+	defer os.Remove("img.jpg")
+	defer imgfile.Close()
+
+	jpeg.Encode(imgfile, imgRead, nil)
 }
