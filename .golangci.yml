@@ -1,0 +1,3 @@
+service:
+  prepare:
+    - apt-get update && apt-get install -y libhdf5-serial-dev
