@@ -33,7 +33,7 @@ func TestGroup(t *testing.T) {
 	}
 
 	if !f.LinkExists("/foo") {
-		t.Fatalf("err: %s", err)
+		t.Fatalf("err: %s", "/foo should exist at this time")
 	}
 
 	if g1.LinkExists("bar") {
@@ -51,7 +51,7 @@ func TestGroup(t *testing.T) {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar", g1.Name())
 	}
 	if !g1.LinkExists("bar") {
-		t.Fatalf("err: %s", err)
+		t.Fatalf("err: %s", "/foo shouldn't have bar as a child bar at this time")
 	}
 
 	g3, err := g2.CreateGroup("baz")
