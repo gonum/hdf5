@@ -165,30 +165,23 @@ func (g *Group) OpenTable(name string) (*Table, error) {
 	return openTable(g.id, name)
 }
 
-// CheckLink checks if a link( can be group or dataset or actual link )exsit or not. This method won't give you annoying hdf5 warnings when called in a goroutine
-// CheckLink returns nil when a link exist, return an error when the link doesn't exist or some other error occured
-func (g *CommonFG) CheckLink(name string) error {
+// LinkExists returns whether a link with the specified name exists in the group.
+func (g *CommonFG) LinkExists(name string) bool {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
-	status := C.H5Lexists(g.id, c_name, 0)
-	if status > 0 {
-		return nil
-	}
-	return errors.New("The link " + name + " does not exist or some other error occured")
+	return C.H5Lexists(g.id, c_name, 0) > 0
 }
 
 // CreateTureImage create a image set with given name under a CommonFG
 func (g *CommonFG) CreateTrueImage(name string, img image.Image) error {
-	err := g.CheckLink(name)
-	if err == nil {
+	if g.LinkExists(name) {
 		return errors.New("name already exist")
 	}
 	return newImage(g.id, name, img)
 }
 
 func (g *CommonFG) ReadTrueImage(name string) (image.Image, error) {
-	err := g.CheckLink(name)
-	if err != nil {
+	if !g.LinkExists(name) {
 		return nil, errors.New("name doesn't exist")
 	}
 	return getImage(g.id, name)
