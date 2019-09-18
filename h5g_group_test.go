@@ -17,8 +17,7 @@ func TestGroup(t *testing.T) {
 	defer os.Remove(fname)
 	defer f.Close()
 
-	err = f.CheckLink("/foo")
-	if err == nil {
+	if f.LinkExists("/foo") {
 		t.Fatalf("err: %s", "/foo shouldn't exist at this time")
 	}
 
@@ -33,14 +32,12 @@ func TestGroup(t *testing.T) {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo", g1.Name())
 	}
 
-	err = f.CheckLink("/foo")
-	if err != nil {
+	if !f.LinkExists("/foo") {
 		t.Fatalf("err: %s", err)
 	}
 
-	err = g1.CheckLink("bar")
-	if err == nil {
-		t.Fatalf("err: %s", "/foo shouldn't have bar as a child at this time")
+	if g1.LinkExists("bar") {
+		t.Fatalf("err: %s", "/foo shouldn't have bar as a child bar at this time")
 	}
 
 	g2, err := g1.CreateGroup("bar")
@@ -53,8 +50,7 @@ func TestGroup(t *testing.T) {
 	if g2.Name() != "/foo/bar" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar", g1.Name())
 	}
-	err = g1.CheckLink("bar")
-	if err != nil {
+	if !g1.LinkExists("bar") {
 		t.Fatalf("err: %s", err)
 	}
 
