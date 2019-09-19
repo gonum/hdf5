@@ -18,7 +18,7 @@ func TestGroup(t *testing.T) {
 	defer f.Close()
 
 	if f.LinkExists("/foo") {
-		t.Fatalf("err: %s", "/foo shouldn't exist at this time")
+		t.Fatal("unexpected /foo link present")
 	}
 
 	g1, err := f.CreateGroup("foo")
