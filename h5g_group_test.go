@@ -174,5 +174,8 @@ func TestImage(t *testing.T) {
 	defer os.Remove("img.jpg")
 	defer imgfile.Close()
 
-	jpeg.Encode(imgfile, imgRead, nil)
+	err = jpeg.Encode(imgfile, imgRead, nil)
+	if err != nil {
+		t.Fatalf(" jpeg image saving err: %s", err)
+	}
 }
