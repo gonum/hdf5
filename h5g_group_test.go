@@ -17,6 +17,10 @@ func TestGroup(t *testing.T) {
 	defer os.Remove(fname)
 	defer f.Close()
 
+	if f.LinkExists("/foo") {
+		t.Error("unexpected /foo link present")
+	}
+
 	g1, err := f.CreateGroup("foo")
 	if err != nil {
 		t.Fatalf("couldn't create group: %s", err)
@@ -25,7 +29,15 @@ func TestGroup(t *testing.T) {
 		t.Fatal("wrong file for group")
 	}
 	if g1.Name() != "/foo" {
-		t.Errorf("wrong Name for group: want %q, got %q", "/foo", g1.Name())
+		t.Errorf(`wrong name for group: want:"/foo", got:%q`, g1.Name())
+	}
+
+	if !f.LinkExists("/foo") {
+		t.Error(`unexpected "/foo" group link not present`)
+	}
+
+	if g1.LinkExists("bar") {
+		t.Error(`unexpected "bar" child link for "/foo" group`)
 	}
 
 	g2, err := g1.CreateGroup("bar")
@@ -37,6 +49,9 @@ func TestGroup(t *testing.T) {
 	}
 	if g2.Name() != "/foo/bar" {
 		t.Errorf("wrong Name for group: want %q, got %q", "/foo/bar", g1.Name())
+	}
+	if !g1.LinkExists("bar") {
+		t.Error(`expected "bar" child link for "/foo" group not present`)
 	}
 
 	g3, err := g2.CreateGroup("baz")

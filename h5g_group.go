@@ -162,3 +162,10 @@ func (g *Group) CreateTableFrom(name string, dtype interface{}, chunkSize, compr
 func (g *Group) OpenTable(name string) (*Table, error) {
 	return openTable(g.id, name)
 }
+
+// LinkExists returns whether a link with the specified name exists in the group.
+func (g *CommonFG) LinkExists(name string) bool {
+	c_name := C.CString(name)
+	defer C.free(unsafe.Pointer(c_name))
+	return C.H5Lexists(g.id, c_name, 0) > 0
+}
