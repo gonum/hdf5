@@ -135,7 +135,7 @@ func TestGroup(t *testing.T) {
 func TestImage(t *testing.T) {
 	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
-		t.Fatalf("CreateFile failed: %s", err)
+		t.Fatalf("CreateFile failed: %v", err)
 	}
 	defer os.Remove(fname)
 	defer f.Close()
@@ -146,36 +146,36 @@ func TestImage(t *testing.T) {
 		}
 	}
 	if err != nil {
-		t.Fatalf("image decoding failed: %s", err)
+		t.Fatalf("image decoding failed: %v", err)
 	}
 	g1, err := f.CreateGroup("foo")
 	if err != nil {
-		t.Fatalf("couldn't create group: %s", err)
+		t.Fatalf("couldn't create group: %v", err)
 	}
 	defer g1.Close()
-	err = g1.CreateTrueImage("image", img)
+	err = g1.CreateImage("image", img)
 	if err != nil {
-		t.Fatalf("image saving failed: %s", err)
+		t.Fatalf("image saving failed: %v", err)
 	}
-	imgRead, err := g1.ReadTrueImage("image")
+	imgRead, err := g1.ReadImage("image")
 	if err != nil {
-		t.Fatalf("image reading failed: %s", err)
+		t.Fatalf("image reading failed: %v", err)
 	}
-	widthGot := imgRead.Bounds().Max.X
-	heightGot := imgRead.Bounds().Max.Y
-	if widthGot != 1000 || heightGot != 500 {
-		t.Fatalf("image dimension miss match: Got %d * %d, suppose to be 1000x500", widthGot, heightGot)
+	gotWidth := imgRead.Bounds().Max.X
+	gotHeight := imgRead.Bounds().Max.Y
+	if gotWidth != 1000 || gotHeight != 500 {
+		t.Errorf("image dimension mismatch: got %dx%d, want:1000x500", gotWidth, gotHeight)
 	}
 
 	imgfile, err := os.Create("img.jpg")
 	if err != nil {
-		t.Fatalf("image file creation failed: %s", err)
+		t.Fatalf("image file creation failed: %v", err)
 	}
 	defer os.Remove("img.jpg")
 	defer imgfile.Close()
 
 	err = jpeg.Encode(imgfile, imgRead, nil)
 	if err != nil {
-		t.Fatalf(" jpeg image saving err: %s", err)
+		t.Errorf("unexpected error saving image: %v", err)
 	}
 }

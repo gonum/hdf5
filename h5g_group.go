@@ -172,18 +172,18 @@ func (g *CommonFG) LinkExists(name string) bool {
 	return C.H5Lexists(g.id, c_name, 0) > 0
 }
 
-// CreateTureImage create a image set with given name under a CommonFG
-func (g *CommonFG) CreateTrueImage(name string, img image.Image) error {
+// CreateImage create a image(RGB only) set with given name in the receiver.
+func (g *CommonFG) CreateImage(name string, img image.Image) error {
 	if g.LinkExists(name) {
-		return errors.New("name already exist")
+		return errors.New("hdf5: name already exist")
 	}
 	return newImage(g.id, name, img)
 }
 
-// ReadTrueImage read a image dataset into a go Image
-func (g *CommonFG) ReadTrueImage(name string) (image.Image, error) {
+// ReadImage read a image dataset, returning it as an image.Image.
+func (g *CommonFG) ReadImage(name string) (image.Image, error) {
 	if !g.LinkExists(name) {
-		return nil, errors.New("name doesn't exist")
+		return nil, errors.New("hdf5: name doesn't exist")
 	}
 	return getImage(g.id, name)
 }
