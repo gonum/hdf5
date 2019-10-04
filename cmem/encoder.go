@@ -72,7 +72,6 @@ func (enc *Encoder) Encode(data interface{}) error {
 	}
 
 	rt := rv.Type()
-	fmt.Println("Kind: ", rt.Kind())
 
 	switch rt.Kind() {
 	case reflect.Slice:
