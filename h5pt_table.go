@@ -79,6 +79,8 @@ func (t *Table) Append(args ...interface{}) error {
 	}
 
 	var enc cmem.Encoder
+	defer enc.FreeMemory()
+
 	for _, arg := range args {
 		if err := enc.Encode(arg); err != nil {
 			return err
@@ -167,6 +169,7 @@ func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compressio
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
+
 	return newPacketTable(hid), nil
 }
 

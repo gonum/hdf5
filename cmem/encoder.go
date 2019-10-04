@@ -4,6 +4,11 @@
 
 package cmem
 
+// #include "hdf5.h"
+// #include <stdlib.h>
+// #include <string.h>
+import "C"
+
 import (
 	"encoding/binary"
 	"fmt"
@@ -26,8 +31,16 @@ func init() {
 // subsequently write an in memory object to a PacketTable using Append().
 type Encoder struct {
 	// Buf contains the encoded data.
-	Buf    []byte
-	offset int
+	Buf          []byte
+	offset       int
+	pointerSlice []unsafe.Pointer
+}
+
+// FreeMemory is to free memory from C
+func (enc *Encoder) FreeMemory() {
+	for i := 0; i < len(enc.pointerSlice); i++ {
+		C.free(enc.pointerSlice[i])
+	}
 }
 
 // Encode encodes the value passed as data to binary form stored in []Buf. This
@@ -61,7 +74,39 @@ func (enc *Encoder) Encode(data interface{}) error {
 	rt := rv.Type()
 
 	switch rt.Kind() {
-	case reflect.Slice, reflect.Array:
+	case reflect.Slice:
+		length := C.size_t(reflect.ValueOf(data).Len())
+		msize := C.size_t(rv.Index(0).Type().Size() * uintptr(length))
+
+		// this is variable length data, it should follow hvl_t format
+		enc.Encode(length)
+
+		pointer := C.malloc(msize)
+		enc.pointerSlice = append(enc.pointerSlice, pointer)
+
+		C.memset(pointer, 0, msize)
+
+		var tempBuf []byte
+		for i := 0; i < rv.Len(); i++ {
+			var myenc Encoder
+			if err := myenc.Encode(rv.Index(i).Interface()); err != nil {
+				return err
+			}
+			mypad := myenc.offset - len(myenc.Buf)
+			if mypad > 0 {
+				myenc.Buf = append(myenc.Buf, make([]byte, mypad)...)
+			}
+
+			tempBuf = append(tempBuf, myenc.Buf...)
+		}
+		// copy contents from temp buf to C memory
+		C.memcpy(pointer, unsafe.Pointer(&tempBuf[0]), msize)
+
+		enc.Encode(C.size_t(uintptr(pointer)))
+
+		return nil
+
+	case reflect.Array:
 		for i := 0; i < rv.Len(); i++ {
 			if err := enc.Encode(rv.Index(i).Interface()); err != nil {
 				return err
