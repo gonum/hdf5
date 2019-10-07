@@ -74,20 +74,8 @@ func (enc *Encoder) Encode(data interface{}) error {
 
 	switch rt.Kind() {
 	case reflect.Slice:
-		length := C.size_t(reflect.ValueOf(data).Len())
-		msize := C.size_t(rv.Index(0).Type().Size() * uintptr(length))
-
-		// this is variable length data, it should follow hvl_t format
-		if err := enc.Encode(length); err != nil {
-			return err
-		}
-
-		pointer := C.malloc(msize)
-		enc.pointerSlice = append(enc.pointerSlice, pointer)
-
-		C.memset(pointer, 0, msize)
-
 		var tempBuf []byte
+
 		for i := 0; i < rv.Len(); i++ {
 			var myenc Encoder
 			if err := myenc.Encode(rv.Index(i).Interface()); err != nil {
@@ -97,13 +85,20 @@ func (enc *Encoder) Encode(data interface{}) error {
 			if mypad > 0 {
 				myenc.Buf = append(myenc.Buf, make([]byte, mypad)...)
 			}
-
 			tempBuf = append(tempBuf, myenc.Buf...)
 		}
-		// copy contents from temp buf to C memory
-		C.memcpy(pointer, unsafe.Pointer(&tempBuf[0]), msize)
 
-		if err := enc.Encode(C.size_t(uintptr(pointer))); err != nil {
+		arraySize := C.size_t(len(tempBuf))
+		vlArray := C.malloc(arraySize)
+		C.bzero(vlArray, arraySize)
+		C.memcpy(vlArray, unsafe.Pointer(&tempBuf[0]), C.size_t(arraySize))
+		enc.pointerSlice = append(enc.pointerSlice, vlArray)
+
+		// this is variable length data, it should follow hvl_t format
+		if err := enc.Encode(C.size_t(rv.Len())); err != nil {
+			return err
+		}
+		if err := enc.Encode(C.size_t(uintptr(vlArray))); err != nil {
 			return err
 		}
 
