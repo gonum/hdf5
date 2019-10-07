@@ -78,7 +78,9 @@ func (enc *Encoder) Encode(data interface{}) error {
 		msize := C.size_t(rv.Index(0).Type().Size() * uintptr(length))
 
 		// this is variable length data, it should follow hvl_t format
-		enc.Encode(length)
+		if err := enc.Encode(length); err != nil {
+			return err
+		}
 
 		pointer := C.malloc(msize)
 		enc.pointerSlice = append(enc.pointerSlice, pointer)
@@ -101,7 +103,9 @@ func (enc *Encoder) Encode(data interface{}) error {
 		// copy contents from temp buf to C memory
 		C.memcpy(pointer, unsafe.Pointer(&tempBuf[0]), msize)
 
-		enc.Encode(C.size_t(uintptr(pointer)))
+		if err = enc.Encode(C.size_t(uintptr(pointer))); err != nil {
+			return err
+		}
 
 		return nil
 
