@@ -103,7 +103,7 @@ func (enc *Encoder) Encode(data interface{}) error {
 		// copy contents from temp buf to C memory
 		C.memcpy(pointer, unsafe.Pointer(&tempBuf[0]), msize)
 
-		if err = enc.Encode(C.size_t(uintptr(pointer))); err != nil {
+		if err := enc.Encode(C.size_t(uintptr(pointer))); err != nil {
 			return err
 		}
 
