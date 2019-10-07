@@ -4,7 +4,6 @@
 
 package cmem
 
-// #include "hdf5.h"
 // #include <stdlib.h>
 // #include <string.h>
 import "C"

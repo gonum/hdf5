@@ -169,7 +169,6 @@ func createTable(id C.hid_t, name string, dtype *Datatype, chunkSize, compressio
 	if err := checkID(hid); err != nil {
 		return nil, err
 	}
-
 	return newPacketTable(hid), nil
 }
 
