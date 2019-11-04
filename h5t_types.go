@@ -353,7 +353,7 @@ func (t *OpaqueDatatype) Tag() string {
 	return ""
 }
 
-// NewDatatypeFromValue creates  a datatype from a value in an interface. The returned
+// NewDatatypeFromValue creates a datatype from a value in an interface. The returned
 // datatype must be closed by the user when it is no longer needed.
 func NewDatatypeFromValue(v interface{}) (*Datatype, error) {
 	return NewDataTypeFromType(reflect.TypeOf(v))

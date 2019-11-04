@@ -10,6 +10,7 @@ package hdf5
 import "C"
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
 )
@@ -69,8 +70,14 @@ func (s *Attribute) Space() *Dataspace {
 
 // Read reads raw data from a attribute into a buffer.
 func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
-	var addr unsafe.Pointer
-	v := reflect.ValueOf(data)
+	var (
+		addr unsafe.Pointer
+		rv   = reflect.ValueOf(data)
+	)
+	if rv.Kind() != reflect.Ptr {
+		return fmt.Errorf("hdf5: read expects a pointer value")
+	}
+	v := reflect.Indirect(rv)
 
 	switch v.Kind() {
 
@@ -78,11 +85,25 @@ func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
 		addr = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.String:
-		str := (*reflect.StringHeader)(unsafe.Pointer(v.UnsafeAddr()))
-		addr = unsafe.Pointer(str.Data)
+		dtAttr, err := copyDatatype(s.GetType().id)
+		if err != nil {
+			return fmt.Errorf("hdf5: could not access attribute datatype: %v", err)
+		}
+		defer dtAttr.Close()
 
-	case reflect.Ptr:
-		addr = unsafe.Pointer(v.Pointer())
+		dtype = dtAttr
+		dlen := dtype.Size()
+		cstr := (*C.char)(unsafe.Pointer(C.malloc(C.ulong(uint(unsafe.Sizeof(byte(0))) * (dlen + 1)))))
+		defer C.free(unsafe.Pointer(cstr))
+		switch {
+		case C.H5Tis_variable_str(dtAttr.Identifier.id) != 0:
+			addr = unsafe.Pointer(&cstr)
+		default:
+			addr = unsafe.Pointer(cstr)
+		}
+		defer func() {
+			v.SetString(C.GoString(cstr))
+		}()
 
 	default:
 		addr = unsafe.Pointer(v.UnsafeAddr())
@@ -103,7 +124,7 @@ func (s *Attribute) Write(data interface{}, dtype *Datatype) error {
 		addr = unsafe.Pointer(v.UnsafeAddr())
 
 	case reflect.String:
-		str := C.CString(v.Interface().(string))
+		str := C.CString(v.String())
 		defer C.free(unsafe.Pointer(str))
 		addr = unsafe.Pointer(&str)
 
