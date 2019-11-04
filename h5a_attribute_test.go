@@ -49,20 +49,32 @@ func TestWriteAttribute(t *testing.T) {
 	}
 
 	for name, v := range attrs {
-		dtype, err := NewDataTypeFromType(v.Type)
-		if err != nil {
-			t.Fatalf("NewDatatypeFromValue failed: %s\n", err)
-		}
-		defer dtype.Close()
+		t.Run(name, func(t *testing.T) {
+			dtype, err := NewDataTypeFromType(v.Type)
+			if err != nil {
+				t.Fatalf("NewDatatypeFromValue failed: %v", err)
+			}
+			defer dtype.Close()
 
-		attr, err := dset.CreateAttribute(name, dtype, scalar)
-		if err != nil {
-			t.Fatalf("CreateAttribute failed: %s\n", err)
-		}
-		defer attr.Close()
+			attr, err := dset.CreateAttribute(name, dtype, scalar)
+			if err != nil {
+				t.Fatalf("CreateAttribute failed: %v", err)
+			}
+			defer attr.Close()
 
-		if err := attr.Write(v.Value, dtype); err != nil {
-			t.Fatalf("Attribute write failed: %s\n", err)
-		}
+			if err := attr.Write(v.Value, dtype); err != nil {
+				t.Fatalf("Attribute write failed: %v", err)
+			}
+
+			got := reflect.New(v.Type).Elem()
+			if err := attr.Read(got.Addr().Interface(), dtype); err != nil {
+				t.Fatalf("Attribute read failed: %v", err)
+			}
+
+			want := reflect.ValueOf(v.Value).Elem().Interface()
+			if !reflect.DeepEqual(want, got.Interface()) {
+				t.Fatalf("round trip failed:\ngot = %v\nwant= %v\n", got.Interface(), want)
+			}
+		})
 	}
 }
