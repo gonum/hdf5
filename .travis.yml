@@ -4,6 +4,10 @@ go:
   - 1.12.x
   - master
 
+arch:
+  - amd64
+  - arm64
+
 matrix:
  fast_finish: true
  allow_failures:
