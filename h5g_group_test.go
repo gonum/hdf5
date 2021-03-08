@@ -71,6 +71,18 @@ func TestGroup(t *testing.T) {
 		t.Errorf("wrong number of objects in group: want 1, got %d", nObjs)
 	}
 
+	if name, err := g2.ObjectNameByIndex(0); err != nil {
+		t.Fatalf("could not retrieve object name idx=%d: %+v", 0, err)
+	} else if got, want := name, "baz"; got != want {
+		t.Errorf("invalid name for object idx=%d: got=%q, want=%q", 0, got, want)
+	}
+
+	if typ, err := g2.ObjectTypeByIndex(0); err != nil {
+		t.Fatalf("could not retrieve object type idx=%d: %+v", 0, err)
+	} else if got, want := typ, H5G_GROUP; got != want {
+		t.Errorf("invalid type for object idx=%d: got=%v, want=%v", 0, got, want)
+	}
+
 	err = g1.Close()
 	if err != nil {
 		t.Error(err)

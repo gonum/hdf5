@@ -15,6 +15,37 @@ import (
 	"unsafe"
 )
 
+// GType describes the type of an object inside a Group or File.
+type GType int
+
+const (
+	H5G_UNKNOWN GType = C.H5G_UNKNOWN // Unknown object type
+	H5G_GROUP   GType = C.H5G_GROUP   // Object is a group
+	H5G_DATASET GType = C.H5G_DATASET // Object is a dataset
+	H5G_TYPE    GType = C.H5G_TYPE    // Object is a named data type
+	H5G_LINK    GType = C.H5G_LINK    // Object is a symbolic link
+	H5G_UDLINK  GType = C.H5G_UDLINK  // Object is a user-defined link
+)
+
+func (typ GType) String() string {
+	switch typ {
+	case H5G_UNKNOWN:
+		return "unknown"
+	case H5G_GROUP:
+		return "group"
+	case H5G_DATASET:
+		return "dataset"
+	case H5G_TYPE:
+		return "type"
+	case H5G_LINK:
+		return "link"
+	case H5G_UDLINK:
+		return "udlink"
+	default:
+		return fmt.Sprintf("GType(%d)", int(typ))
+	}
+}
+
 // CommonFG is for methods common to both File and Group
 type CommonFG struct {
 	Identifier
@@ -143,6 +174,17 @@ func (g *CommonFG) ObjectNameByIndex(idx uint) (string, error) {
 		return "", fmt.Errorf("could not get name")
 	}
 	return C.GoString(&name[0]), nil
+}
+
+// ObjectTypeByIndex returns the type of the object at idx.
+func (g *CommonFG) ObjectTypeByIndex(idx uint) (GType, error) {
+	cidx := C.hsize_t(idx)
+	gtyp := GType(C.H5Gget_objtype_by_idx(g.id, cidx))
+	if gtyp < H5G_GROUP {
+		return H5G_UNKNOWN, fmt.Errorf("could not get object type")
+	}
+
+	return gtyp, nil
 }
 
 // CreateTable creates a packet table to store fixed-length packets.
