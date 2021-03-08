@@ -11,6 +11,7 @@ package hdf5
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -25,6 +26,27 @@ const (
 	ATTRIBUTE IType = C.H5I_ATTR
 	BAD_ID    IType = C.H5I_BADID
 )
+
+func (typ IType) String() string {
+	switch typ {
+	case FILE:
+		return "file"
+	case GROUP:
+		return "group"
+	case DATATYPE:
+		return "datatype"
+	case DATASPACE:
+		return "dataspace"
+	case DATASET:
+		return "dataset"
+	case ATTRIBUTE:
+		return "attribute"
+	case BAD_ID:
+		return "bad_id"
+	default:
+		return fmt.Sprintf("IType=%d", int(typ))
+	}
+}
 
 // Identifier is a simple wrapper around a C hid_t. It has basic methods
 // which apply to every type in the go-hdf5 API.
