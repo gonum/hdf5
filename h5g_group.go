@@ -11,7 +11,9 @@ package hdf5
 import "C"
 
 import (
+	"errors"
 	"fmt"
+	"image"
 	"unsafe"
 )
 
@@ -210,4 +212,20 @@ func (g *CommonFG) LinkExists(name string) bool {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	return C.H5Lexists(g.id, c_name, 0) > 0
+}
+
+// CreateImage create a image(RGB only) set with given name in the receiver.
+func (g *CommonFG) CreateImage(name string, img image.Image) error {
+	if g.LinkExists(name) {
+		return errors.New("hdf5: name already exist")
+	}
+	return newImage(g.id, name, img)
+}
+
+// ReadImage read a image dataset, returning it as an image.Image.
+func (g *CommonFG) ReadImage(name string) (image.Image, error) {
+	if !g.LinkExists(name) {
+		return nil, errors.New("hdf5: name doesn't exist")
+	}
+	return getImage(g.id, name)
 }

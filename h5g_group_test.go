@@ -5,6 +5,9 @@
 package hdf5
 
 import (
+	"image"
+	"image/color"
+	"image/jpeg"
 	"os"
 	"testing"
 )
@@ -139,4 +142,52 @@ func TestGroup(t *testing.T) {
 		t.Errorf("opened dataset that was never created: %v", dset2)
 	}
 
+}
+
+func TestImage(t *testing.T) {
+	f, err := CreateFile(fname, F_ACC_TRUNC)
+	if err != nil {
+		t.Fatalf("CreateFile failed: %v", err)
+	}
+	defer os.Remove(fname)
+	defer f.Close()
+	img := image.NewRGBA(image.Rect(0, 0, 1000, 500))
+	for y := 200; y < 300; y++ {
+		for x := 400; x < 600; x++ {
+			img.Set(x, y, color.RGBA{255, 0, 255, 255})
+		}
+	}
+	if err != nil {
+		t.Fatalf("image decoding failed: %v", err)
+	}
+	g1, err := f.CreateGroup("foo")
+	if err != nil {
+		t.Fatalf("couldn't create group: %v", err)
+	}
+	defer g1.Close()
+	err = g1.CreateImage("image", img)
+	if err != nil {
+		t.Fatalf("image saving failed: %v", err)
+	}
+	imgRead, err := g1.ReadImage("image")
+	if err != nil {
+		t.Fatalf("image reading failed: %v", err)
+	}
+	gotWidth := imgRead.Bounds().Max.X
+	gotHeight := imgRead.Bounds().Max.Y
+	if gotWidth != 1000 || gotHeight != 500 {
+		t.Errorf("image dimension mismatch: got %dx%d, want:1000x500", gotWidth, gotHeight)
+	}
+
+	imgfile, err := os.Create("img.jpg")
+	if err != nil {
+		t.Fatalf("image file creation failed: %v", err)
+	}
+	defer os.Remove("img.jpg")
+	defer imgfile.Close()
+
+	err = jpeg.Encode(imgfile, imgRead, nil)
+	if err != nil {
+		t.Errorf("unexpected error saving image: %v", err)
+	}
 }
