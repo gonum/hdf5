@@ -79,6 +79,8 @@ func (t *Table) Append(args ...interface{}) error {
 	}
 
 	var enc cmem.Encoder
+	defer enc.FreeMemory()
+
 	for _, arg := range args {
 		if err := enc.Encode(arg); err != nil {
 			return err

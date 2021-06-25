@@ -4,6 +4,10 @@
 
 package cmem
 
+// #include <stdlib.h>
+// #include <string.h>
+import "C"
+
 import (
 	"encoding/binary"
 	"fmt"
@@ -26,8 +30,16 @@ func init() {
 // subsequently write an in memory object to a PacketTable using Append().
 type Encoder struct {
 	// Buf contains the encoded data.
-	Buf    []byte
-	offset int
+	Buf          []byte
+	offset       int
+	pointerSlice []unsafe.Pointer
+}
+
+// FreeMemory is to free memory from C
+func (enc *Encoder) FreeMemory() {
+	for i := 0; i < len(enc.pointerSlice); i++ {
+		C.free(enc.pointerSlice[i])
+	}
 }
 
 // Encode encodes the value passed as data to binary form stored in []Buf. This
@@ -61,7 +73,38 @@ func (enc *Encoder) Encode(data interface{}) error {
 	rt := rv.Type()
 
 	switch rt.Kind() {
-	case reflect.Slice, reflect.Array:
+	case reflect.Slice:
+		var tempBuf []byte
+
+		for i := 0; i < rv.Len(); i++ {
+			var myenc Encoder
+			if err := myenc.Encode(rv.Index(i).Interface()); err != nil {
+				return err
+			}
+			mypad := myenc.offset - len(myenc.Buf)
+			if mypad > 0 {
+				myenc.Buf = append(myenc.Buf, make([]byte, mypad)...)
+			}
+			tempBuf = append(tempBuf, myenc.Buf...)
+		}
+
+		arraySize := C.size_t(len(tempBuf))
+		vlArray := C.malloc(arraySize)
+		C.bzero(vlArray, arraySize)
+		C.memcpy(vlArray, unsafe.Pointer(&tempBuf[0]), C.size_t(arraySize))
+		enc.pointerSlice = append(enc.pointerSlice, vlArray)
+
+		// this is variable length data, it should follow hvl_t format
+		if err := enc.Encode(C.size_t(rv.Len())); err != nil {
+			return err
+		}
+		if err := enc.Encode(C.size_t(uintptr(vlArray))); err != nil {
+			return err
+		}
+
+		return nil
+
+	case reflect.Array:
 		for i := 0; i < rv.Len(); i++ {
 			if err := enc.Encode(rv.Index(i).Interface()); err != nil {
 				return err
