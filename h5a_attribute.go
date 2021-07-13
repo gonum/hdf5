@@ -93,7 +93,7 @@ func (s *Attribute) Read(data interface{}, dtype *Datatype) error {
 
 		dtype = dtAttr
 		dlen := dtype.Size()
-		cstr := (*C.char)(unsafe.Pointer(C.malloc(C.ulong(uint(unsafe.Sizeof(byte(0))) * (dlen + 1)))))
+		cstr := (*C.char)(unsafe.Pointer(C.malloc(C.size_t(uint(unsafe.Sizeof(byte(0))) * (dlen + 1)))))
 		defer C.free(unsafe.Pointer(cstr))
 		switch {
 		case C.H5Tis_variable_str(dtAttr.Identifier.id) != 0:
