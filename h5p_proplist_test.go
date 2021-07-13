@@ -184,6 +184,7 @@ func save(fn, dsn string, dims []uint, dcpl *PropList) ([]float64, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer dspace.Close()
 
 	dset, err := f.CreateDatasetWith(dsn, T_NATIVE_DOUBLE, dspace, dcpl)
 	if err != nil {
