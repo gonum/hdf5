@@ -25,7 +25,9 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't create group: %s", err)
 	}
-	if *g1.File() != *f {
+	g1f := g1.File()
+	defer g1f.Close()
+	if *g1f != *f {
 		t.Fatal("wrong file for group")
 	}
 	if g1.Name() != "/foo" {
@@ -44,7 +46,9 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't create group: %s", err)
 	}
-	if *g2.File() != *f {
+	g2f := g2.File()
+	defer g2f.Close()
+	if *g2f != *f {
 		t.Fatal("wrong file for group")
 	}
 	if g2.Name() != "/foo/bar" {
@@ -58,7 +62,9 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't create group: %s", err)
 	}
-	if *g3.File() != *f {
+	g3f := g3.File()
+	defer g3f.Close()
+	if *g3f != *f {
 		t.Fatal("wrong file for group")
 	}
 	if g3.Name() != "/foo/bar/baz" {
@@ -100,11 +106,13 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer g2.Close()
 
 	g3, err = g2.OpenGroup("baz")
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer g3.Close()
 
 	_, err = g3.OpenGroup("bs")
 	if err == nil {
@@ -117,22 +125,26 @@ func TestGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer dtype.Close()
 
 	dims := []uint{1}
 	dspace, err := CreateSimpleDataspace(dims, dims)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer dspace.Close()
 
 	dset, err := g3.CreateDataset("dset", dtype, dspace)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer dset.Close()
 
 	dset2, err := g3.OpenDataset("dset")
 	if dset.Name() != dset2.Name() {
 		t.Error("expected dataset names to be equal")
 	}
+	defer dset2.Close()
 
 	dset2, err = g3.OpenDataset("bs")
 	if err == nil {

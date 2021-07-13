@@ -30,12 +30,14 @@ func createDataset1(t *testing.T) error {
 		t.Fatal(err)
 		return err
 	}
+	defer dspace.Close()
 
 	dset, err := f.CreateDataset("dset", T_NATIVE_USHORT, dspace)
 	if err != nil {
 		t.Fatal(err)
 		return err
 	}
+	defer dset.Close()
 
 	err = dset.Write(&data[0])
 	if err != nil {
@@ -77,9 +79,11 @@ func TestReadSubset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer dset.Close()
 
 	// get the filespace and select the subset
 	filespace := dset.Space()
+	defer filespace.Close()
 	offset, stride, count, block := [2]uint{5, 1}, [2]uint{1, 1}, [2]uint{5, 2}, [2]uint{1, 1}
 	err = filespace.SelectHyperslab(offset[:], stride[:], count[:], block[:])
 	if err != nil {
@@ -95,6 +99,7 @@ func TestReadSubset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer memspace.Close()
 
 	expected := [10]uint16{26, 27, 31, 32, 36, 37, 41, 42, 46, 47}
 
@@ -141,11 +146,13 @@ func TestWriteSubset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer fspace.Close()
 	mdims := []uint{2, 6}
 	mspace, err := CreateSimpleDataspace(mdims, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer mspace.Close()
 
 	f, err := CreateFile(fname, F_ACC_TRUNC)
 	if err != nil {
@@ -157,6 +164,7 @@ func TestWriteSubset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer dset.Close()
 
 	offset := []uint{6, 0, 0}
 	stride := []uint{3, 1, 1}
@@ -175,12 +183,14 @@ func TestWriteSubset(t *testing.T) {
 func TestSelectHyperslab(t *testing.T) {
 	DisplayErrors(true)
 	defer DisplayErrors(false)
+	defer os.Remove(fname)
 
 	dims := []uint{12, 4}
 	dspace, err := CreateSimpleDataspace(dims, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer dspace.Close()
 	offset, stride, count, block := []uint{1, 2}, []uint{2, 1}, []uint{4, 2}, []uint{1, 1}
 	if err = dspace.SelectHyperslab(offset, stride, count, block); err != nil {
 		t.Fatal(err)
